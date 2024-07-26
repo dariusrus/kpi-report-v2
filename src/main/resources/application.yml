@@ -1,0 +1,40 @@
+server:
+  servlet:
+    contextPath: /blc-kpi
+  port: 8325
+spring:
+  application:
+    name: BLC KPI Report V2
+    api-key: 27fc2f8f489e4813a965114be60893d4
+  profiles:
+    active: dev
+  security:
+    user:
+      name: blc-user
+      password: Welike2kupo!
+      roles: USER
+  datasource:
+    url: jdbc:postgresql://localhost:5432/KPI_Report
+    username: PriceRequest
+    password: welike2kupo
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+google-analytics:
+  credentials-file: /ga-blc-0327-001-e20fe1e70555.json
+  metricNames:
+    - activeUsers
+go-high-level:
+  client-id: 665f317263649015872c069b-lyt1r0mv
+  client-secret: 0e7441b2-d861-4fc5-add4-699df3ea8309
+kpi-report:
+  ghlLocationIds:
+    - KzkNJDWtvtee1quKjT8z # Bathrooms of Charleston
+    - OW9jB57PFkL4sYankoog # S. Brown Construction Co.
+    - OblTdbpiAyFSEVBL5Qfb # Triple Crown Homes
+    - Tkmgh0RupoHFq0iCJosQ # Kashi Custom Homes
+    - lWZrtj8byFZrUI9Cg2eX # Regency Homes
+    - QUqcw0nLwPlwL1bZbAY3 # Morning Star Builders
