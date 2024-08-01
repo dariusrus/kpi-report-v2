@@ -23,6 +23,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+generator:
+  semaphorePermits: 1
+  retryBackOffPeriod: 15000
+  retryMaxAttempts: 3
 google-analytics:
   credentials-file: /ga-blc-0327-001-e20fe1e70555.json
   metricNames:
@@ -30,6 +34,8 @@ google-analytics:
 go-high-level:
   client-id: 665f317263649015872c069b-lyt1r0mv
   client-secret: 0e7441b2-d861-4fc5-add4-699df3ea8309
+microsoft-clarity:
+  base-url: https://www.clarity.ms/export-data/api/v1/project-live-insights
 kpi-report:
   ghlLocationIds:
     - KzkNJDWtvtee1quKjT8z # Bathrooms of Charleston

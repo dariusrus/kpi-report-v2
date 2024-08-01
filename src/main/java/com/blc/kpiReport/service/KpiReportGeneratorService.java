@@ -1,7 +1,10 @@
 package com.blc.kpiReport.service;
 
+import com.blc.kpiReport.config.GeneratorConfig;
 import com.blc.kpiReport.config.GhlLocationsToGenerateProperties;
+import com.blc.kpiReport.exception.MicrosoftClarityApiException;
 import com.blc.kpiReport.models.ReportStatus;
+import com.blc.kpiReport.models.request.GenerateClarityReportRequest;
 import com.blc.kpiReport.models.request.GenerateKpiReportByLocationRequest;
 import com.blc.kpiReport.models.request.GenerateKpiReportsRequest;
 import com.blc.kpiReport.models.response.GenerateKpiReportBatchResponse;
@@ -11,6 +14,7 @@ import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.KpiReport;
 import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
 import com.blc.kpiReport.service.ghl.GoHighLevelApiService;
+import com.blc.kpiReport.service.mc.MicrosoftClarityApiService;
 import com.blc.kpiReport.util.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +23,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -38,15 +46,20 @@ import static com.blc.kpiReport.util.NumberUtil.roundToTwoDecimalPlaces;
 @EnableAsync
 public class KpiReportGeneratorService {
 
-    // add the property to configure semaphore
-
     private final GhlLocationsToGenerateProperties ghlLocations;
     private final GhlLocationService ghlLocationService;
     private final GoogleAnalyticsService googleAnalyticsService;
     private final GoHighLevelApiService goHighLevelApiService;
+    private final MicrosoftClarityApiService microsoftClarityApiService;
     private final KpiReportRepository repository;
+    private final GeneratorConfig generatorConfig;
 
-    private final Semaphore semaphore = new Semaphore(1); // Only one permit
+    private Semaphore semaphore;
+
+    @PostConstruct
+    public void init() {
+        this.semaphore = new Semaphore(generatorConfig.getSemaphorePermits());
+    }
 
     @Transactional
     public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(GenerateKpiReportsRequest request) {
@@ -131,6 +144,8 @@ public class KpiReportGeneratorService {
 
             log.debug("Fetched GoHighLevel report for KPI report ID: {}", kpiReport.getId());
 
+            log.debug("Fetched GoHighLevel report for KPI report ID: {}", kpiReport.getId());
+
             kpiReport.setGoogleAnalyticsMetric(googleAnalyticsMetric);
             kpiReport.setGoHighLevelReport(goHighLevelReport);
             setStatus(kpiReport, ReportStatus.SUCCESS);
@@ -153,14 +168,6 @@ public class KpiReportGeneratorService {
             formatMonthAndYear(month, year));
         log.info("================================================================" +
             "=====================================================================");
-    }
-
-    private void setStatus(KpiReport kpiReport, ReportStatus status) {
-        kpiReport.setLastRunStatus(status);
-        if (ReportStatus.SUCCESS == status || ReportStatus.FAILED == status) {
-            kpiReport.setLastEndTime(Instant.now());
-        }
-        repository.save(kpiReport);
     }
 
     public GenerateKpiReportResponse getKpiReportStatus(Long id) {
@@ -286,5 +293,72 @@ public class KpiReportGeneratorService {
             log.info("Created new KPI report for {} with ID: {}", ghlLocation.getName(), kpiReport.getId());
             return kpiReport;
         }
+    }
+
+    @Transactional
+    public CompletableFuture<GenerateKpiReportResponse> generateDailyMicrosoftAnalyticsReport(GenerateClarityReportRequest request) {
+        var ghlLocation = ghlLocationService.findByLocationId(request.getGhlLocationId());
+        var requestDate = ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
+        int day = requestDate.getDayOfMonth();
+        int month = requestDate.getMonthValue();
+        int year = requestDate.getYear();
+        var kpiReport = getOrCreateKpiReport(ghlLocation, month, year);
+
+        // Update KpiReport status and timing before fetching metrics
+        kpiReport.setLastStartTime(Instant.now());
+        setStatus(kpiReport, ReportStatus.ONGOING);
+
+        var response = prepareInitialResponse(request.getGhlLocationId(), month, year, new ArrayList<>());
+        runAsyncDailyReportGeneration(response, month, year, day);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    private CompletableFuture<Void> runAsyncDailyReportGeneration(GenerateKpiReportResponse response, int month, int year, int day) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                log.info("Acquiring semaphore for location ID: {} (Name: {})", response.getGhlLocationId(), response.getSubAgency());
+                semaphore.acquire();
+                log.info("Semaphore acquired for location ID: {} (Name: {})", response.getGhlLocationId(), response.getSubAgency());
+                Thread.sleep(2000); // Simulate delay
+                var ghlLocation = ghlLocationService.findByLocationId(response.getGhlLocationId());
+                var kpiReport = getOrCreateKpiReport(ghlLocation, month, year);
+                generateDailyMicrosoftAnalyticsReport(ghlLocation, kpiReport, day).join();
+            } catch (InterruptedException e) {
+                log.error("Interrupted while acquiring semaphore for location ID: {} (Name: {})", response.getGhlLocationId(), response.getSubAgency(), e);
+                Thread.currentThread().interrupt();
+            } finally {
+                semaphore.release();
+                log.info("Semaphore released for location ID: {} (Name: {})", response.getGhlLocationId(), response.getSubAgency());
+            }
+        });
+    }
+
+    @Async
+    public CompletableFuture<Void> generateDailyMicrosoftAnalyticsReport(GhlLocation ghlLocation, KpiReport kpiReport, int day) {
+        kpiReport.setLastStartTime(Instant.now());
+        setStatus(kpiReport, ReportStatus.ONGOING);
+        try {
+            // Fetch metrics for the previous day
+            var dailyMetric = microsoftClarityApiService.fetchMetricsForPreviousDay(ghlLocation, kpiReport, day);
+            // for some reason, the program execute the code below
+            log.info("Fetched metrics for day {}: {}", day, dailyMetric);
+            setStatus(kpiReport, ReportStatus.SUCCESS);
+        } catch (IOException | MicrosoftClarityApiException e) {
+            log.error("Error during report generation for location ID: {}", ghlLocation.getLocationId(), e);
+            setStatus(kpiReport, ReportStatus.FAILED);
+        } finally {
+            kpiReport.setLastEndTime(Instant.now());
+            log.info("Report generation process finished for location ID: {}", ghlLocation.getLocationId());
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private void setStatus(KpiReport kpiReport, ReportStatus status) {
+        kpiReport.setLastRunStatus(status);
+        if (ReportStatus.SUCCESS == status || ReportStatus.FAILED == status) {
+            kpiReport.setLastEndTime(Instant.now());
+        }
+        repository.save(kpiReport);
+        log.info("KPI Report was saved with status {}", kpiReport.getLastRunStatus());
     }
 }

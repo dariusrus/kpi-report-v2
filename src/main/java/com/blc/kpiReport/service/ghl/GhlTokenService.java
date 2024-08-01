@@ -1,5 +1,6 @@
 package com.blc.kpiReport.service.ghl;
 
+import com.blc.kpiReport.config.GoHighLevelProperties;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.service.GhlLocationService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +26,7 @@ public class GhlTokenService {
 
     private static final String TOKEN_URL = "https://services.leadconnectorhq.com/oauth/token";
 
-    @Value("${go-high-level.client-id}")
-    private String clientId;
-    @Value("${go-high-level.client-secret}")
-    private String clientSecret;
+    private final GoHighLevelProperties goHighLevelProperties;
     private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper;
     private final GhlLocationService ghlLocationService;
@@ -37,14 +34,14 @@ public class GhlTokenService {
 
     public GhlLocation getAccessToken(GhlLocation ghlLocation) {
         try {
-            if (ghlLocation.getTokenDate() == null || isTokenExpired(ghlLocation.getTokenDate())) {
+            if (ghlLocation.getGhlTokenDate() == null || isTokenExpired(ghlLocation.getGhlTokenDate())) {
                 log.info("Access Token has expired for {}", ghlLocation.getName());
                 return ghlLocationService.save(refreshAccessToken(ghlLocation));
             } else {
                 return ghlLocation;
             }
         } catch (IOException exception) {
-            log.error("Failed to secure access token for {}", ghlLocation.getName(), exception);
+            log.error("Failed to secure access token for {}", ghlLocation.getName());
         }
         return ghlLocation;
     }
@@ -59,10 +56,11 @@ public class GhlTokenService {
 
             MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
             RequestBody body = RequestBody.create(mediaType,
-                "client_id=" + clientId +
-                    "&client_secret=" + clientSecret +
+                "client_id=" + goHighLevelProperties.getClientId() +
+                    "&client_secret=" + goHighLevelProperties.getClientSecret() +
                     "&grant_type=refresh_token" +
-                    "&refresh_token=" + ghlLocation.getRefreshToken() +
+                    "&refresh_token=" + ghlLocation.getGhlRefreshToken() +
+                    "&user_type=Location" +
                     "&redirect_uri=");
 
             Request request = new Request.Builder()
@@ -80,8 +78,8 @@ public class GhlTokenService {
                     String newAccessToken = jsonResponse.get("access_token").asText();
                     Instant now = Instant.now();
 
-                    ghlLocation.setAccessToken(newAccessToken);
-                    ghlLocation.setTokenDate(now);
+                    ghlLocation.setGhlAccessToken(newAccessToken);
+                    ghlLocation.setGhlTokenDate(now);
 
                     log.info("Successfully refreshed access token for GhlLocation ID: {}", ghlLocation.getId());
                     return ghlLocation;
@@ -94,4 +92,3 @@ public class GhlTokenService {
         });
     }
 }
-

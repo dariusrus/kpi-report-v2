@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "kpi_report")
@@ -56,4 +57,8 @@ public class KpiReport extends DateAudit implements Serializable {
     @OneToOne(mappedBy = "kpiReport")
     @JsonManagedReference
     private GoHighLevelReport goHighLevelReport;
+
+    @OneToMany(mappedBy = "kpiReport")
+    @JsonManagedReference
+    private List<DailyMetric> dailyMetrics;
 }

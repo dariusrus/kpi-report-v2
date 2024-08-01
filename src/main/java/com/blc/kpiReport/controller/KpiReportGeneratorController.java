@@ -39,7 +39,7 @@ public class KpiReportGeneratorController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path="/monthly" , produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<GenerateKpiReportResponse> generateKpiReport(@RequestBody GenerateKpiReportByLocationRequest request) {
         return generatorService.generateKpiReportByLocation(request);
     }
@@ -56,7 +56,7 @@ public class KpiReportGeneratorController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    @PostMapping("/batch")
+    @PostMapping("/monthly/batch")
     public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(@RequestBody GenerateKpiReportsRequest request) throws IOException {
         return generatorService.generateAllKpiReports(request);
     }

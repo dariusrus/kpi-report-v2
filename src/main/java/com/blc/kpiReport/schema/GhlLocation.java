@@ -46,21 +46,26 @@ public class GhlLocation implements Serializable {
     private String name;
 
     @Size(max = 5000)
-    @Column(name = "access_token", length = 5000)
+    @Column(name = "ghl_access_token", length = 5000)
     @JsonIgnore
-    private String accessToken;
+    private String ghlAccessToken;
 
     @Size(max = 5000)
-    @Column(name = "refresh_token", length = 5000)
+    @Column(name = "ghl_refresh_token", length = 5000)
     @JsonIgnore
-    private String refreshToken;
+    private String ghlRefreshToken;
 
     @Size(max = 5000)
-    @Column(name = "token_scope", length = 5000)
+    @Column(name = "ghl_token_scope", length = 5000)
     @JsonIgnore
-    private String tokenScope;
+    private String ghlTokenScope;
 
-    @Column(name = "token_date")
+    @Column(name = "ghl_token_date")
     @JsonIgnore
-    private Instant tokenDate;
+    private Instant ghlTokenDate;
+
+    @Size(max = 5000)
+    @Column(name = "mc_api_token", length = 5000)
+    @JsonIgnore
+    private String mcApiToken;
 }

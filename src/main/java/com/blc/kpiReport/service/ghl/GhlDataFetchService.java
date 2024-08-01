@@ -42,7 +42,7 @@ public class GhlDataFetchService {
 
         location = tokenService.getAccessToken(location);
         var locationId = location.getLocationId();
-        var accessToken = location.getAccessToken();
+        var accessToken = location.getGhlAccessToken();
         log.debug("Obtained access token for location ID: {}", locationId);
 
         try {

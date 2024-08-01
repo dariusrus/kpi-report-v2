@@ -1,9 +1,6 @@
 package com.blc.kpiReport.service;
 
-import com.blc.kpiReport.models.mapper.AppointmentMapper;
-import com.blc.kpiReport.models.mapper.ContactWonMapper;
-import com.blc.kpiReport.models.mapper.PipelineStageMapper;
-import com.blc.kpiReport.models.mapper.LeadSourceMapper;
+import com.blc.kpiReport.models.mapper.*;
 import com.blc.kpiReport.models.response.*;
 import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.schema.GhlLocation;
@@ -31,6 +28,7 @@ public class KpiReportRetrievalService {
     private final PipelineStageMapper pipelineStageMapper;
     private final ContactWonMapper contactWonMapper;
     private final LeadSourceMapper leadSourceMapper;
+    private final DailyMetricMapper dailyMetricMapper;
 
     public KpiReportResponse getKpiReport(String ghlLocationId, int month, int year) {
         var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
@@ -91,4 +89,29 @@ public class KpiReportRetrievalService {
             .leadSource(leadSourceMapper.toResponseList(leadSources))
             .build();
     }
+
+    public DailyMetricResponse getDailyMetric(String ghlLocationId, int day, int month, int year) {
+        var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
+        if (ghlLocation != null) {
+            var id = ghlLocation.getId();
+            var kpiReportOptional = repository.findByMonthAndYearAndGhlLocation_Id(month, year, id);
+            if (kpiReportOptional.isPresent()) {
+                var kpiReport = kpiReportOptional.get();
+                var dailyMetrics = kpiReport.getDailyMetrics();
+
+                // Find the DailyMetric that matches the day
+                var dailyMetric = dailyMetrics.stream()
+                    .filter(dm -> dm.getDay() == day)
+                    .findFirst()
+                    .orElse(null);
+
+                if (dailyMetric != null) {
+                    // Map DailyMetric to DailyMetricResponse
+                    return dailyMetricMapper.toResponse(dailyMetric, ghlLocation);
+                }
+            }
+        }
+        return null;
+    }
+
 }
