@@ -1,20 +1,19 @@
 package com.blc.kpiReport.controller;
 
 import com.blc.kpiReport.models.response.KpiReportResponse;
+import com.blc.kpiReport.models.response.MonthlyAverageResponse;
 import com.blc.kpiReport.service.KpiReportRetrievalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/reports")
+@CrossOrigin(origins = "*")
 @Tag(name = "KPI Report Retrieval API", description = "Endpoints used to retrieve KPI Reports.")
 public class KpiReportController {
 
@@ -33,8 +32,26 @@ public class KpiReportController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
+
     @GetMapping()
     public KpiReportResponse getReportByMonthYearAndLocation(@RequestParam String ghlLocationId, @RequestParam int month, @RequestParam int year) {
         return retrievalService.getKpiReport(ghlLocationId, month, year);
+    }
+    @Operation(
+        summary = "Fetch Monthly Average by month and year.",
+        description = "Retrieve the Monthly Average for a specified month and year.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Monthly average fetched successfully",
+                content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(responseCode = "404", description = "Monthly average not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    @GetMapping("/monthly/average")
+    public MonthlyAverageResponse getMonthlyAverage(@RequestParam int month, @RequestParam int year) {
+        return retrievalService.getMonthlyAverage(month, year);
     }
 }

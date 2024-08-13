@@ -25,7 +25,7 @@ spring:
       ddl-auto: update
 generator:
   semaphorePermits: 1
-  retryBackOffPeriod: 15000
+  retryBackOffPeriod: 10000
   retryMaxAttempts: 3
 google-analytics:
   credentials-file: /ga-blc-0327-001-e20fe1e70555.json
@@ -36,6 +36,7 @@ go-high-level:
   client-secret: 0e7441b2-d861-4fc5-add4-699df3ea8309
 microsoft-clarity:
   base-url: https://www.clarity.ms/export-data/api/v1/project-live-insights
+  num-of-days: 1
 kpi-report:
   ghlLocationIds:
     - KzkNJDWtvtee1quKjT8z # Bathrooms of Charleston

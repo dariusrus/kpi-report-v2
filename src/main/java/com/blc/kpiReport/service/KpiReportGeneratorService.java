@@ -10,8 +10,11 @@ import com.blc.kpiReport.models.request.GenerateKpiReportsRequest;
 import com.blc.kpiReport.models.response.GenerateKpiReportBatchResponse;
 import com.blc.kpiReport.models.response.GenerateKpiReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
+import com.blc.kpiReport.repository.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.KpiReport;
+import com.blc.kpiReport.schema.LeadSource;
+import com.blc.kpiReport.schema.MonthlyAverage;
 import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
 import com.blc.kpiReport.service.ghl.GoHighLevelApiService;
 import com.blc.kpiReport.service.mc.MicrosoftClarityApiService;
@@ -52,6 +55,7 @@ public class KpiReportGeneratorService {
     private final GoHighLevelApiService goHighLevelApiService;
     private final MicrosoftClarityApiService microsoftClarityApiService;
     private final KpiReportRepository repository;
+    private final MonthlyAverageRepository monthlyAverageRepository;
     private final GeneratorConfig generatorConfig;
 
     private Semaphore semaphore;
@@ -360,5 +364,62 @@ public class KpiReportGeneratorService {
         }
         repository.save(kpiReport);
         log.info("KPI Report was saved with status {}", kpiReport.getLastRunStatus());
+    }
+
+    @Transactional
+    public void calculateAverageOpportunityToLead(GenerateKpiReportsRequest request) {
+        List<KpiReport> reports = repository.findByMonthAndYear(request.getMonth(), request.getYear());
+
+        if (reports.isEmpty()) {
+            log.info("No reports found for the specified month and year.");
+            return;
+        }
+
+        double totalUniqueSiteVisitors = 0;
+        int totalLeadSources = 0;
+        int reportCount = reports.size();
+
+        double sumOpportunityToLead = 0;
+
+        for (KpiReport report : reports) {
+            if (report.getGoogleAnalyticsMetric() != null) {
+                totalUniqueSiteVisitors += report.getGoogleAnalyticsMetric().getUniqueSiteVisitors();
+            }
+
+            if (report.getGoHighLevelReport() != null) {
+                List<LeadSource> leadSources = report.getGoHighLevelReport().getLeadSources();
+                for (LeadSource leadSource : leadSources) {
+                    totalLeadSources += leadSource.getTotalLeads();
+                }
+            }
+
+            if (report.getGoogleAnalyticsMetric() != null && report.getGoHighLevelReport() != null) {
+                double opportunityToLead = (report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum()
+                    / (double) report.getGoogleAnalyticsMetric().getUniqueSiteVisitors()) * 100;
+                sumOpportunityToLead += opportunityToLead;
+            }
+        }
+
+        double averageUniqueSiteVisitors = totalUniqueSiteVisitors / reportCount;
+        double averageTotalLeads = totalLeadSources / (double) reportCount;
+        double weightedAverageOpportunityToLead = (totalLeadSources / totalUniqueSiteVisitors) * 100;
+        double nonWeightedAverageOpportunityToLead = sumOpportunityToLead / reportCount;
+
+        log.info("Average Unique Site Visitors: {}", averageUniqueSiteVisitors);
+        log.info("Average Total Leads: {}", averageTotalLeads);
+        log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
+        log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
+
+        MonthlyAverage monthlyAverage = monthlyAverageRepository.findByMonthAndYear(request.getMonth(), request.getYear())
+            .orElse(new MonthlyAverage());
+
+        monthlyAverage.setMonth(request.getMonth());
+        monthlyAverage.setYear(request.getYear());
+        monthlyAverage.setAverageUniqueSiteVisitors((int) averageUniqueSiteVisitors);
+        monthlyAverage.setAverageTotalLeads((int) averageTotalLeads);
+        monthlyAverage.setAverageOpportunityToLead(nonWeightedAverageOpportunityToLead);
+        monthlyAverage.setWeightedAverageOpportunityToLead(weightedAverageOpportunityToLead);
+
+        monthlyAverageRepository.save(monthlyAverage);
     }
 }

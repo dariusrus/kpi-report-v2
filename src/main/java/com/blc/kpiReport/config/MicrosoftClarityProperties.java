@@ -11,5 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class MicrosoftClarityProperties {
     private String baseUrl;
+    private String numOfDays;
 }
 

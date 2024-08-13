@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -59,6 +60,24 @@ public class KpiReportGeneratorController {
     @PostMapping("/monthly/batch")
     public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(@RequestBody GenerateKpiReportsRequest request) throws IOException {
         return generatorService.generateAllKpiReports(request);
+    }
+
+    @Operation(
+        summary = "Generate the average Opportunity-to-Lead for a specific month and year.",
+        description = "Calculate the average Opportunity-to-Lead from all existing reports for a specified month and year.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Average Opportunity-to-Lead has been generated successfully"
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    @PostMapping(path="/monthly/average", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> generateAverageOpportunityToLead(@RequestBody GenerateKpiReportsRequest request) {
+        generatorService.calculateAverageOpportunityToLead(request);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(

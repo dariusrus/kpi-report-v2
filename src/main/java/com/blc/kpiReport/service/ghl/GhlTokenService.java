@@ -76,12 +76,15 @@ public class GhlTokenService {
                 if (response.isSuccessful()) {
                     JsonNode jsonResponse = objectMapper.readTree(response.body().string());
                     String newAccessToken = jsonResponse.get("access_token").asText();
+                    String newRefreshToken = jsonResponse.get("refresh_token").asText();
                     Instant now = Instant.now();
 
                     ghlLocation.setGhlAccessToken(newAccessToken);
+                    ghlLocation.setGhlRefreshToken(newRefreshToken);
+
                     ghlLocation.setGhlTokenDate(now);
 
-                    log.info("Successfully refreshed access token for GhlLocation ID: {}", ghlLocation.getId());
+                    log.info("Successfully refreshed access token for GhlLocation: {}", ghlLocation.getName());
                     return ghlLocation;
                 } else {
                     String errorMessage = "Failed to refresh access token: " + response.message();

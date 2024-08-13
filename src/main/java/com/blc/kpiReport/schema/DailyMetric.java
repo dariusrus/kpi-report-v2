@@ -34,7 +34,7 @@ public class DailyMetric extends DateAudit implements Serializable {
     @JsonManagedReference
     private List<Metric> metrics;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "kpi_report_id", nullable = false)
     @JsonBackReference
     private KpiReport kpiReport;

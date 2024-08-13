@@ -21,11 +21,12 @@ public class MicrosoftClarityFetchService {
     private final MicrosoftClarityProperties clarityProperties;
     private final RetryTemplate retryTemplate;
 
-    public String fetchMetricsForPreviousDay(int numOfDays, String apiToken) throws MicrosoftClarityApiException {
+    public String fetchMetricsForPreviousDay(String apiToken) throws MicrosoftClarityApiException {
+        int numOfDays = Integer.parseInt(clarityProperties.getNumOfDays());
         return retryTemplate.execute(context -> {
             log.info("Attempt {} to fetch metrics for the previous {} days", context.getRetryCount() + 1, numOfDays);
 
-            String url = String.format("%s?numOfDays=%d&dimension1=Device&dimension2=Channel&dimension3=Source",
+            String url = String.format("%s?numOfDays=%d&dimension1=URL",
                 clarityProperties.getBaseUrl(), numOfDays);
             log.debug("Fetching metrics from URL: {}", url);
 
