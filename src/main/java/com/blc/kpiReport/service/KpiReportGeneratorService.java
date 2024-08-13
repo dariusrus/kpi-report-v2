@@ -3,6 +3,7 @@ package com.blc.kpiReport.service;
 import com.blc.kpiReport.config.GeneratorConfig;
 import com.blc.kpiReport.config.GhlLocationsToGenerateProperties;
 import com.blc.kpiReport.exception.MicrosoftClarityApiException;
+import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.ReportStatus;
 import com.blc.kpiReport.models.request.GenerateClarityReportRequest;
 import com.blc.kpiReport.models.request.GenerateKpiReportByLocationRequest;
@@ -32,10 +33,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
@@ -375,51 +373,79 @@ public class KpiReportGeneratorService {
             return;
         }
 
-        double totalUniqueSiteVisitors = 0;
-        int totalLeadSources = 0;
-        int reportCount = reports.size();
+        // Initialize accumulators for each ClientType
+        Map<ClientType, Double> totalUniqueSiteVisitorsMap = new HashMap<>();
+        Map<ClientType, Integer> totalLeadSourcesMap = new HashMap<>();
+        Map<ClientType, Double> sumOpportunityToLeadMap = new HashMap<>();
+        Map<ClientType, Integer> reportCountMap = new HashMap<>();
 
-        double sumOpportunityToLead = 0;
+        for (ClientType clientType : ClientType.values()) {
+            totalUniqueSiteVisitorsMap.put(clientType, 0.0);
+            totalLeadSourcesMap.put(clientType, 0);
+            sumOpportunityToLeadMap.put(clientType, 0.0);
+            reportCountMap.put(clientType, 0);
+        }
 
+        // Iterate through reports and accumulate metrics by ClientType
         for (KpiReport report : reports) {
+            ClientType clientType = report.getGhlLocation().getClientType(); // Access ClientType from GhlLocation
+
+            if (clientType == null) {
+                continue;
+            }
+
+            reportCountMap.put(clientType, reportCountMap.get(clientType) + 1);
+
             if (report.getGoogleAnalyticsMetric() != null) {
-                totalUniqueSiteVisitors += report.getGoogleAnalyticsMetric().getUniqueSiteVisitors();
+                totalUniqueSiteVisitorsMap.put(clientType,
+                    totalUniqueSiteVisitorsMap.get(clientType) + report.getGoogleAnalyticsMetric().getUniqueSiteVisitors());
             }
 
             if (report.getGoHighLevelReport() != null) {
                 List<LeadSource> leadSources = report.getGoHighLevelReport().getLeadSources();
                 for (LeadSource leadSource : leadSources) {
-                    totalLeadSources += leadSource.getTotalLeads();
+                    totalLeadSourcesMap.put(clientType,
+                        totalLeadSourcesMap.get(clientType) + leadSource.getTotalLeads());
                 }
             }
 
             if (report.getGoogleAnalyticsMetric() != null && report.getGoHighLevelReport() != null) {
                 double opportunityToLead = (report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum()
                     / (double) report.getGoogleAnalyticsMetric().getUniqueSiteVisitors()) * 100;
-                sumOpportunityToLead += opportunityToLead;
+                sumOpportunityToLeadMap.put(clientType,
+                    sumOpportunityToLeadMap.get(clientType) + opportunityToLead);
             }
         }
 
-        double averageUniqueSiteVisitors = totalUniqueSiteVisitors / reportCount;
-        double averageTotalLeads = totalLeadSources / (double) reportCount;
-        double weightedAverageOpportunityToLead = (totalLeadSources / totalUniqueSiteVisitors) * 100;
-        double nonWeightedAverageOpportunityToLead = sumOpportunityToLead / reportCount;
+        // Save the averages for each ClientType
+        for (ClientType clientType : ClientType.values()) {
+            if (reportCountMap.get(clientType) == 0) {
+                continue;
+            }
 
-        log.info("Average Unique Site Visitors: {}", averageUniqueSiteVisitors);
-        log.info("Average Total Leads: {}", averageTotalLeads);
-        log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
-        log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
+            double averageUniqueSiteVisitors = totalUniqueSiteVisitorsMap.get(clientType) / reportCountMap.get(clientType);
+            double averageTotalLeads = totalLeadSourcesMap.get(clientType) / (double) reportCountMap.get(clientType);
+            double weightedAverageOpportunityToLead = (totalLeadSourcesMap.get(clientType) / totalUniqueSiteVisitorsMap.get(clientType)) * 100;
+            double nonWeightedAverageOpportunityToLead = sumOpportunityToLeadMap.get(clientType) / reportCountMap.get(clientType);
 
-        MonthlyAverage monthlyAverage = monthlyAverageRepository.findByMonthAndYear(request.getMonth(), request.getYear())
-            .orElse(new MonthlyAverage());
+            log.info("ClientType: {}", clientType);
+            log.info("Average Unique Site Visitors: {}", averageUniqueSiteVisitors);
+            log.info("Average Total Leads: {}", averageTotalLeads);
+            log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
+            log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
 
-        monthlyAverage.setMonth(request.getMonth());
-        monthlyAverage.setYear(request.getYear());
-        monthlyAverage.setAverageUniqueSiteVisitors((int) averageUniqueSiteVisitors);
-        monthlyAverage.setAverageTotalLeads((int) averageTotalLeads);
-        monthlyAverage.setAverageOpportunityToLead(nonWeightedAverageOpportunityToLead);
-        monthlyAverage.setWeightedAverageOpportunityToLead(weightedAverageOpportunityToLead);
+            MonthlyAverage monthlyAverage = monthlyAverageRepository.findByMonthAndYearAndClientType(request.getMonth(), request.getYear(), clientType)
+                .orElse(new MonthlyAverage());
 
-        monthlyAverageRepository.save(monthlyAverage);
+            monthlyAverage.setMonth(request.getMonth());
+            monthlyAverage.setYear(request.getYear());
+            monthlyAverage.setClientType(clientType);
+            monthlyAverage.setAverageUniqueSiteVisitors((int) averageUniqueSiteVisitors);
+            monthlyAverage.setAverageTotalLeads((int) averageTotalLeads);
+            monthlyAverage.setAverageOpportunityToLead(nonWeightedAverageOpportunityToLead);
+            monthlyAverage.setWeightedAverageOpportunityToLead(weightedAverageOpportunityToLead);
+
+            monthlyAverageRepository.save(monthlyAverage);
+        }
     }
 }

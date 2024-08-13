@@ -1,5 +1,6 @@
 package com.blc.kpiReport.service;
 
+import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.mapper.*;
 import com.blc.kpiReport.models.response.*;
 import com.blc.kpiReport.repository.KpiReportRepository;
@@ -119,8 +120,8 @@ public class KpiReportRetrievalService {
         return null;
     }
 
-    public MonthlyAverageResponse getMonthlyAverage(int month, int year) {
-        Optional<MonthlyAverage> monthlyAverageOptional = monthlyAverageRepository.findByMonthAndYear(month, year);
+    public MonthlyAverageResponse getMonthlyAverage(int month, int year, ClientType clientType) {
+        Optional<MonthlyAverage> monthlyAverageOptional = monthlyAverageRepository.findByMonthAndYearAndClientType(month, year, clientType);
         if (monthlyAverageOptional.isPresent()) {
             return monthlyAverageMapper.toResponse(monthlyAverageOptional.get());
         } else {

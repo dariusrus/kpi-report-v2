@@ -1,5 +1,6 @@
 package com.blc.kpiReport.schema;
 
+import com.blc.kpiReport.models.ClientType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -68,4 +69,8 @@ public class GhlLocation implements Serializable {
     @Column(name = "mc_api_token", length = 5000)
     @JsonIgnore
     private String mcApiToken;
+
+    @Column(name = "client_type")
+    @Enumerated(EnumType.STRING)
+    private ClientType clientType;
 }

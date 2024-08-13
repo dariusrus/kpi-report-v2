@@ -1,9 +1,11 @@
 package com.blc.kpiReport.controller;
 
+import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.response.KpiReportResponse;
 import com.blc.kpiReport.models.response.MonthlyAverageResponse;
 import com.blc.kpiReport.service.KpiReportRetrievalService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +39,10 @@ public class KpiReportController {
     public KpiReportResponse getReportByMonthYearAndLocation(@RequestParam String ghlLocationId, @RequestParam int month, @RequestParam int year) {
         return retrievalService.getKpiReport(ghlLocationId, month, year);
     }
+
     @Operation(
-        summary = "Fetch Monthly Average by month and year.",
-        description = "Retrieve the Monthly Average for a specified month and year.",
+        summary = "Fetch Monthly Average by month, year, and client type.",
+        description = "Retrieve the Monthly Average for a specified month, year, and client type.",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -51,7 +54,10 @@ public class KpiReportController {
         }
     )
     @GetMapping("/monthly/average")
-    public MonthlyAverageResponse getMonthlyAverage(@RequestParam int month, @RequestParam int year) {
-        return retrievalService.getMonthlyAverage(month, year);
+    public MonthlyAverageResponse getMonthlyAverage(
+        @RequestParam int month,
+        @RequestParam int year,
+        @RequestParam @Parameter(description = "Client type", required = true, example = "REMODELING") ClientType clientType) {
+        return retrievalService.getMonthlyAverage(month, year, clientType);
     }
 }

@@ -1,5 +1,6 @@
 package com.blc.kpiReport.schema;
 
+import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -48,4 +49,9 @@ public class MonthlyAverage extends DateAudit implements Serializable {
     @NotNull
     @Column(name = "weighted_average_opportunity_to_lead", nullable = false)
     private double weightedAverageOpportunityToLead;
+
+    @NotNull
+    @Column(name = "client_type")
+    @Enumerated(EnumType.STRING)
+    private ClientType clientType;
 }

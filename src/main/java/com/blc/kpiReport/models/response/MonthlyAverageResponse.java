@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class MonthlyAverageResponse {
     private String monthAndYear;
+    private String clientType;
     private int averageUniqueSiteVisitors;
     private int averageTotalLeads;
     private double averageOpportunityToLead;

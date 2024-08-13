@@ -13,6 +13,7 @@ public class MonthlyAverageMapper {
     public MonthlyAverageResponse toResponse(MonthlyAverage monthlyAverage) {
         return MonthlyAverageResponse.builder()
             .monthAndYear(formatMonthAndYear(monthlyAverage.getMonth(), monthlyAverage.getYear()))
+            .clientType(monthlyAverage.getClientType().toString())
             .averageUniqueSiteVisitors(Math.round(monthlyAverage.getAverageUniqueSiteVisitors()))
             .averageTotalLeads(Math.round(monthlyAverage.getAverageTotalLeads()))
             .averageOpportunityToLead(roundToTwoDecimalPlaces(monthlyAverage.getAverageOpportunityToLead()))
