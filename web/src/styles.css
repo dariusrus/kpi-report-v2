@@ -1,0 +1,33 @@
+@import "primeng/resources/themes/viva-light/theme.css";
+@import "primeng/resources/primeng.css";
+@import "primeicons/primeicons.css";
+
+* {
+  font-family: "Ubuntu", sans-serif;
+}
+
+html, body {
+  background-color: #f2f7fa;
+  padding-bottom: 25px !important;
+}
+
+app-kpi-report path.line.ng-trigger.ng-trigger-animationState {
+  stroke-width: 2px;
+}
+
+app-kpi-report g.cell {
+  font-weight: 700;
+}
+
+app-kpi-report .advanced-pie-legend .legend-items-container .legend-items .legend-item {
+  margin-top: 10px !important;
+}
+
+app-kpi-report .chart-legend .legend-title  {
+  width: fit-content;
+}
+
+app-kpi-report ngx-charts-pie-chart .chart-legend .legend-labels {
+  width: auto !important;
+  max-width: 275px !important;
+}

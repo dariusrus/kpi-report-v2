@@ -1,0 +1,426 @@
+<div *ngIf="reportData && !isLoading; else loadingOrError">
+  <p-scrollTop icon="pi pi-angle-up" />
+  <div class="header-container sticky">
+    <div class="container header-sub-container">
+      <div class="header-labels">
+        <div class="title">Success KPIs for {{ reportData.monthAndYear }}</div>
+        <div class="sub-agency-name">{{ reportData.subAgency }}</div>
+      </div>
+
+      <!-- Custom Dropdowns -->
+      <div class="dropdown-container">
+        <p-toggleButton
+          [(ngModel)]="displayComparisons"
+          onLabel="Toggle BLC Average"
+          offLabel="Toggle BLC Average" />
+        <p-dropdown
+          [options]="months"
+          [(ngModel)]="selectedMonth"
+          (onChange)="onMonthChange()"
+        />
+        <p-dropdown
+          [options]="years"
+          [(ngModel)]="selectedYear"
+          (onChange)="onYearChange()"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row" style="min-height: 200px"
+         snInViewport
+         (inViewportChange)="handleViewportChange($event, 'summary')"
+         [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}">
+      <div class="col-12" *ngIf="isVisible['summary']">
+        <ngx-charts-number-card
+          [view]="[1310, 200]"
+          [scheme]="'vivid'"
+          [results]="numberCards"
+          [valueFormatting]="valueFormatting"
+          [cardColor]="'#ffffff'">
+        </ngx-charts-number-card>
+      </div>
+    </div>
+
+    <div>
+      <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'analytics')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+      >
+        <div class="col-6">
+          <div class="report-container">
+            <div class="report-title">
+              Google Analytics
+            </div>
+            <div class="report-subtitle">
+              (Last {{ monthCount }} months)
+            </div>
+            <div class="report-data" *ngIf="isVisible['analytics']">
+              <ngx-charts-bar-vertical *ngIf="!displayComparisons"
+                [scheme]="'forest'"
+                [results]="gaBarChart"
+                [gradient]="true"
+                [roundEdges]="false"
+                [xAxis]="showXAxis"
+                [yAxis]="showYAxis"
+                [showDataLabel]="true"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="'Unique Site Visitors'"
+              >
+              </ngx-charts-bar-vertical>
+              <ngx-charts-bar-vertical-2d *ngIf="displayComparisons"
+                [scheme]="'picnic'"
+                [results]="gaGroupedBarChart"
+                [gradient]="true"
+                [xAxis]="showXAxis"
+                [yAxis]="showYAxis"
+                [legend]="true"
+                [legendPosition]="LegendPosition.Below"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [roundEdges]="false"
+                [roundDomains]="true"
+                [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="'Unique Site Visitors'"
+              >
+              </ngx-charts-bar-vertical-2d>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="report-container">
+            <div class="report-title">
+              Opportunity-to-Lead
+            </div>
+            <div class="report-subtitle">
+              (Last {{ monthCount }} months)
+            </div>
+            <div class="report-data" *ngIf="isVisible['analytics']">
+              <ngx-charts-line-chart *ngIf="!displayComparisons"
+                [scheme]="'forest'"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [xAxis]="true"
+                [yAxis]="true"
+                [xAxisLabel]="'Month & Year'"
+                [yAxisLabel]="'Opportunity-to-Lead (%)'"
+                [roundDomains]="true"
+                [legendPosition]="LegendPosition.Below"
+                [legend]="false"
+                [results]="opportunityLineChart"
+                [curve]="curve"
+              >
+              </ngx-charts-line-chart>
+              <ngx-charts-line-chart *ngIf="displayComparisons"
+                [scheme]="'forest'"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [xAxis]="true"
+                [yAxis]="true"
+                [xAxisLabel]="'Month & Year'"
+                [yAxisLabel]="'Opportunity-to-Lead (%)'"
+                [roundDomains]="true"
+                [legendPosition]="LegendPosition.Below"
+                [legend]="true"
+                [results]="opportunityGroupedLineChart"
+                [curve]="curve"
+              >
+              </ngx-charts-line-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'websiteLeads')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+      >
+        <div class="col-5 d-flex">
+          <div class="report-container flex-grow-1 d-flex flex-column">
+            <div class="report-title">
+              Total Website Leads
+            </div>
+            <div class="report-subtitle">
+              (Last {{ monthCount }} months)
+            </div>
+            <div class="report-data flex-grow-1" *ngIf="isVisible['websiteLeads']">
+              <ngx-charts-bar-vertical *ngIf="!displayComparisons"
+                [scheme]="'cool'"
+                [results]="leadBarChart"
+                [gradient]="true"
+                [roundEdges]="false"
+                [xAxis]="showXAxis"
+                [yAxis]="showYAxis"
+                [showDataLabel]="true"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="'Total Website Leads'"
+              >
+              </ngx-charts-bar-vertical>
+              <ngx-charts-bar-vertical-2d *ngIf="displayComparisons"
+                [scheme]="'cool'"
+                [results]="leadGroupedBarChart"
+                [gradient]="true"
+                [xAxis]="showXAxis"
+                [yAxis]="showYAxis"
+                [legend]="true"
+                [legendPosition]="LegendPosition.Below"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [roundEdges]="false"
+                [roundDomains]="true"
+                [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="'Total Website Leads'"
+                [rotateXAxisTicks]="true"
+              >
+              </ngx-charts-bar-vertical-2d>
+            </div>
+          </div>
+        </div>
+        <div class="col-7 d-flex">
+          <div class="report-container flex-grow-1 d-flex flex-column">
+            <div class="report-title">Lead Sources</div>
+            <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+            <div class="report-data flex-grow-1" *ngIf="isVisible['websiteLeads']">
+              <p-table [value]="reportData.websiteLead.leadSource" [tableStyle]="{'font-size': '0.8em'}" [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'" @fadeIn>
+                <ng-template pTemplate="header">
+                  <tr class="custom-tr">
+                    <th pSortableColumn="source">Source</th>
+                    <th class="align-center" pSortableColumn="totalLeads">Leads</th>
+                    <th class="align-center" pSortableColumn="totalValues">Valuation</th>
+                    <th class="align-center" pSortableColumn="open">Open</th>
+                    <th class="align-center" pSortableColumn="won">Won</th>
+                    <th class="align-center" pSortableColumn="lost">Lost</th>
+                    <th class="align-center" pSortableColumn="abandoned">Abandoned</th>
+                    <th class="align-center" pSortableColumn="winPercentage">Win%</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-source>
+                  <tr>
+                    <td class="align-left">{{ source.source || 'Unspecified' }}</td>
+                    <td [class.zero-value]="source.totalLeads === 0" class="align-center">{{ source.totalLeads }}</td>
+                    <td [class.zero-value]="source.totalValues === 0" class="align-right">{{ source.totalValues | currency }}</td>
+                    <td [class.zero-value]="source.open === 0" class="align-center">{{ source.open }}</td>
+                    <td [class.zero-value]="source.won === 0" class="align-center">{{ source.won }}</td>
+                    <td [class.zero-value]="source.lost === 0" class="align-center">{{ source.lost }}</td>
+                    <td [class.zero-value]="source.abandoned === 0" class="align-center">{{ source.abandoned }}</td>
+                    <td [class.zero-value]="source.winPercentage === 0" class="align-center">{{ source.winPercentage }}%</td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="footer">
+                  <tr class="custom-tr">
+                    <td class="align-center font-bold">TOTAL</td>
+                    <td class="align-center font-bold">{{ reportData.websiteLead.totalLeads }}</td>
+                    <td class="align-right font-bold">{{ reportData.websiteLead.totalValues | currency }}</td>
+                    <td class="align-center font-bold">{{ reportData.websiteLead.totalOpen }}</td>
+                    <td class="align-center font-bold">{{ reportData.websiteLead.totalWon }}</td>
+                    <td class="align-center font-bold">{{ reportData.websiteLead.totalLost }}</td>
+                    <td class="align-center font-bold">{{ reportData.websiteLead.totalAbandoned }}</td>
+                    <td class="align-center"></td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row report-row"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'appointments')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
+      >
+        <div class="col-12">
+          <div class="report-container">
+            <div class="report-title">
+              Appointments
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }} (w/ Last {{ monthCount }} months)
+            </div>
+            <div class="row" *ngIf="isVisible['appointments']">
+              <div class="col-6 report-data">
+                <ngx-charts-advanced-pie-chart
+                  [view]="[600, 300]"
+                  [scheme]="'forest'"
+                  [results]="appointmentsPieChart"
+                  [gradient]="gradient">
+                </ngx-charts-advanced-pie-chart>
+              </div>
+              <div class="col-6 report-data">
+                <ngx-charts-area-chart
+                  [view]="[600, 300]"
+                  [scheme]="'forest'"
+                  [showXAxisLabel]="showXAxisLabel"
+                  [showYAxisLabel]="showYAxisLabel"
+                  [xAxis]="showXAxis"
+                  [yAxis]="showYAxis"
+                  [xAxisLabel]="xAxisLabel"
+                  [yAxisLabel]="'Status Count'"
+                  [legend]="true"
+                  [curve]="curve"
+                  [results]="appointmentsLineChart">
+                </ngx-charts-area-chart>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row report-row"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'pipelines')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+      >
+        <div class="col-12">
+          <div class="report-container">
+            <div class="report-title">
+              Pipeline Stages
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="row" *ngIf="isVisible['pipelines']">
+              <div class="col-6 report-data">
+                <div class="custom-dropdown">
+                  <p-floatLabel>
+                    <p-dropdown
+                      [options]="reportData.pipelines"
+                      [(ngModel)]="selectedPipeline"
+                      optionLabel="pipelineName"
+                      placeholder="Select a Pipeline"
+                      (onChange)="onPipelineChange($event)"
+                      id="float-label"
+                    />
+                    <label for="float-label">Select Pipeline</label>
+                  </p-floatLabel>
+                </div>
+                <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.8em'}" [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'" @fadeIn>
+                  <ng-template pTemplate="header">
+                    <tr class="custom-tr">
+                      <th>Pipeline Stage</th>
+                      <th class="align-center">#</th>
+                      <th class="align-center">%</th>
+                      <th class="align-right">$</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-pipelineStage>
+                    <tr>
+                      <td class="align-left">{{ pipelineStage.stageName }}</td>
+                      <td [class.zero-value]="pipelineStage.count === 0" class="align-center">{{ pipelineStage.count }}</td>
+                      <td [class.zero-value]="pipelineStage.percentage === 0" class="align-center">{{ pipelineStage.percentage }}%</td>
+                      <td [class.zero-value]="pipelineStage.monetaryValue === 0" class="align-right">{{ pipelineStage.monetaryValue | currency }}</td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="footer">
+                    <tr class="custom-tr">
+                      <td class="align-center font-bold">TOTAL</td>
+                      <td class="align-center font-bold">{{ getTotalCounts(selectedPipeline!.pipelineStages) }}</td>
+                      <td class="align-center font-bold">{{ getTotalPercentage(selectedPipeline!.pipelineStages) | number:'1.0-2' }}%</td>
+                      <td class="align-right font-bold">{{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+              <div class="col-6 report-data">
+                <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                  [view]="[400, 425]"
+                  [scheme]="'picnic'"
+                  [results]="pipelinesPieChart"
+                  [gradient]="true"
+                  [maxLabelLength]="15"
+                  [trimLabels]="true"
+                  [legendTitle]="'Legend'"
+                  [legendPosition]="LegendPosition.Right"
+                  [legend]="true"
+                  [doughnut]="true"
+                  [arcWidth]=".25"
+                >
+                </ngx-charts-pie-chart>
+                <div class="no-data-placeholder" @fadeIn *ngIf="selectedPipelineNoData">
+                  <div>
+                    <i class="pi pi-info-circle"></i> No data for this pipeline.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row report-row"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'contactsWon')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+      >
+        <div class="col-5">
+          <div class="report-container report-container-sm">
+            <div class="report-title">
+              Contacts Won
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="report-data" *ngIf="isVisible['contactsWon']">
+              <ng-container *ngIf="reportData.contactsWon.length > 0; else noContactsTemplate">
+                <p-table [value]="reportData.contactsWon" [tableStyle]="{'font-size': '0.8em'}" [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'" @fadeIn>
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th></th>
+                      <th>Name</th>
+                      <th>E-mail</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-contactWon>
+                    <tr>
+                      <td class="align-center">
+                        <div [ngStyle]="{'background-color': getRandomColor(contactWon.contactName)}" class="avatar-icon">
+                          {{ getInitials(contactWon.contactName) }}
+                        </div>
+                      </td>
+                      <td class="align-left">{{ contactWon.contactName }}</td>
+                      <td class="align-left">{{ contactWon.contactEmail }}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </ng-container>
+              <ng-template #noContactsTemplate>
+                <div class="no-data-placeholder" @fadeIn>
+                  <div>
+                    <i class="pi pi-address-book"></i> No contacts won.
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+        <div class="col-7">
+          <div class="report-container report-container-sm">
+            <div class="report-title">Microsoft Clarity</div>
+            <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+            <div class="report-data width-100" *ngIf="isVisible['contactsWon']">
+              <div class="no-data-placeholder" @fadeIn>
+                <div>
+                  <i class="pi pi-info-circle"></i> Report is still unavailable at this time.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<ng-template #loadingOrError>
+  <div class="container">
+    <div class="report-loading">
+      <img src="https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/companyPhotos%2FqifAU6T7cfOK6S72c8e2.png?alt=media&token=be357fe1-bceb-4b8e-9e09-77c0c2217359" alt="Loading Image" class="loading-image"/>
+      <p class="loading-message">Loading your report data...</p>
+      <p-progressSpinner
+        strokeWidth="4"
+        fill="var(--surface-ground)"
+        animationDuration=".5s" />
+    </div>
+  </div>
+</ng-template>
