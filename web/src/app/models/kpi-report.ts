@@ -13,4 +13,5 @@ export interface KpiReport {
   appointments: Appointment[];
   pipelines: Pipeline[];
   contactsWon: ContactWon[];
+  clientType: string;
 }

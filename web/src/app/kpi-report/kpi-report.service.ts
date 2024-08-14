@@ -27,7 +27,7 @@ export class KpiReportService {
     return this.http.get<KpiReport>(this.apiUrl, { headers, params });
   }
 
-  getMonthlyAverage(month: number, year: number): Observable<MonthlyAverage> {
+  getMonthlyAverage(month: number, year: number, clientType: string): Observable<MonthlyAverage> {
     const headers = new HttpHeaders({
       'accept': 'application/json',
       'X-BLC-API-KEY': '27fc2f8f489e4813a965114be60893d4'
@@ -35,7 +35,8 @@ export class KpiReportService {
 
     const params = {
       month: month.toString(),
-      year: year.toString()
+      year: year.toString(),
+      clientType: clientType
     };
 
     return this.http.get<MonthlyAverage>(`${this.apiUrl}/monthly/average`, { headers, params });

@@ -68,6 +68,7 @@ public class KpiReportRetrievalService {
             .subAgency(location.getName())
             .ghlLocationId(location.getLocationId())
             .monthAndYear(monthAndYear)
+            .clientType(location.getClientType().toString())
             .uniqueSiteVisitors(uniqueSiteVisitors)
             .opportunityToLead(roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100))
             .websiteLead(websiteLead)

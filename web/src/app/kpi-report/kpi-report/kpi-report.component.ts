@@ -41,11 +41,11 @@ export class KpiReportComponent implements OnInit {
   appointmentsLineChart: any[] = [];
   pipelinesPieChart: any[] = [];
 
-
   reportData: KpiReport | null = null;
   averageReportData: MonthlyAverage | null = null;
   reportDataPrevious: KpiReport[] = [];
   averageReportDataPrevious: MonthlyAverage[] = [];
+  clientType: string = '';
 
   selectedPipeline: Pipeline | null = null;
   selectedPipelineNoData: boolean = false;
@@ -54,6 +54,7 @@ export class KpiReportComponent implements OnInit {
   isLoading: boolean = true;
 
   displayComparisons: boolean = false;
+  averageLabel: string = '';
 
   selectedMonth: string;
   selectedYear: number;
@@ -131,61 +132,94 @@ export class KpiReportComponent implements OnInit {
   }
 
   loadAllData(locationId: string, currentMonth: number, currentYear: number): void {
+    this.isLoading = true;
     this.monthCount = 1 + this.config.previousMonthsCount;
     const previousMonths = this.getPreviousMonths(currentMonth, currentYear, this.config.previousMonthsCount);
-    const observables = previousMonths.map(([month, year]) =>
-      forkJoin([
-        this.kpiReportService.getReportData(locationId, month, year),
-        this.kpiReportService.getMonthlyAverage(month, year)
-      ])
-    );
 
-    const currentMonthObservable = forkJoin([
-      this.kpiReportService.getReportData(locationId, currentMonth, currentYear),
-      this.kpiReportService.getMonthlyAverage(currentMonth, currentYear)
-    ]);
-
-    forkJoin([currentMonthObservable, ...observables]).subscribe({
-      next: (results) => {
-        const [[currentData, currentAverage], ...previousData] = results;
+    // Fetch the current month's report data first to retrieve the clientType
+    this.kpiReportService.getReportData(locationId, currentMonth, currentYear).subscribe({
+      next: (currentData) => {
         this.reportData = currentData;
-        this.averageReportData = currentAverage;
-        if (this.reportData?.pipelines.length) {
-          this.updateSelectedPipeline(this.reportData.pipelines[0]);
+        this.clientType = this.reportData?.clientType;
+        this.averageLabel = this.clientType === 'REMODELING'
+          ? 'Toggle Remodeling Average'
+          : this.clientType === 'CUSTOM_HOMES'
+            ? 'Toggle Custom Homes Average'
+            : 'Toggle BLC Average';
+
+        if (!this.clientType) {
+          console.error('Client type is undefined. Cannot proceed with fetching monthly averages.');
+          this.isLoading = false;
+          return;
         }
 
-        this.reportDataPrevious = [];
-        this.averageReportDataPrevious = [];
+        // Now that we have the clientType, fetch the monthly average for the current month
+        this.kpiReportService.getMonthlyAverage(currentMonth, currentYear, this.clientType).subscribe({
+          next: (currentAverage) => {
+            this.averageReportData = currentAverage;
 
-        previousData.forEach(([report, average]) => {
-          if (!report.uniqueSiteVisitors) {
-            report.opportunityToLead = 0;
+            // Proceed to fetch previous months' data and averages
+            const observables = previousMonths.map(([month, year]) =>
+              forkJoin([
+                this.kpiReportService.getReportData(locationId, month, year),
+                this.kpiReportService.getMonthlyAverage(month, year, this.clientType)
+              ])
+            );
+
+            forkJoin(observables).subscribe({
+              next: (previousData) => {
+                this.reportDataPrevious = [];
+                this.averageReportDataPrevious = [];
+
+                previousData.forEach(([report, average]) => {
+                  if (!report.uniqueSiteVisitors) {
+                    report.opportunityToLead = 0;
+                  }
+                  this.reportDataPrevious.push(report);
+                  this.averageReportDataPrevious.push(average);
+                });
+
+                if (this.reportData?.pipelines.length) {
+                  this.updateSelectedPipeline(this.reportData.pipelines[0]);
+                }
+
+                this.populateChartsAndCards(currentData, currentAverage, previousData);
+
+                setTimeout(() => {
+                  this.isLoading = false;
+                }, 1);
+              },
+              error: (error) => {
+                console.error('Failed to fetch previous months\' KPI report data:', error);
+                this.isLoading = false;
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Failed to fetch current month\'s monthly average:', error);
+            this.isLoading = false;
           }
-          this.reportDataPrevious.push(report);
-          this.averageReportDataPrevious.push(average);
         });
-
-        this.populateNumberCards(currentData);
-        this.populateGaBarChart(currentData, previousData);
-        this.populateGaGroupedBarChart(currentData, previousData, currentAverage);
-        this.populateLeadBarChart(currentData, previousData);
-        this.populateLeadGroupedBarChart(currentData, previousData, currentAverage);
-        this.populateLeadSourceBarChart();
-        this.populateOpportunityLineChart(currentData, previousData);
-        this.populateOpportunityGroupedLineChart(currentData, previousData, currentAverage);
-        this.setupAppointmentsLineChart(currentData, previousData.map(([report]) => report));
-        this.setupAppointmentsPieChart(currentData, previousData.map(([report]) => report));
-        this.setupPipelinesPieChart();
-
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1);
       },
       error: (error) => {
-        console.error('Failed to fetch KPI report data:', error);
+        console.error('Failed to fetch current month\'s KPI report data:', error);
         this.isLoading = false;
       }
     });
+  }
+
+  populateChartsAndCards(currentData: KpiReport, currentAverage: MonthlyAverage, previousData: [KpiReport, MonthlyAverage][]): void {
+    this.populateNumberCards(currentData);
+    this.populateGaBarChart(currentData, previousData);
+    this.populateGaGroupedBarChart(currentData, previousData, currentAverage);
+    this.populateLeadBarChart(currentData, previousData);
+    this.populateLeadGroupedBarChart(currentData, previousData, currentAverage);
+    this.populateLeadSourceBarChart();
+    this.populateOpportunityLineChart(currentData, previousData);
+    this.populateOpportunityGroupedLineChart(currentData, previousData, currentAverage);
+    this.setupAppointmentsLineChart(currentData, previousData.map(([report]) => report));
+    this.setupAppointmentsPieChart(currentData, previousData.map(([report]) => report));
+    this.setupPipelinesPieChart();
   }
 
   private populateNumberCards(currentData: KpiReport): void {
