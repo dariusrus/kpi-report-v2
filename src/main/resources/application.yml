@@ -30,6 +30,7 @@ generator:
 google-analytics:
   credentials-file: /ga-blc-0327-001-e20fe1e70555.json
   metricNames:
+    - newUsers
     - activeUsers
 go-high-level:
   client-id: 665f317263649015872c069b-lyt1r0mv
@@ -37,6 +38,13 @@ go-high-level:
 microsoft-clarity:
   base-url: https://www.clarity.ms/export-data/api/v1/project-live-insights
   num-of-days: 1
+  dimensions:
+    - URL
+    - Device
+  metrics:
+    - ScrollDepth
+    - Traffic
+    - EngagementTime
 kpi-report:
   ghlLocationIds:
     - KzkNJDWtvtee1quKjT8z # Bathrooms of Charleston

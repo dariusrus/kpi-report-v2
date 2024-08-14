@@ -22,12 +22,15 @@ public class MicrosoftClarityApiService {
     public DailyMetric fetchMetricsForPreviousDay(GhlLocation ghlLocation, KpiReport kpiReport, int day) throws IOException, MicrosoftClarityApiException {
         DailyMetric dailyMetric;
         if (ObjectUtils.isNotEmpty(ghlLocation)) {
+            // Reader
             var previousDayMetrics = fetchService.fetchMetricsForPreviousDay(ghlLocation.getMcApiToken());
-            var processedMetrics = processorService.processMetrics(previousDayMetrics);
 
+            // Processor
+            var processedMetrics = processorService.processMetrics(previousDayMetrics);;
+
+            // Writer
             dailyMetric = writerService.getOrCreateDailyMetric(kpiReport, day);
             processedMetrics.forEach(metric -> metric.setDailyMetric(dailyMetric));
-
             writerService.saveMetrics(processedMetrics);
             log.info("Daily Metrics saved {}", dailyMetric);
         } else {

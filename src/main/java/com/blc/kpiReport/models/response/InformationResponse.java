@@ -26,4 +26,5 @@ public class InformationResponse {
     private String device;
     private String channel;
     private String source;
+    private String url;
 }

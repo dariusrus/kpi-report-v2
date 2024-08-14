@@ -25,6 +25,7 @@ public class InformationMapper {
             .device(information.getDevice())
             .channel(information.getChannel())
             .source(information.getSource())
+            .url(information.getUrl())
             .build();
     }
 }

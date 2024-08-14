@@ -2,6 +2,7 @@ package com.blc.kpiReport.schema;
 
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -62,6 +63,10 @@ public class Information extends DateAudit implements Serializable {
 
     @Column(name = "pages_per_session_percentage")
     private Double pagesPerSessionPercentage;
+
+    @Size(max = 5000)
+    @Column(name = "url", length = 5000)
+    private String url;
 
     // Common fields
     @Size(max = 200)

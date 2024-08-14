@@ -49,4 +49,7 @@ public class InformationDto {
 
     @JsonProperty("pagesPerSessionPercentage")
     private Double pagesPerSessionPercentage;
+
+    @JsonProperty("Url")
+    private String url;
 }

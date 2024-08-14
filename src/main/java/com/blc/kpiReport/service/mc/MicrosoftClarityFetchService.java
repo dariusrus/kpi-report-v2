@@ -11,6 +11,8 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +25,17 @@ public class MicrosoftClarityFetchService {
 
     public String fetchMetricsForPreviousDay(String apiToken) throws MicrosoftClarityApiException {
         int numOfDays = Integer.parseInt(clarityProperties.getNumOfDays());
+        List<String> dimensions = clarityProperties.getDimensions();
+
         return retryTemplate.execute(context -> {
             log.info("Attempt {} to fetch metrics for the previous {} days", context.getRetryCount() + 1, numOfDays);
 
-            String url = String.format("%s?numOfDays=%d&dimension1=URL",
-                clarityProperties.getBaseUrl(), numOfDays);
+            String dimensionParams = dimensions.stream()
+                .map(dimension -> "dimension" + (dimensions.indexOf(dimension) + 1) + "=" + dimension)
+                .collect(Collectors.joining("&"));
+
+            String url = String.format("%s?numOfDays=%d&%s",
+                clarityProperties.getBaseUrl(), numOfDays, dimensionParams);
             log.debug("Fetching metrics from URL: {}", url);
 
             Request request = new Request.Builder()

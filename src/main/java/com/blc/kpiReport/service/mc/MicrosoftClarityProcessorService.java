@@ -1,5 +1,6 @@
 package com.blc.kpiReport.service.mc;
 
+import com.blc.kpiReport.config.MicrosoftClarityProperties;
 import com.blc.kpiReport.models.pojo.InformationDto;
 import com.blc.kpiReport.models.pojo.MetricDto;
 import com.blc.kpiReport.schema.Information;
@@ -13,24 +14,31 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MicrosoftClarityProcessorService {
 
     private final ObjectMapper objectMapper;
+    private final MicrosoftClarityProperties clarityProperties;
 
     public List<Metric> processMetrics(String dailyMetrics) throws JsonProcessingException {
         // Deserialize JSON into MetricDto list
         List<MetricDto> metricDTOs = objectMapper.readValue(dailyMetrics, new TypeReference<List<MetricDto>>() {});
 
+        // Filter metrics based on allowed metric names
+        List<MetricDto> filteredMetricDTOs = metricDTOs.stream()
+            .filter(metricDto -> clarityProperties.getMetrics().contains(metricDto.getMetricName()))
+            .collect(Collectors.toList());
+
         // List to hold Metric entities
         List<Metric> metrics = new ArrayList<>();
 
-        for (MetricDto metricDto : metricDTOs) {
+        for (MetricDto metricDto : filteredMetricDTOs) {
             Metric metric = Metric.builder()
                 .metricName(Optional.ofNullable(metricDto.getMetricName()).orElse(null))
-                .informationList(new ArrayList<>()) // Will add Information later
+                .informationList(new ArrayList<>())
                 .build();
 
             for (InformationDto infoDto : metricDto.getInformation()) {
@@ -50,6 +58,7 @@ public class MicrosoftClarityProcessorService {
                     .device(infoDto.getDevice())
                     .channel(infoDto.getChannel())
                     .source(infoDto.getSource())
+                    .url(infoDto.getUrl())
                     .metric(metric)
                     .build();
                 metric.getInformationList().add(information);

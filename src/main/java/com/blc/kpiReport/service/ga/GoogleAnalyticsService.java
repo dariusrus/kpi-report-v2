@@ -135,7 +135,9 @@ public class GoogleAnalyticsService {
 
         if (existingMetric.isPresent()) {
             log.info("Found existing Google Analytics metric for KpiReport ID: {}", kpiReport.getId());
-            return existingMetric.get();
+            var googleAnalyticsMetric = existingMetric.get();
+            googleAnalyticsMetric.setUniqueSiteVisitors(uniqueSiteVisitors);
+            return repository.save(googleAnalyticsMetric);
         } else {
             GoogleAnalyticsMetric newMetric = GoogleAnalyticsMetric.builder()
                 .uniqueSiteVisitors(uniqueSiteVisitors)
