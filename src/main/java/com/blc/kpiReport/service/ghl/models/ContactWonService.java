@@ -1,6 +1,6 @@
 package com.blc.kpiReport.service.ghl.models;
 
-import com.blc.kpiReport.schema.ContactWon;
+import com.blc.kpiReport.schema.ghl.ContactWon;
 import com.blc.kpiReport.repository.ContactWonRepository;
 import org.springframework.stereotype.Service;
 

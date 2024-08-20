@@ -1,6 +1,6 @@
 package com.blc.kpiReport.service.ghl.models;
 
-import com.blc.kpiReport.schema.PipelineStage;
+import com.blc.kpiReport.schema.ghl.PipelineStage;
 import com.blc.kpiReport.repository.PipelineStageRepository;
 import org.springframework.stereotype.Service;
 

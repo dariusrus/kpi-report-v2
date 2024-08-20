@@ -2,7 +2,7 @@ package com.blc.kpiReport.service.ga;
 
 import com.blc.kpiReport.config.GoogleAnalyticsQueryProperties;
 import com.blc.kpiReport.repository.GoogleAnalyticsRepository;
-import com.blc.kpiReport.schema.GoogleAnalyticsMetric;
+import com.blc.kpiReport.schema.ga.GoogleAnalyticsMetric;
 import com.blc.kpiReport.schema.KpiReport;
 import com.google.api.services.analyticsadmin.v1beta.GoogleAnalyticsAdmin;
 import com.google.api.services.analyticsadmin.v1beta.model.GoogleAnalyticsAdminV1betaListAccountSummariesResponse;

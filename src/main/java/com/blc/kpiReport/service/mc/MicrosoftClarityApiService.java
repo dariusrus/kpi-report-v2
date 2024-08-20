@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.mc;
 
 import com.blc.kpiReport.exception.MicrosoftClarityApiException;
-import com.blc.kpiReport.schema.DailyMetric;
+import com.blc.kpiReport.schema.mc.DailyMetric;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.KpiReport;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class MicrosoftClarityApiService {
             var previousDayMetrics = fetchService.fetchMetricsForPreviousDay(ghlLocation.getMcApiToken());
 
             // Processor
-            var processedMetrics = processorService.processMetrics(previousDayMetrics);;
+            var processedMetrics = processorService.processMetrics(previousDayMetrics);
 
             // Writer
             dailyMetric = writerService.getOrCreateDailyMetric(kpiReport, day);

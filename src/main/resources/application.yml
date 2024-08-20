@@ -43,8 +43,8 @@ microsoft-clarity:
     - Device
   metrics:
     - ScrollDepth
-    - Traffic
     - EngagementTime
+    - Traffic
 kpi-report:
   ghlLocationIds:
     - KzkNJDWtvtee1quKjT8z # Bathrooms of Charleston

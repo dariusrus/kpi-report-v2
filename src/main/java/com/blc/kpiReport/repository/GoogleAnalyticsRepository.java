@@ -1,6 +1,6 @@
 package com.blc.kpiReport.repository;
 
-import com.blc.kpiReport.schema.GoogleAnalyticsMetric;
+import com.blc.kpiReport.schema.ga.GoogleAnalyticsMetric;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

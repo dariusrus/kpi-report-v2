@@ -1,6 +1,6 @@
 package com.blc.kpiReport.repository;
 
-import com.blc.kpiReport.schema.GoHighLevelReport;
+import com.blc.kpiReport.schema.ghl.GoHighLevelReport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

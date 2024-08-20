@@ -1,6 +1,6 @@
 package com.blc.kpiReport.service.ghl.models;
 
-import com.blc.kpiReport.schema.Appointment;
+import com.blc.kpiReport.schema.ghl.Appointment;
 import com.blc.kpiReport.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
 

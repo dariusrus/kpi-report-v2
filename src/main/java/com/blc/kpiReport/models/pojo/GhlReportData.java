@@ -1,9 +1,9 @@
 package com.blc.kpiReport.models.pojo;
 
-import com.blc.kpiReport.schema.Appointment;
-import com.blc.kpiReport.schema.ContactWon;
-import com.blc.kpiReport.schema.LeadSource;
-import com.blc.kpiReport.schema.PipelineStage;
+import com.blc.kpiReport.schema.ghl.Appointment;
+import com.blc.kpiReport.schema.ghl.ContactWon;
+import com.blc.kpiReport.schema.ghl.LeadSource;
+import com.blc.kpiReport.schema.ghl.PipelineStage;
 import lombok.*;
 
 import java.util.List;

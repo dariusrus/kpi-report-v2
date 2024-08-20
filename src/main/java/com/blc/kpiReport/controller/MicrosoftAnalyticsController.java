@@ -1,6 +1,6 @@
 package com.blc.kpiReport.controller;
 
-import com.blc.kpiReport.models.response.DailyMetricResponse;
+import com.blc.kpiReport.models.response.mc.DailyMetricResponse;
 import com.blc.kpiReport.service.KpiReportRetrievalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

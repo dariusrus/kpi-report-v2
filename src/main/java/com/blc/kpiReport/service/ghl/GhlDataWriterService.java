@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.models.pojo.GhlReportData;
-import com.blc.kpiReport.schema.*;
+import com.blc.kpiReport.schema.ghl.*;
 import com.blc.kpiReport.service.ghl.models.AppointmentService;
 import com.blc.kpiReport.service.ghl.models.ContactWonService;
 import com.blc.kpiReport.service.ghl.models.LeadSourceService;

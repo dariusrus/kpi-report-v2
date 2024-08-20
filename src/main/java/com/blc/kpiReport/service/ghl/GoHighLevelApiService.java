@@ -5,7 +5,7 @@ import com.blc.kpiReport.models.pojo.GhlApiData;
 import com.blc.kpiReport.models.pojo.GhlReportData;
 import com.blc.kpiReport.repository.GoHighLevelReportRepository;
 import com.blc.kpiReport.schema.GhlLocation;
-import com.blc.kpiReport.schema.GoHighLevelReport;
+import com.blc.kpiReport.schema.ghl.GoHighLevelReport;
 import com.blc.kpiReport.schema.KpiReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

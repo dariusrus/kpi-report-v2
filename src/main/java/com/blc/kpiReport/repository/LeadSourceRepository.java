@@ -1,6 +1,6 @@
 package com.blc.kpiReport.repository;
 
-import com.blc.kpiReport.schema.LeadSource;
+import com.blc.kpiReport.schema.ghl.LeadSource;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LeadSourceRepository extends JpaRepository<LeadSource, Long> {

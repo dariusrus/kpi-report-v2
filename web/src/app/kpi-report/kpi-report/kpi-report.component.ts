@@ -7,9 +7,10 @@ import {animate, query, stagger, style, transition, trigger} from "@angular/anim
 import {ActivatedRoute} from "@angular/router";
 import {APP_CONFIG, AppConfig} from "../../app.config";
 import * as shape from 'd3-shape';
-import {Pipeline} from "../../models/pipeline";
-import {PipelineStage} from "../../models/pipeline-stage";
+import {Pipeline} from "../../models/ghl/pipeline";
+import {PipelineStage} from "../../models/ghl/pipeline-stage";
 import {MonthlyAverage} from "../../models/monthly-average";
+import {MenuItem} from "primeng/api";
 
 @Component({
   selector: 'app-kpi-report',
@@ -40,6 +41,9 @@ export class KpiReportComponent implements OnInit {
   appointmentsPieChart: any[] = [];
   appointmentsLineChart: any[] = [];
   pipelinesPieChart: any[] = [];
+  clarityAverageScrollGaugeChart: any[] = [];
+  clarityTotalSessionsPieChart: any[] = [];
+  clarityTotalActiveTimeTreeMap: any[] = [];
 
   reportData: KpiReport | null = null;
   averageReportData: MonthlyAverage | null = null;
@@ -80,6 +84,9 @@ export class KpiReportComponent implements OnInit {
   ghlLocationId: string | null = null;
 
   curve: any = shape.curveCatmullRom.alpha(1);
+
+  deviceTypes: string[] = ['PC', 'Tablet', 'Mobile', 'Other'];
+  selectedDevice = 'PC';
 
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
@@ -127,7 +134,6 @@ export class KpiReportComponent implements OnInit {
   handleViewportChange(inViewport: boolean, chartId: string): void {
     if (inViewport && !this.isLoading) {
       this.isVisible[chartId] = 'I see ' + chartId;
-      console.log('I see ' + chartId);
     }
   }
 
@@ -140,6 +146,9 @@ export class KpiReportComponent implements OnInit {
     this.kpiReportService.getReportData(locationId, currentMonth, currentYear).subscribe({
       next: (currentData) => {
         this.reportData = currentData;
+        this.preprocessData(this.selectedDevice);
+        console.log('DATA LOADED!');
+        console.log(this.reportData);
         this.clientType = this.reportData?.clientType;
         this.averageLabel = this.clientType === 'REMODELING'
           ? 'Toggle Remodeling Average'
@@ -170,6 +179,7 @@ export class KpiReportComponent implements OnInit {
               next: (previousData) => {
                 this.reportDataPrevious = [];
                 this.averageReportDataPrevious = [];
+                this.selectedDevice = 'PC';
 
                 previousData.forEach(([report, average]) => {
                   if (!report.uniqueSiteVisitors) {
@@ -185,9 +195,7 @@ export class KpiReportComponent implements OnInit {
 
                 this.populateChartsAndCards(currentData, currentAverage, previousData);
 
-                setTimeout(() => {
-                  this.isLoading = false;
-                }, 1);
+                this.isLoading = false;
               },
               error: (error) => {
                 console.error('Failed to fetch previous months\' KPI report data:', error);
@@ -211,6 +219,9 @@ export class KpiReportComponent implements OnInit {
   populateChartsAndCards(currentData: KpiReport, currentAverage: MonthlyAverage, previousData: [KpiReport, MonthlyAverage][]): void {
     this.populateNumberCards(currentData);
     this.populateGaBarChart(currentData, previousData);
+    this.setupClarityAverageScrollGaugeChart(currentData);
+    this.setupClarityTotalSessionPieChart(currentData);
+    this.setupClarityTotalActiveTimeTreeMap(currentData);
     this.populateGaGroupedBarChart(currentData, previousData, currentAverage);
     this.populateLeadBarChart(currentData, previousData);
     this.populateLeadGroupedBarChart(currentData, previousData, currentAverage);
@@ -246,20 +257,30 @@ export class KpiReportComponent implements OnInit {
 
   private populateGaGroupedBarChart(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage): void {
     this.gaGroupedBarChart = [
-      ...previousData.map(([report, average]) => ({
-        name: this.formatMonthAndYear(report.monthAndYear),
-        series: [
-          {
-            name: "BLC Average Unique Site Visitors",
-            value: average.averageUniqueSiteVisitors
-          },
-          {
-            name: "Your Unique Site Visitors",
-            value: report.uniqueSiteVisitors
-          }
-        ]
-      })).reverse(),
-      {
+      ...previousData
+        .filter(([report, average]) =>
+          report.monthAndYear &&
+          report.uniqueSiteVisitors !== null &&
+          average &&
+          average.averageUniqueSiteVisitors !== null
+        )
+        .map(([report, average]) => ({
+          name: this.formatMonthAndYear(report.monthAndYear),
+          series: [
+            {
+              name: "BLC Average Unique Site Visitors",
+              value: average.averageUniqueSiteVisitors
+            },
+            {
+              name: "Your Unique Site Visitors",
+              value: report.uniqueSiteVisitors
+            }
+          ]
+        })).reverse(),
+      currentData.monthAndYear &&
+      currentData.uniqueSiteVisitors !== null &&
+      currentAverage &&
+      currentAverage.averageUniqueSiteVisitors !== null ? {
         name: this.formatMonthAndYear(currentData.monthAndYear),
         series: [
           {
@@ -271,8 +292,8 @@ export class KpiReportComponent implements OnInit {
             value: currentData.uniqueSiteVisitors
           }
         ]
-      }
-    ];
+      } : null
+    ].filter(Boolean); // Filter out any null values
   }
 
   private populateLeadBarChart(currentData: KpiReport, previousData: any[]): void {
@@ -290,20 +311,32 @@ export class KpiReportComponent implements OnInit {
 
   private populateLeadGroupedBarChart(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage): void {
     this.leadGroupedBarChart = [
-      ...previousData.map(([report, average]) => ({
-        name: this.formatMonthAndYear(report.monthAndYear),
-        series: [
-          {
-            name: "BLC Average Website Leads",
-            value: average.averageTotalLeads
-          },
-          {
-            name: "Your Website Leads",
-            value: report.websiteLead.totalLeads
-          }
-        ]
-      })).reverse(),
-      {
+      ...previousData
+        .filter(([report, average]) =>
+          report.monthAndYear &&
+          report.websiteLead &&
+          report.websiteLead.totalLeads !== null &&
+          average &&
+          average.averageTotalLeads !== null
+        )
+        .map(([report, average]) => ({
+          name: this.formatMonthAndYear(report.monthAndYear),
+          series: [
+            {
+              name: "BLC Average Website Leads",
+              value: average.averageTotalLeads
+            },
+            {
+              name: "Your Website Leads",
+              value: report.websiteLead.totalLeads
+            }
+          ]
+        })).reverse(),
+      currentData.monthAndYear &&
+      currentData.websiteLead &&
+      currentData.websiteLead.totalLeads !== null &&
+      currentAverage &&
+      currentAverage.averageTotalLeads !== null ? {
         name: this.formatMonthAndYear(currentData.monthAndYear),
         series: [
           {
@@ -315,15 +348,15 @@ export class KpiReportComponent implements OnInit {
             value: currentData.websiteLead.totalLeads
           }
         ]
-      }
-    ];
+      } : null
+    ].filter(Boolean); // Filter out any null values
   }
 
   private populateLeadSourceBarChart(): void {
     if (this.reportData?.websiteLead?.leadSource) {
       this.leadSourceBarChart = this.reportData.websiteLead.leadSource
         .map(leadSource => ({
-          name: leadSource.source || 'Unspecified',
+          name: leadSource.source || '-',
           value: leadSource.totalLeads || 0
         }))
         .sort((a, b) => b.value - a.value);
@@ -368,30 +401,49 @@ export class KpiReportComponent implements OnInit {
       {
         name: "Weighted Average O2L",
         series: [
-          ...this.averageReportDataPrevious.map((average) => ({
-            name: this.formatMonthAndYear(average.monthAndYear),
-            value: average.weightedAverageOpportunityToLead
-          })).reverse(),
-          {
+          ...this.averageReportDataPrevious
+            .filter(average => average && average.monthAndYear && average.weightedAverageOpportunityToLead !== null)
+            .map(average => ({
+              name: this.formatMonthAndYear(average.monthAndYear),
+              value: average.weightedAverageOpportunityToLead
+            })).reverse(),
+          currentAverage && currentAverage.monthAndYear && currentAverage.weightedAverageOpportunityToLead !== null ? {
             name: this.formatMonthAndYear(currentAverage.monthAndYear),
             value: currentAverage.weightedAverageOpportunityToLead
-          }
-        ]
+          } : null
+        ].filter(Boolean) // Filter out any null values
       },
       {
         name: "Non-weighted Average O2L",
         series: [
-          ...this.averageReportDataPrevious.map((average) => ({
-            name: this.formatMonthAndYear(average.monthAndYear),
-            value: average.averageOpportunityToLead
-          })).reverse(),
-          {
+          ...this.averageReportDataPrevious
+            .filter(average => average && average.monthAndYear && average.averageOpportunityToLead !== null)
+            .map(average => ({
+              name: this.formatMonthAndYear(average.monthAndYear),
+              value: average.averageOpportunityToLead
+            })).reverse(),
+          currentAverage && currentAverage.monthAndYear && currentAverage.averageOpportunityToLead !== null ? {
             name: this.formatMonthAndYear(currentAverage.monthAndYear),
             value: currentAverage.averageOpportunityToLead
-          }
-        ]
+          } : null
+        ].filter(Boolean) // Filter out any null values
       }
     ];
+  }
+
+  private setupClarityAverageScrollGaugeChart(currentData: KpiReport) {
+    console.log('does it even reach here');
+    const monthlyClarityReport = currentData.monthlyClarityReport;
+    if (monthlyClarityReport) {
+      const deviceClarityAggregate = monthlyClarityReport.deviceClarityAggregate;
+      this.clarityAverageScrollGaugeChart = deviceClarityAggregate
+        .filter(device => device.collectiveAverageScrollDepth !== null && device.collectiveAverageScrollDepth !== undefined)
+        .map(device => ({
+          name: device.deviceName,
+          value: device.collectiveAverageScrollDepth
+        }));
+    }
+    console.log(this.clarityAverageScrollGaugeChart);
   }
 
   private updateSelectedPipeline(pipeline: Pipeline | null): void {
@@ -409,9 +461,40 @@ export class KpiReportComponent implements OnInit {
     }
   }
 
+  private setupClarityTotalSessionPieChart(currentData: KpiReport): void {
+    const monthlyClarityReport = currentData.monthlyClarityReport;
+    if (monthlyClarityReport) {
+      const deviceClarityAggregate = monthlyClarityReport.deviceClarityAggregate;
+      this.clarityTotalSessionsPieChart = deviceClarityAggregate
+        .filter(device => device.totalSessions !== null && device.totalSessions !== 0)
+        .map(device => ({
+          name: device.deviceName,
+          value: device.totalSessions
+        }));
+    }
+  }
+
+  private setupClarityTotalActiveTimeTreeMap(currentData: KpiReport): void {
+    const monthlyClarityReport = currentData.monthlyClarityReport;
+    if (monthlyClarityReport) {
+      const deviceClarityAggregate = monthlyClarityReport.deviceClarityAggregate;
+      this.clarityTotalActiveTimeTreeMap = deviceClarityAggregate
+        .filter(device => device.totalActiveTime !== null && device.totalActiveTime !== 0)
+        .map(device => ({
+          name: device.deviceName,
+          value: device.totalActiveTime
+        }));
+    }
+  }
+
   onPipelineChange(event: any): void {
     this.updateSelectedPipeline(event.value);
     this.setupPipelinesPieChart();
+  }
+
+  onDeviceChange(event: any): void {
+    this.selectedDevice = event.value;
+    this.preprocessData(this.selectedDevice);
   }
 
   getTotalCounts(stages: PipelineStage[]): number {
@@ -488,6 +571,17 @@ export class KpiReportComponent implements OnInit {
     }
   }
 
+  preprocessData(selectedDevice: string) {
+    if (this.reportData?.monthlyClarityReport) {
+      this.reportData!.monthlyClarityReport.urls.forEach((urlMetric: any) => {
+        const pcDevice = urlMetric.devices.find((device: any) => device.deviceType === selectedDevice);
+        urlMetric.averageScrollDepth = pcDevice ? pcDevice.averageScrollDepth : 'N/A';
+        urlMetric.activeTime = pcDevice ? pcDevice.activeTime : 'N/A';
+        urlMetric.totalSessionCount = pcDevice ? pcDevice.totalSessionCount : 'N/A';
+      });
+    }
+  }
+
   onYearChange(): void {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -517,7 +611,45 @@ export class KpiReportComponent implements OnInit {
     if (data.label === 'Lead Valuation') {
       return '$ ' + Math.round(data.value).toLocaleString();
     }
+    if (!data.label) {
+      return data + '%';
+    }
     return Math.round(data.value).toLocaleString();
+  }
+
+  percentageFormatting(data: any): string {
+    if (data === undefined || data === 0 || data === null || data === 'N/A') {
+      return '-';
+    }
+    return data + '%';
+  }
+
+  timeFormatting(data: number): string {
+    const secondsInMinute = 60;
+    const secondsInHour = secondsInMinute * 60;
+    const secondsInDay = secondsInHour * 24;
+    const secondsInWeek = secondsInDay * 7;
+
+    const weeks = Math.floor(data / secondsInWeek);
+    data %= secondsInWeek;
+
+    const days = Math.floor(data / secondsInDay);
+    data %= secondsInDay;
+
+    const hours = Math.floor(data / secondsInHour);
+    data %= secondsInHour;
+
+    const minutes = Math.floor(data / secondsInMinute);
+    const seconds = data % secondsInMinute;
+
+    const parts = [];
+    if (weeks > 0) parts.push(`${weeks}w`);
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0) parts.push(`${seconds}s`);
+
+    return parts.join(' ');
   }
 
   formatMonthAndYear(monthAndYear: string): string {

@@ -1,6 +1,10 @@
 package com.blc.kpiReport.schema;
 
 import com.blc.kpiReport.models.ReportStatus;
+import com.blc.kpiReport.schema.ga.GoogleAnalyticsMetric;
+import com.blc.kpiReport.schema.ghl.GoHighLevelReport;
+import com.blc.kpiReport.schema.mc.DailyMetric;
+import com.blc.kpiReport.schema.mc.MonthlyClarityReport;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -58,7 +62,11 @@ public class KpiReport extends DateAudit implements Serializable {
     @JsonManagedReference
     private GoHighLevelReport goHighLevelReport;
 
-    @OneToMany(mappedBy = "kpiReport")
+    @OneToOne(mappedBy = "kpiReport")
+    @JsonManagedReference
+    private MonthlyClarityReport monthlyClarityReport;
+
+    @OneToMany(mappedBy = "kpiReport", fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<DailyMetric> dailyMetrics;
 }

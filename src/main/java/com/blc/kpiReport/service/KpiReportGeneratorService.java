@@ -12,10 +12,10 @@ import com.blc.kpiReport.models.response.GenerateKpiReportBatchResponse;
 import com.blc.kpiReport.models.response.GenerateKpiReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.MonthlyAverageRepository;
-import com.blc.kpiReport.schema.GhlLocation;
-import com.blc.kpiReport.schema.KpiReport;
-import com.blc.kpiReport.schema.LeadSource;
-import com.blc.kpiReport.schema.MonthlyAverage;
+import com.blc.kpiReport.repository.MonthlyClarityReportRepository;
+import com.blc.kpiReport.schema.*;
+import com.blc.kpiReport.schema.ghl.LeadSource;
+import com.blc.kpiReport.schema.mc.*;
 import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
 import com.blc.kpiReport.service.ghl.GoHighLevelApiService;
 import com.blc.kpiReport.service.mc.MicrosoftClarityApiService;
@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -54,6 +55,7 @@ public class KpiReportGeneratorService {
     private final MicrosoftClarityApiService microsoftClarityApiService;
     private final KpiReportRepository repository;
     private final MonthlyAverageRepository monthlyAverageRepository;
+    private final MonthlyClarityReportRepository monthlyClarityReportRepository;
     private final GeneratorConfig generatorConfig;
 
     private Semaphore semaphore;
@@ -150,6 +152,7 @@ public class KpiReportGeneratorService {
 
             kpiReport.setGoogleAnalyticsMetric(googleAnalyticsMetric);
             kpiReport.setGoHighLevelReport(goHighLevelReport);
+            aggregateDailyToMonthlyClarityReport(kpiReport);
             setStatus(kpiReport, ReportStatus.SUCCESS);
             logSuccessfulGeneration(ghlLocation, month, year, kpiReport);
         } catch (Exception e) {
@@ -158,6 +161,139 @@ public class KpiReportGeneratorService {
             throw new RuntimeException("Error generating KPI report for location ID: " + locationId, e);
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    private void aggregateDailyToMonthlyClarityReport(KpiReport kpiReport) {
+        log.info("Starting aggregation of daily metrics to monthly report for KPI Report ID: {}", kpiReport.getId());
+        MonthlyClarityReport monthlyClarityReport = null;
+
+        if (!ObjectUtils.isEmpty(kpiReport.getMonthlyClarityReport())) {
+            monthlyClarityReport = kpiReport.getMonthlyClarityReport();
+            monthlyClarityReport.setKpiReport(null);
+            kpiReport.setMonthlyClarityReport(null);
+            repository.save(kpiReport);
+            monthlyClarityReportRepository.delete(monthlyClarityReport);
+        }
+
+        monthlyClarityReport = new MonthlyClarityReport();
+        monthlyClarityReport.setKpiReport(kpiReport);
+        monthlyClarityReport = monthlyClarityReportRepository.save(monthlyClarityReport);
+
+        Map<String, Map<String, DeviceMetric>> urlDeviceMetricMap = new HashMap<>();
+        Map<String, Map<String, Integer>> urlDeviceDayCountMap = new HashMap<>();
+
+        for (DailyMetric dailyMetric : kpiReport.getDailyMetrics()) {
+            log.info("Processing DailyMetric for day: {}", dailyMetric.getDay());
+
+            for (Metric metric : dailyMetric.getMetrics()) {
+                log.info("Processing Metric: {}", metric.getMetricName());
+
+                for (Information info : metric.getInformationList()) {
+                    String url = info.getUrl();
+                    String deviceType = info.getDevice();
+
+                    if (url == null || deviceType == null) {
+                        continue; // Skip if any of these values are null
+                    }
+
+                    log.info("Processing Information for URL: {} and Device: {}", url, deviceType);
+
+                    urlDeviceMetricMap.putIfAbsent(url, new HashMap<>());
+                    Map<String, DeviceMetric> deviceMetricMap = urlDeviceMetricMap.get(url);
+
+                    deviceMetricMap.putIfAbsent(deviceType, new DeviceMetric());
+                    DeviceMetric deviceMetric = deviceMetricMap.get(deviceType);
+
+                    if ("Traffic".equals(metric.getMetricName())) {
+                        Integer totalSessionCount = deviceMetric.getTotalSessionCount() == null ? 0 : deviceMetric.getTotalSessionCount();
+                        totalSessionCount += Integer.valueOf(info.getTotalSessionCount());
+                        deviceMetric.setTotalSessionCount(totalSessionCount);
+                        log.info("Aggregated Session Count for URL: {} and Device: {}. New total: {}", url, deviceType, totalSessionCount);
+                    }
+                    if ("ScrollDepth".equals(metric.getMetricName())) {
+                        double totalScrollDepth = deviceMetric.getAverageScrollDepth() == null ? 0 : deviceMetric.getAverageScrollDepth();
+                        totalScrollDepth += info.getAverageScrollDepth();
+                        deviceMetric.setAverageScrollDepth(totalScrollDepth);
+                        log.info("Aggregated ScrollDepth for URL: {} and Device: {}. New total: {}", url, deviceType, totalScrollDepth);
+                    }
+                    if ("EngagementTime".equals(metric.getMetricName())) {
+                        if (info.getTotalTime() != null) {
+                            int totalTime = deviceMetric.getTotalTime() == null ? 0 : deviceMetric.getTotalTime();
+                            totalTime += info.getTotalTime();
+                            deviceMetric.setTotalTime(totalTime);
+                            log.info("Aggregated EngagementTime (Total) for URL: {} and Device: {}. New total time: {}", url, deviceType, totalTime);
+                        }
+
+                        if (info.getActiveTime() != null) {
+                            int activeTime = deviceMetric.getActiveTime() == null ? 0 : deviceMetric.getActiveTime();
+                            activeTime += info.getActiveTime();
+                            deviceMetric.setActiveTime(activeTime);
+                            log.info("Aggregated EngagementTime (Active) for URL: {} and Device: {}. New active time: {}", url, deviceType, activeTime);
+                        }
+                    }
+                    deviceMetric.setDeviceType(deviceType);
+
+                    urlDeviceDayCountMap.putIfAbsent(url, new HashMap<>());
+                    Map<String, Integer> deviceDayCountMap = urlDeviceDayCountMap.get(url);
+                    deviceDayCountMap.put(deviceType, deviceDayCountMap.getOrDefault(deviceType, 0) + 0);
+                    if (info.getAverageScrollDepth() != null) {
+                        deviceDayCountMap.put(deviceType, deviceDayCountMap.getOrDefault(deviceType, 0) + 1);
+                    }
+                }
+            }
+        }
+
+        List<UrlMetric> urlMetrics = new ArrayList<>();
+        for (Map.Entry<String, Map<String, DeviceMetric>> entry : urlDeviceMetricMap.entrySet()) {
+            String url = entry.getKey();
+            Map<String, DeviceMetric> deviceMetricsMap = entry.getValue();
+            log.info("Creating UrlMetric for URL: {}", url);
+
+            if (url == null) {
+                log.error("URL is null for entry: {}", entry);
+                continue;
+            }
+
+            UrlMetric urlMetric = new UrlMetric();
+            urlMetric.setUrl(url);
+            urlMetric.setMonthlyClarityReport(monthlyClarityReport);
+
+            List<DeviceMetric> deviceMetrics = new ArrayList<>();
+            for (Map.Entry<String, DeviceMetric> deviceEntry : deviceMetricsMap.entrySet()) {
+                DeviceMetric deviceMetric = deviceEntry.getValue();
+                String deviceType = deviceEntry.getKey();
+
+                if (deviceType != null) {
+                    deviceMetric.setDeviceType(deviceType);
+                } else {
+                    log.error("DeviceType is null for URL: {}", url);
+                    continue;
+                }
+
+                int validDays = urlDeviceDayCountMap.get(url).get(deviceType);
+
+                if (deviceMetric.getAverageScrollDepth() != null && validDays > 0) {
+                    double averageScrollDepth = deviceMetric.getAverageScrollDepth() / validDays;
+                    deviceMetric.setAverageScrollDepth(averageScrollDepth);
+                    log.info("Calculated average ScrollDepth for Device: {} and URL: {}. Average: {}. Valid Days: {}.", deviceType, url, averageScrollDepth, validDays);
+                }
+
+                deviceMetric.setUrlMetric(urlMetric);
+                deviceMetrics.add(deviceMetric);
+            }
+            urlMetric.setDevices(deviceMetrics);
+            urlMetrics.add(urlMetric);
+        }
+        urlMetrics.sort(Comparator.comparingInt((UrlMetric urlMetric) ->
+            urlMetric.getDevices().stream()
+                .mapToInt(DeviceMetric::getActiveTime)
+                .sum()
+        ).reversed());
+        monthlyClarityReport.setUrls(urlMetrics);
+
+        log.info("Saving MonthlyClarityReport for KPI Report ID: {}", kpiReport.getId());
+        monthlyClarityReportRepository.save(monthlyClarityReport);
+        log.info("Aggregation and persistence completed for KPI Report ID: {}", kpiReport.getId());
     }
 
     private static void logSuccessfulGeneration(GhlLocation ghlLocation, int month, int year, KpiReport kpiReport) {

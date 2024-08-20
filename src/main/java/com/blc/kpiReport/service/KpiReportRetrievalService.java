@@ -2,11 +2,24 @@ package com.blc.kpiReport.service;
 
 import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.mapper.*;
-import com.blc.kpiReport.models.response.*;
+import com.blc.kpiReport.models.mapper.ghl.AppointmentMapper;
+import com.blc.kpiReport.models.mapper.ghl.ContactWonMapper;
+import com.blc.kpiReport.models.mapper.ghl.LeadSourceMapper;
+import com.blc.kpiReport.models.mapper.ghl.PipelineStageMapper;
+import com.blc.kpiReport.models.mapper.mc.DailyMetricMapper;
+import com.blc.kpiReport.models.mapper.mc.MonthlyClarityReportMapper;
+import com.blc.kpiReport.models.response.KpiReportResponse;
+import com.blc.kpiReport.models.response.MonthlyAverageResponse;
+import com.blc.kpiReport.models.response.ghl.AppointmentResponse;
+import com.blc.kpiReport.models.response.ghl.ContactsWonResponse;
+import com.blc.kpiReport.models.response.ghl.PipelineResponse;
+import com.blc.kpiReport.models.response.ghl.WebsiteLeadResponse;
+import com.blc.kpiReport.models.response.mc.DailyMetricResponse;
+import com.blc.kpiReport.models.response.mc.MonthlyClarityReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
-import com.blc.kpiReport.schema.LeadSource;
+import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.MonthlyAverage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +46,7 @@ public class KpiReportRetrievalService {
     private final ContactWonMapper contactWonMapper;
     private final LeadSourceMapper leadSourceMapper;
     private final DailyMetricMapper dailyMetricMapper;
+    private final MonthlyClarityReportMapper monthlyClarityReportMapper;
     private final MonthlyAverageRepository monthlyAverageRepository;
     private final MonthlyAverageMapper monthlyAverageMapper;
 
@@ -45,13 +59,21 @@ public class KpiReportRetrievalService {
                 var kpiReport = kpiReportOptional.get();
                 var googleAnalyticsMetric = kpiReport.getGoogleAnalyticsMetric();
                 var goHighLevelReport = kpiReport.getGoHighLevelReport();
+
+                MonthlyClarityReportResponse monthlyClarityResponse = null;
+                if (ObjectUtils.isNotEmpty(kpiReport.getMonthlyClarityReport())) {
+                    monthlyClarityResponse = monthlyClarityReportMapper.toResponse(kpiReport.getMonthlyClarityReport());
+                    monthlyClarityResponse.setDeviceClarityAggregate(monthlyClarityReportMapper.aggregateDataByDeviceType(kpiReport.getMonthlyClarityReport()));
+                }
+
                 return buildReportResponse(ghlLocation,
                     formatMonthAndYear(month, year),
                     googleAnalyticsMetric.getUniqueSiteVisitors(),
                     websiteLeadResponse(goHighLevelReport.getLeadSources()),
                     appointmentMapper.toResponseList(goHighLevelReport.getAppointments()),
                     pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
-                    contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()));
+                    contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
+                    monthlyClarityResponse);
             }
         }
         return null;
@@ -63,7 +85,8 @@ public class KpiReportRetrievalService {
                                                   WebsiteLeadResponse websiteLead,
                                                   List<AppointmentResponse> appointments,
                                                   List<PipelineResponse> pipelines,
-                                                  List<ContactsWonResponse> contactsWon) {
+                                                  List<ContactsWonResponse> contactsWon,
+                                                  MonthlyClarityReportResponse monthlyClarityReport) {
         return KpiReportResponse.builder()
             .subAgency(location.getName())
             .ghlLocationId(location.getLocationId())
@@ -75,6 +98,7 @@ public class KpiReportRetrievalService {
             .appointments(appointments)
             .pipelines(pipelines)
             .contactsWon(contactsWon)
+            .monthlyClarityReport(monthlyClarityReport)
             .build();
     }
 
@@ -126,7 +150,8 @@ public class KpiReportRetrievalService {
         if (monthlyAverageOptional.isPresent()) {
             return monthlyAverageMapper.toResponse(monthlyAverageOptional.get());
         } else {
-            throw new RuntimeException("Monthly average not found for the specified month and year.");
+            return null;
         }
     }
+
 }

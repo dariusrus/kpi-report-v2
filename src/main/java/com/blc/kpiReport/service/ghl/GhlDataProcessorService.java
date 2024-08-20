@@ -3,7 +3,7 @@ package com.blc.kpiReport.service.ghl;
 import com.blc.kpiReport.models.pojo.GhlApiData;
 import com.blc.kpiReport.models.pojo.GhlReportData;
 import com.blc.kpiReport.models.pojo.PipelineStageInfo;
-import com.blc.kpiReport.schema.*;
+import com.blc.kpiReport.schema.ghl.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
