@@ -21,10 +21,12 @@ import {ProgressSpinnerModule} from "primeng/progressspinner";
 import {ToggleButtonModule} from "primeng/togglebutton";
 import {FloatLabelModule} from "primeng/floatlabel";
 import {TabMenuModule} from "primeng/tabmenu";
+import {AvatarModule} from "primeng/avatar";
+import {TagModule} from "primeng/tag";
 
 @NgModule({
   declarations: [KpiReportComponent],
-  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule],
+  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule],
   providers: [KpiReportService],
 })
 export class KpiReportModule {}

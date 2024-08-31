@@ -34,10 +34,9 @@ public class GhlTokenService {
 
     public GhlLocation getAccessToken(GhlLocation ghlLocation) {
         try {
-            if (true) {
-//            if (ghlLocation.getGhlTokenDate() == null || isTokenExpired(ghlLocation.getGhlTokenDate())) {
+            if (ghlLocation.getGhlTokenDate() == null || isTokenExpired(ghlLocation.getGhlTokenDate())) {
                 log.info("Access Token has expired for {}", ghlLocation.getName());
-                return ghlLocationService.save(refreshAccessToken(ghlLocation));
+                return refreshAccessToken(ghlLocation);
             } else {
                 return ghlLocation;
             }

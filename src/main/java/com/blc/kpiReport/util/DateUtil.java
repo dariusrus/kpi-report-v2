@@ -5,6 +5,8 @@ import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
 
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     public static FormattedDateRange getFormattedDateRange(int month, int year) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
@@ -31,6 +33,12 @@ public class DateUtil {
 
     public static String formatDate(String date) {
         return date.substring(5, 7) + "-" + date.substring(8) + "-" + date.substring(0, 4);
+    }
+
+    public static String subtractOneYear(String date) {
+        LocalDate localDate = LocalDate.parse(date, DATE_FORMATTER);
+        LocalDate updatedDate = localDate.minusYears(2);
+        return updatedDate.format(DATE_FORMATTER);
     }
     public record FormattedDateRange(String startDate, String endDate) {}
 }

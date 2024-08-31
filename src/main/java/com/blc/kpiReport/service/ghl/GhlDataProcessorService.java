@@ -3,6 +3,7 @@ package com.blc.kpiReport.service.ghl;
 import com.blc.kpiReport.models.pojo.GhlApiData;
 import com.blc.kpiReport.models.pojo.GhlReportData;
 import com.blc.kpiReport.models.pojo.PipelineStageInfo;
+import com.blc.kpiReport.schema.ghl.Calendar;
 import com.blc.kpiReport.schema.ghl.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class GhlDataProcessorService {
         log.info("Processing GHL data for report: {}", goHighLevelReport.getId());
         GhlReportData reportData = GhlReportData.builder()
             .leadSources(processLeadSources(ghlApiData, goHighLevelReport))
-            .appointments(processAppointments(ghlApiData, goHighLevelReport))
+            .calendars(processAppointments(ghlApiData, goHighLevelReport))
             .pipelineStages(processPipelineStages(ghlApiData, goHighLevelReport))
             .contactsWon(processContactsWon(ghlApiData, goHighLevelReport))
             .build();
@@ -32,8 +33,10 @@ public class GhlDataProcessorService {
     private List<LeadSource> processLeadSources(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.debug("Processing lead sources for report: {}", goHighLevelReport.getId());
         Map<String, LeadSource> leadSourceMap = new HashMap<>();
+        var contactMap = ghlApiData.getCreatedAtContactMap();
+        var ownerMap = ghlApiData.getOwnerMap();
 
-        for (JsonNode opportunity : ghlApiData.getOpportunityList()) {
+        for (JsonNode opportunity : ghlApiData.getCreatedAtOpportunityList()) {
             // Logging individual opportunity processing
             log.trace("Processing opportunity: {}", opportunity);
 
@@ -42,12 +45,20 @@ public class GhlDataProcessorService {
             double monetaryValue = opportunity.path("monetaryValue").asDouble();
 
             LeadSource leadSource = leadSourceMap.getOrDefault(source, new LeadSource());
+            if (leadSource.getLeadContacts() == null) {
+                leadSource.setLeadContacts(new ArrayList<>());
+            }
             leadSource.setSource(source);
+
+            var contactNode = contactMap.get(opportunity.path("contact").path("id").asText());
+            if (contactNode == null) continue;
+            leadSource.setLeadType(determineLeadType(contactNode));  // Determine and set lead type
+
             leadSource.setTotalLeads(leadSource.getTotalLeads() + 1);
             leadSource.setTotalValues(leadSource.getTotalValues() + monetaryValue);
             leadSource.setGoHighLevelReport(goHighLevelReport);
 
-            switch (status) {
+            switch (status.toLowerCase()) {
                 case "open":
                     leadSource.setOpen(leadSource.getOpen() + 1);
                     break;
@@ -66,6 +77,22 @@ public class GhlDataProcessorService {
             }
 
             leadSourceMap.put(source, leadSource);
+
+            var ownerNode = ownerMap.get(opportunity.path("assignedTo").asText());
+
+            var leadContact = LeadContact.builder()
+                .contactName(opportunity.path("contact").path("name").asText())
+                .contactSource(contactNode.path("source").asText())
+                .createdBySource(contactNode.path("createdBy").path("source").asText())
+                .dateAdded(contactNode.path("dateAdded").asText().substring(0, 10))
+                .ownerName(ownerNode != null ? ownerNode.path("name").asText() : "")
+                .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
+                .status(opportunity.path("status").asText().toUpperCase())
+                .build();
+
+            // Add LeadContact to the LeadSource
+            leadSource.getLeadContacts().add(leadContact);
+            leadContact.setLeadSource(leadSource);
         }
 
         leadSourceMap.values().forEach(leadSource -> {
@@ -80,38 +107,73 @@ public class GhlDataProcessorService {
         return leadSources;
     }
 
-    private List<Appointment> processAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
-        log.debug("Processing appointments for report: {}", goHighLevelReport.getId());
-        Map<String, Integer> statusCountMap = new HashMap<>();
+    private String determineLeadType(JsonNode contactNode) {
+        String source = contactNode.path("createdBy").path("source").asText();
+        if ("FORM".equalsIgnoreCase(source)
+            || "INTEGRATION".equalsIgnoreCase(source)
+            || "PUBLIC_API".equalsIgnoreCase(source)
+            || "CONVERSATIONS".equalsIgnoreCase(source)
+            || "".equalsIgnoreCase(source)
+        ) {
+            return "Website Lead";
+        } else {
+            return "Manual User Input";
+        }
+    }
 
-        for (JsonNode eventNode : ghlApiData.getEventsJson()) {
-            for (JsonNode appointmentNode : eventNode.path("events")) {
+    private List<Calendar> processAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+        log.debug("Processing appointments for report: {}", goHighLevelReport.getId());
+
+        Map<JsonNode, List<JsonNode>> calendarMap = ghlApiData.getCalendarMap();
+        List<Calendar> calendars = new ArrayList<>();
+
+        for (Map.Entry<JsonNode, List<JsonNode>> entry : calendarMap.entrySet()) {
+            JsonNode calendarJsonNode = entry.getKey();
+            List<JsonNode> appointmentJsonNodes = entry.getValue();
+
+            // Create Calendar object
+            Calendar calendar = Calendar.builder()
+                .calendarGhlId(calendarJsonNode.get("id").asText())
+                .calendarName(calendarJsonNode.get("name").asText())
+                .goHighLevelReport(goHighLevelReport)
+                .build();
+
+            // Process appointments within the current calendar
+            Map<String, Integer> statusCountMap = new HashMap<>();
+
+            for (JsonNode appointmentNode : appointmentJsonNodes) {
                 String status = appointmentNode.path("appointmentStatus").asText();
                 statusCountMap.put(status, statusCountMap.getOrDefault(status, 0) + 1);
             }
+
+            int totalAppointments = statusCountMap.values().stream().mapToInt(Integer::intValue).sum();
+            log.debug("Total appointments found for calendar {}: {}", calendar.getCalendarGhlId(), totalAppointments);
+
+            List<Appointment> appointments = new ArrayList<>();
+
+            for (Map.Entry<String, Integer> statusEntry : statusCountMap.entrySet()) {
+                String status = statusEntry.getKey();
+                int count = statusEntry.getValue();
+                double percentage = (double) count / totalAppointments * 100;
+
+                Appointment appointment = Appointment.builder()
+                    .status(status)
+                    .count(count)
+                    .percentage(percentage)
+                    .calendar(calendar)
+                    .build();
+                appointments.add(appointment);
+            }
+            appointments.sort(Comparator.comparing(Appointment::getStatus));
+
+            // Assign the appointments to the calendar
+            calendar.setAppointments(appointments);
+            calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
+            calendars.add(calendar);
+
+            log.debug("Processed {} appointments for calendar: {}", appointments.size(), calendar.getCalendarGhlId());
         }
-
-        int totalAppointments = statusCountMap.values().stream().mapToInt(Integer::intValue).sum();
-        log.debug("Total appointments found: {}", totalAppointments);
-
-        List<Appointment> appointments = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : statusCountMap.entrySet()) {
-            String status = entry.getKey();
-            int count = entry.getValue();
-            double percentage = (double) count / totalAppointments * 100;
-
-            Appointment appointment = Appointment.builder()
-                .status(status)
-                .count(count)
-                .percentage(percentage)
-                .goHighLevelReport(goHighLevelReport)
-                .build();
-            appointments.add(appointment);
-        }
-        appointments.sort(Comparator.comparing(Appointment::getStatus));
-
-        log.debug("Processed {} appointments for report: {}", appointments.size(), goHighLevelReport.getId());
-        return appointments;
+        return calendars;
     }
 
     private List<PipelineStage> processPipelineStages(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
@@ -132,7 +194,7 @@ public class GhlDataProcessorService {
         Map<String, Double> stageMonetaryValueMap = new HashMap<>();
         Map<String, Integer> pipelineTotalCountMap = new HashMap<>();
 
-        for (JsonNode opportunity : ghlApiData.getOpportunityList()) {
+        for (JsonNode opportunity : ghlApiData.getLastStageChangeOpportunityList()) {
             String stageId = opportunity.path("pipelineStageId").asText();
             double monetaryValue = opportunity.path("monetaryValue").asDouble();
 
@@ -183,17 +245,20 @@ public class GhlDataProcessorService {
     private List<ContactWon> processContactsWon(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.debug("Processing contacts won for report: {}", goHighLevelReport.getId());
         List<ContactWon> contactsWon = new ArrayList<>();
+        var contactMap = ghlApiData.getContactsWonContactMap();
 
-        for (JsonNode opportunity : ghlApiData.getOpportunityList()) {
+        for (JsonNode opportunity : ghlApiData.getContactsWonOpportunityList()) {
             String status = opportunity.path("status").asText().toLowerCase();
             if ("won".equals(status)) {
-                JsonNode contactNode = opportunity.path("contact");
-                String contactName = contactNode.path("name").asText();
-                String contactEmail = contactNode.path("email").asText();
+                var opportunityContactNode = opportunity.path("contact");
+                var contactNode = contactMap.get(opportunity.path("contact").path("id").asText());
+
+                var contactName = opportunityContactNode.path("name").asText();
+                var source = contactNode.path("source").asText();
 
                 ContactWon contactWon = ContactWon.builder()
                     .contactName(contactName)
-                    .contactEmail(contactEmail)
+                    .source(source)
                     .goHighLevelReport(goHighLevelReport)
                     .build();
                 contactsWon.add(contactWon);

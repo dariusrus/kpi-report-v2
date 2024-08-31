@@ -18,8 +18,4 @@ public class AppointmentService {
     public List<Appointment> saveAll(List<Appointment> appointments) {
         return repository.saveAll(appointments);
     }
-
-    public void deleteByGoHighLevelReportId(Long goHighLevelReportId) {
-        repository.deleteByGoHighLevelReport_Id(goHighLevelReportId);
-    }
 }

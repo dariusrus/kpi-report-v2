@@ -9,6 +9,8 @@
 html, body {
   background-color: #f2f7fa;
   padding-bottom: 25px !important;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 app-kpi-report path.line.ng-trigger.ng-trigger-animationState {
@@ -35,4 +37,62 @@ app-kpi-report ngx-charts-pie-chart .chart-legend .legend-labels {
 app-kpi-report ngx-charts-gauge .chart-legend {
   display: table-caption;
   margin-top: -50px;
+}
+
+app-kpi-report ngx-charts-line-chart .chart-legend .legend-labels {
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+}
+
+app-kpi-report ngx-charts-line-chart .chart-legend .legend-label-text {
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+}
+
+app-kpi-report ngx-charts-line-chart .chart-legend .legend-labels:hover::after {
+  content: "• Opportunity-to-Lead (O2L): Website Leads % Unique Site Visitors\A• Weighted Average: Site visitor count proportionally affect rate.\A• Non-weighted Average: Each report’s rate is treated equally, regardless of size.";
+  white-space: pre-wrap;
+  /* This is the tooltip content */
+  left: 50%;
+  top: 110%;
+  transform: translateX(-50%);
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  border-radius: 3px;
+  opacity: 1;
+  visibility: visible;
+  z-index: 10;
+  transition: opacity 0.3s ease-in-out;
+  padding: 12px;
+  line-height: 24px;
+  font-size: 0.75em;
+  font-weight: 200;
+  width: 100%;
+}
+
+app-kpi-report .p-avatar img {
+  height: auto !important;
+}
+
+app-kpi-report .p-button.p-button-icon-only.p-button-rounded {
+  height: 1.5rem;
+}
+
+app-kpi-report .p-button.p-button-icon-only {
+  width: 1.5rem;
+  margin-left: 1.5rem;
+}
+
+
+app-kpi-report .primary-tag > span.p-tag {
+  background: #caf1d8 !important;
+  color: #179142;
+}
+
+app-kpi-report .secondary-tag > span.p-tag {
+  background: #d0e1fd !important;
+  color: #295bac;
 }

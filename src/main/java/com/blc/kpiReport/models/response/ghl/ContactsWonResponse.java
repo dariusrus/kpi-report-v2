@@ -10,5 +10,6 @@ import lombok.*;
 public class ContactsWonResponse {
     private String contactName;
     private String contactEmail;
+    private String contactSource;
 }
 

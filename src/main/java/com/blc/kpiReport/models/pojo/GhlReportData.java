@@ -1,6 +1,6 @@
 package com.blc.kpiReport.models.pojo;
 
-import com.blc.kpiReport.schema.ghl.Appointment;
+import com.blc.kpiReport.schema.ghl.Calendar;
 import com.blc.kpiReport.schema.ghl.ContactWon;
 import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.ghl.PipelineStage;
@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class GhlReportData {
     private List<LeadSource> leadSources;
-    private List<Appointment> appointments;
+    private List<Calendar> calendars;
     private List<PipelineStage> pipelineStages;
     private List<ContactWon> contactsWon;
 }

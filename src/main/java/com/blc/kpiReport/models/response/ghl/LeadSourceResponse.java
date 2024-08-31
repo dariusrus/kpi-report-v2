@@ -1,13 +1,13 @@
 package com.blc.kpiReport.models.response.ghl;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Builder
 public class LeadSourceResponse {
     private String source;
@@ -18,4 +18,6 @@ public class LeadSourceResponse {
     private int lost;
     private int abandoned;
     private double winPercentage;
+    private String leadType;
+    private List<LeadContactResponse> leadContacts;
 }

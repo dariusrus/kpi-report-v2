@@ -31,10 +31,9 @@ google-analytics:
   credentials-file: /ga-blc-0327-001-e20fe1e70555.json
   metricNames:
     - newUsers
-    - activeUsers
 go-high-level:
-  client-id: 665f317263649015872c069b-lyt1r0mv
-  client-secret: 0e7441b2-d861-4fc5-add4-699df3ea8309
+  client-id: 66c62f6c2ffde35c5111ce74-m059sl9k
+  client-secret: 79854777-8ce0-4ea5-905f-4dea5074cc09
 microsoft-clarity:
   base-url: https://www.clarity.ms/export-data/api/v1/project-live-insights
   num-of-days: 1

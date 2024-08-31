@@ -3,12 +3,14 @@ package com.blc.kpiReport.schema.ghl;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "lead_source")
@@ -31,6 +33,11 @@ public class LeadSource extends DateAudit implements Serializable {
     @Size(max = 200)
     @Column(name = "source", length = 200, nullable = false)
     private String source;
+
+    @NotNull
+    @Size(max = 200)
+    @Column(name = "lead_type", length = 200)
+    private String leadType;
 
     @NotNull
     @Column(name = "total_leads", nullable = false)
@@ -59,6 +66,10 @@ public class LeadSource extends DateAudit implements Serializable {
     @NotNull
     @Column(name = "win_percentage", nullable = false)
     private double winPercentage;
+
+    @OneToMany(mappedBy = "leadSource", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<LeadContact> leadContacts;
 
     @ManyToOne
     @JoinColumn(name = "go_high_level_report_id", nullable = false)

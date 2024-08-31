@@ -7,4 +7,5 @@ export interface LeadSource {
   lost: number;
   abandoned: number;
   winPercentage: number;
+  leadType: string;
 }

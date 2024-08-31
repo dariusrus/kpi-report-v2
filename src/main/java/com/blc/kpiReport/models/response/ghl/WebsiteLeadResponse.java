@@ -11,7 +11,11 @@ import java.util.List;
 @Builder
 public class WebsiteLeadResponse {
     private int totalLeads;
+    private int totalWebsiteLeads;
+    private int totalManualLeads;
     private double totalValues;
+    private double totalWebsiteValuation;
+    private double totalManualValuation;
     private int totalOpen;
     private int totalWon;
     private int totalLost;

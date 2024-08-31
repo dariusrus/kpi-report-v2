@@ -2,10 +2,7 @@ package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.models.pojo.GhlReportData;
 import com.blc.kpiReport.schema.ghl.*;
-import com.blc.kpiReport.service.ghl.models.AppointmentService;
-import com.blc.kpiReport.service.ghl.models.ContactWonService;
-import com.blc.kpiReport.service.ghl.models.LeadSourceService;
-import com.blc.kpiReport.service.ghl.models.PipelineStageService;
+import com.blc.kpiReport.service.ghl.models.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +16,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GhlDataWriterService {
     private final LeadSourceService leadSourceService;
+    private final LeadContactService leadContactService;
+    private final CalendarService calendarService;
     private final AppointmentService appointmentService;
     private final PipelineStageService pipelineStageService;
     private final ContactWonService contactWonService;
@@ -27,7 +26,7 @@ public class GhlDataWriterService {
     public void deleteGhlApiData(GoHighLevelReport goHighLevelReport) {
         var id = goHighLevelReport.getId();
         leadSourceService.deleteByGoHighLevelReportId(id);
-        appointmentService.deleteByGoHighLevelReportId(id);
+        calendarService.deleteByGoHighLevelReportId(id);
         pipelineStageService.deleteByGoHighLevelReportId(id);
         contactWonService.deleteByGoHighLevelReportId(id);
         log.info("Successfully deleted data for GoHighLevelReport with ID: {}", id);
@@ -38,7 +37,7 @@ public class GhlDataWriterService {
 
         GhlReportData savedData = GhlReportData.builder()
             .leadSources(saveLeadSources(ghlReportData.getLeadSources()))
-            .appointments(saveAppointments(ghlReportData.getAppointments()))
+            .calendars(saveCalendars(ghlReportData.getCalendars()))
             .pipelineStages(savePipelineStages(ghlReportData.getPipelineStages()))
             .contactsWon(saveContactsWon(ghlReportData.getContactsWon()))
             .build();
@@ -49,12 +48,30 @@ public class GhlDataWriterService {
 
     private List<LeadSource> saveLeadSources(List<LeadSource> leadSources) {
         log.debug("Saving {} lead sources", leadSources.size());
-        return leadSourceService.saveAll(leadSources);
+
+        List<LeadSource> savedLeadSources = leadSourceService.saveAll(leadSources);
+
+        savedLeadSources.forEach(leadSource -> {
+            if (leadSource.getLeadContacts() != null && !leadSource.getLeadContacts().isEmpty()) {
+                leadSource.getLeadContacts().forEach(leadContact -> leadContact.setLeadSource(leadSource));
+                leadContactService.saveAll(leadSource.getLeadContacts());
+            }
+        });
+        return savedLeadSources;
     }
 
-    private List<Appointment> saveAppointments(List<Appointment> appointments) {
-        log.debug("Saving {} appointments", appointments.size());
-        return appointmentService.saveAll(appointments);
+    private List<Calendar> saveCalendars(List<Calendar> calendars) {
+        log.debug("Saving {} calendars", calendars.size());
+
+        List<Calendar> savedCalendars = calendarService.saveAll(calendars);
+
+        savedCalendars.forEach(calendar -> {
+            if (calendar.getAppointments() != null && !calendar.getAppointments().isEmpty()) {
+                calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
+                appointmentService.saveAll(calendar.getAppointments());
+            }
+        });
+        return calendarService.saveAll(calendars);
     }
 
     private List<PipelineStage> savePipelineStages(List<PipelineStage> pipelineStages) {

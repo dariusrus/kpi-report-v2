@@ -3,21 +3,23 @@ package com.blc.kpiReport.schema.ghl;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
-@Table(name = "appointment")
+@Table(name = "calendar")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class Appointment extends DateAudit implements Serializable {
+public class Calendar extends DateAudit implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,19 +31,19 @@ public class Appointment extends DateAudit implements Serializable {
 
     @NotNull
     @Size(max = 200)
-    @Column(name = "status", length = 200)
-    private String status;
+    @Column(name = "calendar_ghl_id", length = 200, nullable = false)
+    private String calendarGhlId;
 
-    @NotNull
-    @Column(name = "count")
-    private int count;
+    @Size(max = 200)
+    @Column(name = "calendar_name", length = 200)
+    private String calendarName;
 
-    @NotNull
-    @Column(name = "percentage")
-    private double percentage;
+    @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Appointment> appointments;
 
     @ManyToOne
-    @JoinColumn(name = "calendar_id", nullable = false)
+    @JoinColumn(name = "go_high_level_report_id", nullable = false)
     @JsonBackReference
-    private Calendar calendar;
+    private GoHighLevelReport goHighLevelReport;
 }

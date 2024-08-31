@@ -139,7 +139,7 @@ public class KpiReportGeneratorService {
             log.debug("Date range for KPI report: {} to {}", startDate, endDate);
 
             var googleAnalyticsMetric = googleAnalyticsService
-                .fetchUniqueSiteVisitors(startDate, endDate, ghlLocation.getGaPropertyId(), kpiReport);
+                .fetchUniqueSiteVisitors(startDate, endDate, ghlLocation.getGaPropertyId(), ghlLocation.getGaCountryCode(), kpiReport);
 
             log.debug("Fetched Google Analytics metric for KPI report ID: {}", kpiReport.getId());
 

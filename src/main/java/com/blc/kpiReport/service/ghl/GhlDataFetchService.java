@@ -17,9 +17,12 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import static com.blc.kpiReport.util.DateUtil.formatDate;
+import static com.blc.kpiReport.util.DateUtil.*;
 
 @Service
 @Slf4j
@@ -31,6 +34,9 @@ public class GhlDataFetchService {
     private static final String EVENTS_URL_TEMPLATE = "%s/calendars/events?locationId=%s&calendarId=%s&startTime=%d&endTime=%d";
     private static final String PIPELINE_URL_TEMPLATE = "%s/opportunities/pipelines?locationId=%s";
     private static final String CALENDAR_URL_TEMPLATE = "%s/calendars/?locationId=%s";
+    private static final String CONTACT_URL_TEMPLATE = "%s/contacts/%s";
+    private static final String OWNER_URL_TEMPLATE = "%s/users/%s";
+
 
     private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper;
@@ -47,13 +53,33 @@ public class GhlDataFetchService {
 
         try {
             var opportunityList = fetchOpportunities(locationId, accessToken, startDate, endDate);
-            var eventsJson = fetchEvents(locationId, accessToken, startDate, endDate);
+
+            // filter for this month only
+            var createdAtOpportunityList = filterCreatedAt(opportunityList, startDate, endDate);
+            var createdAtContactMap = fetchContactsAndMap(createdAtOpportunityList, accessToken);
+
+            // filter status changes this month
+            var lastStageChangeOpportunityList = filterLastStageChange(opportunityList, startDate, endDate);
+
+            // filter contacts where won status lands on this month
+            var contactsWonOpportunityList = filterContactsWon(opportunityList, startDate, endDate);
+            var contactsWonContactMap = fetchContactsAndMap(contactsWonOpportunityList, accessToken);
+
+            var ownersMap = fetchOwnersAndMap(createdAtOpportunityList, contactsWonOpportunityList, accessToken);
+
+            var eventsMap = fetchEventForEachCalendar(locationId, accessToken, startDate, endDate);
             var pipelineJson = fetchPipelineStages(accessToken, locationId);
 
             log.info("Successfully fetched GHL data for location ID: {}", locationId);
             return GhlApiData.builder()
                 .opportunityList(opportunityList)
-                .eventsJson(eventsJson)
+                .createdAtOpportunityList(createdAtOpportunityList)
+                .createdAtContactMap(createdAtContactMap)
+                .lastStageChangeOpportunityList(lastStageChangeOpportunityList)
+                .contactsWonOpportunityList(contactsWonOpportunityList)
+                .contactsWonContactMap(contactsWonContactMap)
+                .calendarMap(eventsMap)
+                .ownerMap(ownersMap)
                 .pipelineJson(pipelineJson)
                 .build();
         } catch (IOException e) {
@@ -62,12 +88,144 @@ public class GhlDataFetchService {
         }
     }
 
+    private Map<String, JsonNode> fetchOwnersAndMap(List<JsonNode> createdAtOpportunityList, List<JsonNode> contactsWonOpportunityList, String accessToken) throws IOException {
+        Map<String, JsonNode> ownerMap = new HashMap<>();
+
+        // Combine both lists
+        List<JsonNode> combinedOpportunityList = new ArrayList<>();
+        combinedOpportunityList.addAll(createdAtOpportunityList);
+        combinedOpportunityList.addAll(contactsWonOpportunityList);
+
+        for (JsonNode opportunity : combinedOpportunityList) {
+            String userId = opportunity.path("assignedTo").asText();
+            if (userId != null && !userId.isEmpty() && !ownerMap.containsKey(userId)) {
+                String url = String.format(OWNER_URL_TEMPLATE, GHL_API_BASE_URL, userId);
+                log.debug("Fetching owner from URL: {}", url);
+
+                Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Version", "2021-07-28")
+                    .addHeader("Accept", "application/json")
+                    .build();
+
+                try (Response response = okHttpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        log.error("Error fetching owner with ID {}: {}", userId, response);
+                        continue;
+                    }
+
+                    JsonNode ownerJson = objectMapper.readTree(response.body().string());
+                    ownerMap.put(userId, ownerJson);
+                    log.debug("Successfully fetched and added owner with ID {} to the map", userId);
+                } catch (IOException e) {
+                    log.error("Failed to fetch owner with ID {}: {}", userId, e.getMessage());
+                }
+            }
+        }
+
+        log.info("Successfully fetched and mapped {} owners", ownerMap.size());
+        return ownerMap;
+    }
+
+    private Map<String, JsonNode> fetchContactsAndMap(List<JsonNode> opportunityList, String accessToken) throws IOException {
+        Map<String, JsonNode> contactMap = new HashMap<>();
+
+        for (JsonNode opportunity : opportunityList) {
+            String contactId = opportunity.path("contact").path("id").asText();
+            if (contactId != null && !contactId.isEmpty()) {
+                String url = String.format(CONTACT_URL_TEMPLATE, GHL_API_BASE_URL, contactId);
+                log.debug("Fetching contact from URL: {}", url);
+
+                Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Version", "2021-07-28")
+                    .addHeader("Accept", "application/json")
+                    .build();
+
+                try (Response response = okHttpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        log.error("Error fetching contact with ID {}: {}", contactId, response);
+                        continue;
+                    }
+
+                    JsonNode contactJson = objectMapper.readTree(response.body().string()).path("contact");
+                    contactMap.put(contactId, contactJson);
+                    log.debug("Successfully fetched and added contact with ID {} to the map", contactId);
+                } catch (IOException e) {
+                    log.error("Failed to fetch contact with ID {}: {}", contactId, e.getMessage());
+                }
+            }
+        }
+
+        log.info("Successfully fetched and mapped {} contacts", contactMap.size());
+        return contactMap;
+    }
+
+    private static List<JsonNode> filterContactsWon(List<JsonNode> opportunityList, String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate, DATE_FORMATTER);
+        LocalDate end = LocalDate.parse(endDate, DATE_FORMATTER);
+
+        return opportunityList.stream()
+            .filter(opportunity -> {
+                String status = opportunity.get("status").asText();
+                String lastStatusChangeAt = opportunity.get("lastStatusChangeAt").asText();
+                if (lastStatusChangeAt != null && !"null".equals(lastStatusChangeAt) && lastStatusChangeAt.length() >= 10) {
+                    LocalDate statusChangeDate = LocalDate.parse(lastStatusChangeAt.substring(0, 10), DATE_FORMATTER);
+                    return "won".equalsIgnoreCase(status) &&
+                        (statusChangeDate.isEqual(start) || statusChangeDate.isAfter(start)) &&
+                        (statusChangeDate.isEqual(end) || statusChangeDate.isBefore(end));
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private static List<JsonNode> filterLastStageChange(List<JsonNode> opportunityList, String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate, DATE_FORMATTER);
+        LocalDate end = LocalDate.parse(endDate, DATE_FORMATTER);
+
+        return opportunityList.stream()
+            .filter(opportunity -> {
+                String lastStageChangeAt = opportunity.get("lastStageChangeAt").asText();
+                String createdAt = opportunity.get("createdAt").asText();
+                if (lastStageChangeAt != null && !"null".equals(lastStageChangeAt) && lastStageChangeAt.length() >= 10) {
+                    LocalDate stageChangeDate = LocalDate.parse(lastStageChangeAt.substring(0, 10), DATE_FORMATTER);
+                    return (stageChangeDate.isEqual(start) || stageChangeDate.isAfter(start)) &&
+                        (stageChangeDate.isEqual(end) || stageChangeDate.isBefore(end));
+                } else if (lastStageChangeAt == null || "null".equals(lastStageChangeAt)) {
+                    LocalDate createdDate = LocalDate.parse(createdAt.substring(0, 10), DATE_FORMATTER);
+                    return (createdDate.isEqual(start) || createdDate.isAfter(start)) &&
+                        (createdDate.isEqual(end) || createdDate.isBefore(end));
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private static List<JsonNode> filterCreatedAt(List<JsonNode> opportunityList, String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate, DATE_FORMATTER);
+        LocalDate end = LocalDate.parse(endDate, DATE_FORMATTER);
+
+        return opportunityList.stream()
+            .filter(opportunity -> {
+                String createdAt = opportunity.get("createdAt").asText();
+                LocalDate createdDate = LocalDate.parse(createdAt.substring(0, 10), DATE_FORMATTER);
+                return (createdDate.isEqual(start) || createdDate.isAfter(start)) &&
+                    (createdDate.isEqual(end) || createdDate.isBefore(end));
+            })
+            .collect(Collectors.toList());
+    }
+
     private List<JsonNode> fetchOpportunities(String locationId, String accessToken, String startDate, String endDate) throws IOException {
         return retryTemplate.execute(context -> {
             log.info("Attempt {} to fetch opportunities for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startDate, endDate);
 
             var allOpportunities = new ArrayList<JsonNode>();
-            var formattedStartDate = formatDate(startDate);
+            var formattedStartDate = formatDate(subtractOneYear(startDate));
             var formattedEndDate = formatDate(endDate);
             var url = buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, 1);
 
@@ -102,7 +260,7 @@ public class GhlDataFetchService {
         return String.format(OPPORTUNITY_URL_TEMPLATE, GHL_API_BASE_URL, locationId, endDate, startDate, page);
     }
 
-    private List<JsonNode> fetchEvents(String locationId, String accessToken, String startTime, String endTime) throws IOException {
+    private Map<JsonNode, List<JsonNode>> fetchEventForEachCalendar(String locationId, String accessToken, String startTime, String endTime) throws IOException {
         return retryTemplate.execute(context -> {
             log.info("Attempt {} to fetch events for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startTime, endTime);
 
@@ -110,10 +268,13 @@ public class GhlDataFetchService {
             LocalDate endDate = LocalDate.parse(endTime);
             long epochStartTime = startDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000; // milliseconds
             long epochEndTime = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(); // milliseconds
-            List<String> calendarIds = fetchCalendarIds(locationId, accessToken);
-            List<JsonNode> events = new ArrayList<>();
+            List<JsonNode> calendars = fetchCalendars(locationId, accessToken);
 
-            for (String calendarId : calendarIds) {
+            Map<JsonNode, List<JsonNode>> eventsMap = new HashMap<>();
+
+            for (JsonNode calendar : calendars) {
+                String calendarId = calendar.path("id").asText();
+                List<JsonNode> events = new ArrayList<>();
                 var url = String.format(EVENTS_URL_TEMPLATE, GHL_API_BASE_URL, locationId, calendarId, epochStartTime, epochEndTime);
                 log.debug("Fetching events from URL: {}", url);
                 Request appointmentRequest = new Request.Builder()
@@ -130,11 +291,12 @@ public class GhlDataFetchService {
                     }
 
                     JsonNode eventsJson = objectMapper.readTree(eventResponse.body().string());
-                    events.add(eventsJson);
+                    eventsJson.path("events").forEach(events::add);
                 }
+                log.info("Successfully fetched {} events for calendar ID: {} for location ID: {}", events.size(), calendarId, locationId);
+                eventsMap.put(calendar, events);
             }
-            log.info("Successfully fetched {} events for location ID: {}", events.size(), locationId);
-            return events;
+            return eventsMap;
         });
     }
 
@@ -162,7 +324,7 @@ public class GhlDataFetchService {
         });
     }
 
-    private List<String> fetchCalendarIds(String locationId, String accessToken) throws IOException {
+    private List<JsonNode> fetchCalendars(String locationId, String accessToken) throws IOException {
         return retryTemplate.execute(context -> {
             log.info("Attempt {} to fetch calendar IDs for location ID: {}", context.getRetryCount() + 1, locationId);
 
@@ -182,12 +344,12 @@ public class GhlDataFetchService {
                 }
 
                 JsonNode calendarJson = objectMapper.readTree(calendarResponse.body().string());
-                List<String> calendarIds = new ArrayList<>();
+                List<JsonNode> calendars = new ArrayList<>();
                 for (JsonNode calendarNode : calendarJson.path("calendars")) {
-                    calendarIds.add(calendarNode.path("id").asText());
+                    calendars.add(calendarNode);
                 }
-                log.info("Successfully fetched {} calendar IDs for location ID: {}", calendarIds.size(), locationId);
-                return calendarIds;
+                log.info("Successfully fetched {} calendar IDs for location ID: {}", calendars.size(), locationId);
+                return calendars;
             }
         });
     }

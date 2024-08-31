@@ -37,6 +37,11 @@ public class ContactWon extends DateAudit implements Serializable {
     @Column(name = "contact_email", length = 500)
     private String contactEmail;
 
+    @NotNull
+    @Size(max = 200)
+    @Column(name = "source", length = 200)
+    private String source;
+
     @ManyToOne
     @JoinColumn(name = "go_high_level_report_id", nullable = false)
     @JsonBackReference

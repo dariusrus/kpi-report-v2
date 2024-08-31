@@ -1,26 +1,20 @@
 package com.blc.kpiReport.service;
 
 import com.blc.kpiReport.models.ClientType;
-import com.blc.kpiReport.models.mapper.*;
-import com.blc.kpiReport.models.mapper.ghl.AppointmentMapper;
-import com.blc.kpiReport.models.mapper.ghl.ContactWonMapper;
-import com.blc.kpiReport.models.mapper.ghl.LeadSourceMapper;
-import com.blc.kpiReport.models.mapper.ghl.PipelineStageMapper;
+import com.blc.kpiReport.models.mapper.MonthlyAverageMapper;
+import com.blc.kpiReport.models.mapper.ghl.*;
 import com.blc.kpiReport.models.mapper.mc.DailyMetricMapper;
 import com.blc.kpiReport.models.mapper.mc.MonthlyClarityReportMapper;
 import com.blc.kpiReport.models.response.KpiReportResponse;
 import com.blc.kpiReport.models.response.MonthlyAverageResponse;
-import com.blc.kpiReport.models.response.ghl.AppointmentResponse;
-import com.blc.kpiReport.models.response.ghl.ContactsWonResponse;
-import com.blc.kpiReport.models.response.ghl.PipelineResponse;
-import com.blc.kpiReport.models.response.ghl.WebsiteLeadResponse;
+import com.blc.kpiReport.models.response.ghl.*;
 import com.blc.kpiReport.models.response.mc.DailyMetricResponse;
 import com.blc.kpiReport.models.response.mc.MonthlyClarityReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
-import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.MonthlyAverage;
+import com.blc.kpiReport.schema.ghl.LeadSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -29,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.blc.kpiReport.util.DateUtil.formatMonthAndYear;
 import static com.blc.kpiReport.util.NumberUtil.roundToTwoDecimalPlaces;
@@ -41,10 +36,11 @@ public class KpiReportRetrievalService {
 
     private final GhlLocationService ghlLocationService;
     private final KpiReportRepository repository;
-    private final AppointmentMapper appointmentMapper;
+    private final CalendarMapper calendarMapper;
     private final PipelineStageMapper pipelineStageMapper;
     private final ContactWonMapper contactWonMapper;
     private final LeadSourceMapper leadSourceMapper;
+    private final LeadContactMapper leadContactMapper;
     private final DailyMetricMapper dailyMetricMapper;
     private final MonthlyClarityReportMapper monthlyClarityReportMapper;
     private final MonthlyAverageRepository monthlyAverageRepository;
@@ -70,7 +66,7 @@ public class KpiReportRetrievalService {
                     formatMonthAndYear(month, year),
                     googleAnalyticsMetric.getUniqueSiteVisitors(),
                     websiteLeadResponse(goHighLevelReport.getLeadSources()),
-                    appointmentMapper.toResponseList(goHighLevelReport.getAppointments()),
+                    calendarMapper.toResponseList(goHighLevelReport.getCalendars()),
                     pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
                     contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
                     monthlyClarityResponse);
@@ -83,7 +79,7 @@ public class KpiReportRetrievalService {
                                                   String monthAndYear,
                                                   Integer uniqueSiteVisitors,
                                                   WebsiteLeadResponse websiteLead,
-                                                  List<AppointmentResponse> appointments,
+                                                  List<CalendarResponse> calendars,
                                                   List<PipelineResponse> pipelines,
                                                   List<ContactsWonResponse> contactsWon,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
@@ -95,7 +91,7 @@ public class KpiReportRetrievalService {
             .uniqueSiteVisitors(uniqueSiteVisitors)
             .opportunityToLead(roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100))
             .websiteLead(websiteLead)
-            .appointments(appointments)
+            .calendars(calendars)
             .pipelines(pipelines)
             .contactsWon(contactsWon)
             .monthlyClarityReport(monthlyClarityReport)
@@ -103,21 +99,55 @@ public class KpiReportRetrievalService {
     }
 
     private WebsiteLeadResponse websiteLeadResponse(List<LeadSource> leadSources) {
-        var totalLeads = leadSources.stream().mapToInt(LeadSource::getTotalLeads).sum();
-        var totalValues = leadSources.stream().mapToDouble(LeadSource::getTotalValues).sum();
-        var totalOpen = leadSources.stream().mapToInt(LeadSource::getOpen).sum();
-        var totalWon = leadSources.stream().mapToInt(LeadSource::getWon).sum();
-        var totalLost = leadSources.stream().mapToInt(LeadSource::getLost).sum();
-        var totalAbandoned = leadSources.stream().mapToInt(LeadSource::getAbandoned).sum();
+        int totalLeads = 0;
+        int totalWebsiteLeads = 0;
+        int totalManualLeads = 0;
+        double totalValues = 0.0;
+        double totalWebsiteValuation = 0.0;
+        double totalManualValuation = 0.0;
+        int totalOpen = 0;
+        int totalWon = 0;
+        int totalLost = 0;
+        int totalAbandoned = 0;
+
+        for (LeadSource leadSource : leadSources) {
+            int leads = leadSource.getTotalLeads();
+            double values = leadSource.getTotalValues();
+
+            totalLeads += leads;
+            totalValues += values;
+            totalOpen += leadSource.getOpen();
+            totalWon += leadSource.getWon();
+            totalLost += leadSource.getLost();
+            totalAbandoned += leadSource.getAbandoned();
+
+            if ("Website Lead".equals(leadSource.getLeadType())) {
+                totalWebsiteLeads += leads;
+                totalWebsiteValuation += values;
+            } else {
+                totalManualLeads += leads;
+                totalManualValuation += values;
+            }
+        }
 
         return WebsiteLeadResponse.builder()
             .totalLeads(totalLeads)
+            .totalWebsiteLeads(totalWebsiteLeads)
+            .totalManualLeads(totalManualLeads)
             .totalValues(totalValues)
+            .totalWebsiteValuation(totalWebsiteValuation)
+            .totalManualValuation(totalManualValuation)
             .totalOpen(totalOpen)
             .totalWon(totalWon)
             .totalLost(totalLost)
             .totalAbandoned(totalAbandoned)
-            .leadSource(leadSourceMapper.toResponseList(leadSources))
+            .leadSource(leadSources.stream()
+                .map(leadSource -> {
+                    var leadSourceResponse = leadSourceMapper.toResponse(leadSource);
+                    leadSourceResponse.setLeadContacts(leadContactMapper.toResponseList(leadSource.getLeadContacts()));
+                    return leadSourceResponse;
+                })
+                .collect(Collectors.toList()))
             .build();
     }
 
@@ -153,5 +183,4 @@ public class KpiReportRetrievalService {
             return null;
         }
     }
-
 }

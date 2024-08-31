@@ -34,7 +34,7 @@ public class GoHighLevelReport extends DateAudit implements Serializable {
 
     @OneToMany(mappedBy = "goHighLevelReport", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Appointment> appointments;
+    private List<Calendar> calendars;
 
     @OneToMany(mappedBy = "goHighLevelReport", cascade = CascadeType.ALL)
     @JsonManagedReference

@@ -3,6 +3,7 @@ import {Appointment} from "./ghl/appointment";
 import {Pipeline} from "./ghl/pipeline";
 import {ContactWon} from "./ghl/contact-won";
 import {MonthlyClarityReport} from "./mc/monthly-clarity-report";
+import {Calendar} from "./ghl/calendar";
 
 export interface KpiReport {
   subAgency: string;
@@ -11,7 +12,7 @@ export interface KpiReport {
   uniqueSiteVisitors: number;
   opportunityToLead: number;
   websiteLead: WebsiteLead;
-  appointments: Appointment[];
+  calendars: Calendar[];
   pipelines: Pipeline[];
   contactsWon: ContactWon[];
   clientType: string;

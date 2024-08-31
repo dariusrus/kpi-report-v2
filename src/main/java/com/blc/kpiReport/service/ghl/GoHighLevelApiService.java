@@ -33,7 +33,7 @@ public class GoHighLevelApiService {
         ghlReportData = writerService.saveGhlData(ghlReportData);
 
         goHighLevelReport.setLeadSources(ghlReportData.getLeadSources());
-        goHighLevelReport.setAppointments(ghlReportData.getAppointments());
+        goHighLevelReport.setCalendars(ghlReportData.getCalendars());
         goHighLevelReport.setPipelineStages(ghlReportData.getPipelineStages());
         goHighLevelReport.setContactsWon(ghlReportData.getContactsWon());
 

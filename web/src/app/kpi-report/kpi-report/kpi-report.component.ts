@@ -10,7 +10,10 @@ import * as shape from 'd3-shape';
 import {Pipeline} from "../../models/ghl/pipeline";
 import {PipelineStage} from "../../models/ghl/pipeline-stage";
 import {MonthlyAverage} from "../../models/monthly-average";
-import {MenuItem} from "primeng/api";
+import {TotalAppointment} from "../../models/ghl/total-appointment";
+import {Calendar} from "../../models/ghl/calendar";
+import {Appointment} from "../../models/ghl/appointment";
+import {SelectItemGroup} from "primeng/api";
 
 @Component({
   selector: 'app-kpi-report',
@@ -34,6 +37,8 @@ export class KpiReportComponent implements OnInit {
   gaBarChart: any[] = [];
   gaGroupedBarChart: any[] = [];
   leadBarChart: any[] = [];
+  leadBarChartStacked: any[] = [];
+  leadBarChartStackedValuation: any[] = [];
   leadGroupedBarChart: any[] = [];
   leadSourceBarChart: any[] = [];
   opportunityLineChart: any[] = [];
@@ -53,6 +58,8 @@ export class KpiReportComponent implements OnInit {
 
   selectedPipeline: Pipeline | null = null;
   selectedPipelineNoData: boolean = false;
+
+  selectedCalendar: Calendar | null = null;
 
   monthCount: number = 1;
   isLoading: boolean = true;
@@ -85,14 +92,29 @@ export class KpiReportComponent implements OnInit {
 
   curve: any = shape.curveCatmullRom.alpha(1);
 
-  deviceTypes: string[] = ['PC', 'Tablet', 'Mobile', 'Other'];
+  deviceTypes: string[] = ['PC', 'Tablet', 'Mobile'];
   selectedDevice = 'PC';
+
+  availableAppointmentStatuses: string[] = [];
+  totalAppointments: TotalAppointment[] = [];
+  filteredCalendars: Calendar[] = [];
+
+  customColors = [
+    { name: 'Website Lead', value: '#37C469FF' }, // Green color for Website Lead
+    { name: 'Manual User Input', value: '#4571B9FF' }
+  ];
+
+  customColorsValue = [
+    { name: 'Website Lead', value: '#76c437' }, // Green color for Website Lead
+    { name: 'Manual User Input', value: '#45abb9' }
+  ];
+
 
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
               @Inject(APP_CONFIG) private config: AppConfig) {
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
+    const currentMonth = currentDate.getMonth(); // hack
     const currentYear = currentDate.getFullYear();
 
     this.selectedMonth = '';
@@ -146,7 +168,8 @@ export class KpiReportComponent implements OnInit {
     this.kpiReportService.getReportData(locationId, currentMonth, currentYear).subscribe({
       next: (currentData) => {
         this.reportData = currentData;
-        this.preprocessData(this.selectedDevice);
+        this.preprocessDevices(this.selectedDevice);
+        this.preprocessCalendars(this.reportData.calendars);
         console.log('DATA LOADED!');
         console.log(this.reportData);
         this.clientType = this.reportData?.clientType;
@@ -224,19 +247,21 @@ export class KpiReportComponent implements OnInit {
     this.setupClarityTotalActiveTimeTreeMap(currentData);
     this.populateGaGroupedBarChart(currentData, previousData, currentAverage);
     this.populateLeadBarChart(currentData, previousData);
+    this.populateLeadBarChartStacked(currentData, previousData);
+    this.populateLeadBarChartStackedValuation(currentData, previousData);
     this.populateLeadGroupedBarChart(currentData, previousData, currentAverage);
     this.populateLeadSourceBarChart();
     this.populateOpportunityLineChart(currentData, previousData);
     this.populateOpportunityGroupedLineChart(currentData, previousData, currentAverage);
-    this.setupAppointmentsLineChart(currentData, previousData.map(([report]) => report));
-    this.setupAppointmentsPieChart(currentData, previousData.map(([report]) => report));
+    // this.setupAppointmentsLineChart(currentData, previousData.map(([report]) => report));
+    this.setupAppointmentsPieChart(currentData);
     this.setupPipelinesPieChart();
   }
 
   private populateNumberCards(currentData: KpiReport): void {
     this.numberCards = [
       {name: "Unique Site Visitors", value: currentData.uniqueSiteVisitors},
-      {name: "Total Website Leads", value: currentData.websiteLead.totalLeads},
+      {name: "Total Captured Leads", value: currentData.websiteLead.totalLeads},
       {name: "Opportunity-to-Lead", value: currentData.opportunityToLead},
       {name: "Lead Valuation", value: currentData.websiteLead.totalValues}
     ];
@@ -268,11 +293,11 @@ export class KpiReportComponent implements OnInit {
           name: this.formatMonthAndYear(report.monthAndYear),
           series: [
             {
-              name: "BLC Average Unique Site Visitors",
+              name: "BLC Average",
               value: average.averageUniqueSiteVisitors
             },
             {
-              name: "Your Unique Site Visitors",
+              name: currentData.subAgency,
               value: report.uniqueSiteVisitors
             }
           ]
@@ -284,16 +309,16 @@ export class KpiReportComponent implements OnInit {
         name: this.formatMonthAndYear(currentData.monthAndYear),
         series: [
           {
-            name: "BLC Average Unique Site Visitors",
+            name: "BLC Average",
             value: currentAverage.averageUniqueSiteVisitors
           },
           {
-            name: "Your Unique Site Visitors",
+            name: currentData.subAgency,
             value: currentData.uniqueSiteVisitors
           }
         ]
       } : null
-    ].filter(Boolean); // Filter out any null values
+    ].filter(Boolean);
   }
 
   private populateLeadBarChart(currentData: KpiReport, previousData: any[]): void {
@@ -307,6 +332,66 @@ export class KpiReportComponent implements OnInit {
         value: currentData.websiteLead.totalLeads
       }
     ];
+  }
+
+  private populateLeadBarChartStacked(currentData: KpiReport, previousData: any[]): void {
+    this.leadBarChartStacked = previousData.map(([report]) => ({
+      name: this.formatMonthAndYear(report.monthAndYear),
+      series: [
+        {
+          name: 'Manual User Input',
+          value: report.websiteLead.totalManualLeads
+        },
+        {
+          name: 'Website Lead',
+          value: report.websiteLead.totalWebsiteLeads
+        }
+      ]
+    })).reverse();
+
+    this.leadBarChartStacked.push({
+      name: this.formatMonthAndYear(currentData.monthAndYear),
+      series: [
+        {
+          name: 'Manual User Input',
+          value: currentData.websiteLead.totalManualLeads
+        },
+        {
+          name: 'Website Lead',
+          value: currentData.websiteLead.totalWebsiteLeads
+        }
+      ]
+    });
+  }
+
+  private populateLeadBarChartStackedValuation(currentData: KpiReport, previousData: any[]): void {
+    this.leadBarChartStackedValuation = previousData.map(([report]) => ({
+      name: this.formatMonthAndYear(report.monthAndYear),
+      series: [
+        {
+          name: 'Manual User Input',
+          value: report.websiteLead.totalManualValuation
+        },
+        {
+          name: 'Website Lead',
+          value: report.websiteLead.totalWebsiteValuation
+        }
+      ]
+    })).reverse();
+
+    this.leadBarChartStackedValuation.push({
+      name: this.formatMonthAndYear(currentData.monthAndYear),
+      series: [
+        {
+          name: 'Manual User Input',
+          value: currentData.websiteLead.totalManualValuation
+        },
+        {
+          name: 'Website Lead',
+          value: currentData.websiteLead.totalWebsiteValuation
+        }
+      ]
+    });
   }
 
   private populateLeadGroupedBarChart(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage): void {
@@ -323,11 +408,11 @@ export class KpiReportComponent implements OnInit {
           name: this.formatMonthAndYear(report.monthAndYear),
           series: [
             {
-              name: "BLC Average Website Leads",
+              name: "BLC Average",
               value: average.averageTotalLeads
             },
             {
-              name: "Your Website Leads",
+              name: currentData.subAgency,
               value: report.websiteLead.totalLeads
             }
           ]
@@ -340,11 +425,11 @@ export class KpiReportComponent implements OnInit {
         name: this.formatMonthAndYear(currentData.monthAndYear),
         series: [
           {
-            name: "BLC Average Website Leads",
+            name: "BLC Average",
             value: currentAverage.averageTotalLeads
           },
           {
-            name: "Your Website Leads",
+            name: currentData.subAgency,
             value: currentData.websiteLead.totalLeads
           }
         ]
@@ -386,7 +471,7 @@ export class KpiReportComponent implements OnInit {
   private populateOpportunityGroupedLineChart(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage): void {
     this.opportunityGroupedLineChart = [
       {
-        name: "Opportunity-to-Lead (O2L)",
+        name: "O2L",
         series: [
           ...previousData.map(([report]) => ({
             name: this.formatMonthAndYear(report.monthAndYear),
@@ -399,7 +484,7 @@ export class KpiReportComponent implements OnInit {
         ]
       },
       {
-        name: "Weighted Average O2L",
+        name: "Weighted Average",
         series: [
           ...this.averageReportDataPrevious
             .filter(average => average && average.monthAndYear && average.weightedAverageOpportunityToLead !== null)
@@ -414,7 +499,7 @@ export class KpiReportComponent implements OnInit {
         ].filter(Boolean) // Filter out any null values
       },
       {
-        name: "Non-weighted Average O2L",
+        name: "Non-weighted Average",
         series: [
           ...this.averageReportDataPrevious
             .filter(average => average && average.monthAndYear && average.averageOpportunityToLead !== null)
@@ -432,7 +517,6 @@ export class KpiReportComponent implements OnInit {
   }
 
   private setupClarityAverageScrollGaugeChart(currentData: KpiReport) {
-    console.log('does it even reach here');
     const monthlyClarityReport = currentData.monthlyClarityReport;
     if (monthlyClarityReport) {
       const deviceClarityAggregate = monthlyClarityReport.deviceClarityAggregate;
@@ -443,7 +527,6 @@ export class KpiReportComponent implements OnInit {
           value: device.collectiveAverageScrollDepth
         }));
     }
-    console.log(this.clarityAverageScrollGaugeChart);
   }
 
   private updateSelectedPipeline(pipeline: Pipeline | null): void {
@@ -479,7 +562,7 @@ export class KpiReportComponent implements OnInit {
     if (monthlyClarityReport) {
       const deviceClarityAggregate = monthlyClarityReport.deviceClarityAggregate;
       this.clarityTotalActiveTimeTreeMap = deviceClarityAggregate
-        .filter(device => device.totalActiveTime !== null && device.totalActiveTime !== 0)
+        .filter(device => device.deviceName !== 'Other' && device.totalActiveTime !== null && device.totalActiveTime !== 0)
         .map(device => ({
           name: device.deviceName,
           value: device.totalActiveTime
@@ -494,7 +577,7 @@ export class KpiReportComponent implements OnInit {
 
   onDeviceChange(event: any): void {
     this.selectedDevice = event.value;
-    this.preprocessData(this.selectedDevice);
+    this.preprocessDevices(this.selectedDevice);
   }
 
   getTotalCounts(stages: PipelineStage[]): number {
@@ -509,35 +592,88 @@ export class KpiReportComponent implements OnInit {
     return stages.reduce((acc, cur) => acc + cur.monetaryValue, 0);
   }
 
-  getAllStatuses(reports: KpiReport[]): Set<string> {
-    const allStatuses = new Set<string>();
-    reports.forEach(report => report.appointments.forEach(app => allStatuses.add(app.status)));
-    return allStatuses;
-  }
+  calculateTotalAppointments(calendars: Calendar[]): TotalAppointment[] {
+    const statusCountMap: { [status: string]: number } = {};
 
-  setupAppointmentsLineChart(currentData: KpiReport, previousData: KpiReport[]): void {
-    const combinedData = [currentData, ...previousData].reverse();
+    calendars.forEach(calendar => {
+      calendar.appointments.forEach(appointment => {
+        const status = appointment.status;
+        const count = appointment.count;
 
-    const allStatuses = Array.from(this.getAllStatuses(combinedData)).sort();
+        if (statusCountMap[status]) {
+          statusCountMap[status] += count;
+        } else {
+          statusCountMap[status] = count;
+        }
+      });
+    });
 
-    this.appointmentsLineChart = allStatuses.map(status => ({
-      name: this.formatStatus(status),
-      series: combinedData.map(data => ({
-        name: this.formatMonthAndYear(data.monthAndYear),
-        value: data.appointments.find(app => app.status === status)?.count || 0
-      }))
+    return Object.keys(statusCountMap).map(status => ({
+      status,
+      totalCount: statusCountMap[status]
     }));
   }
 
-  setupAppointmentsPieChart(currentData: KpiReport, previousData: KpiReport[]) {
-    const combinedData = [currentData, ...previousData];
-    const allStatuses = this.getAllStatuses(combinedData);
-    const dataByStatus = new Map(currentData.appointments.map(app => [app.status, app.count]));
+  // Function to get the total count for a specific status for the footer
+  getTotalAppointmentCount(status: string): number {
+    const totalAppointment = this.totalAppointments.find(app => app.status === status);
+    return totalAppointment ? totalAppointment.totalCount : 0;
+  }
 
-    this.appointmentsPieChart = Array.from(allStatuses).map(status => ({
-      name: this.formatStatus(status),
-      value: dataByStatus.get(status) || 0
+  normalizeAndSortAppointments(calendars: Calendar[]): Calendar[] {
+    const allStatuses: Set<string> = new Set();
+    calendars.forEach(calendar => {
+      calendar.appointments.forEach(appointment => {
+        allStatuses.add(appointment.status);
+      });
+    });
+    return calendars.map(calendar => {
+      const updatedAppointments: Appointment[] = Array.from(allStatuses).map(status => {
+        const existingAppointment = calendar.appointments.find(app => app.status === status);
+        return existingAppointment ? existingAppointment : { status, count: 0 };
+      });
+      updatedAppointments.sort((a, b) => a.status.localeCompare(b.status));
+      return {
+        ...calendar,
+        appointments: updatedAppointments
+      };
+    });
+  }
+
+  setupAppointmentsPieChart(currentData: KpiReport) {
+    currentData.calendars = currentData.calendars.filter(calendar => calendar.calendarId !== 'all-calendars');
+    const totalAppointments = this.calculateTotalAppointments(currentData.calendars);
+    const allCalendars: Calendar = {
+      calendarId: 'all-calendars',
+      calendarName: 'All Calendars',
+      appointments: totalAppointments.map(totalAppointment => ({
+        status: totalAppointment.status,
+        count: totalAppointment.totalCount
+      }))
+    };
+
+    currentData.calendars.unshift(allCalendars);
+
+    // Step 5: Preserve the selected calendar, defaulting to "All Calendars" if none is selected
+    if (!this.selectedCalendar || !currentData.calendars.find(calendar => calendar.calendarId === this.selectedCalendar!.calendarId)) {
+      this.selectedCalendar = allCalendars;
+    }
+
+    this.appointmentsPieChart = this.selectedCalendar.appointments.map(appointment => ({
+      name: this.formatStatus(appointment.status),
+      value: appointment.count
     })).sort((a, b) => a.name.localeCompare(b.name));
+
+    this.groupCalendars();
+  }
+
+  onCalendarChange(event: any): void {
+    this.updateSelectedCalendar(event.value);
+    this.setupAppointmentsPieChart(this.reportData!);
+  }
+
+  private updateSelectedCalendar(calendar: Calendar | null): void {
+    this.selectedCalendar = calendar;
   }
 
   formatStatus(status: string): string {
@@ -571,15 +707,56 @@ export class KpiReportComponent implements OnInit {
     }
   }
 
-  preprocessData(selectedDevice: string) {
+  preprocessDevices(selectedDevice: string) {
     if (this.reportData?.monthlyClarityReport) {
       this.reportData!.monthlyClarityReport.urls.forEach((urlMetric: any) => {
-        const pcDevice = urlMetric.devices.find((device: any) => device.deviceType === selectedDevice);
-        urlMetric.averageScrollDepth = pcDevice ? pcDevice.averageScrollDepth : 'N/A';
-        urlMetric.activeTime = pcDevice ? pcDevice.activeTime : 'N/A';
-        urlMetric.totalSessionCount = pcDevice ? pcDevice.totalSessionCount : 'N/A';
+        const toggleDevice = urlMetric.devices.find((device: any) => device.deviceType === selectedDevice);
+        urlMetric.averageScrollDepth = toggleDevice ? toggleDevice.averageScrollDepth : 0;
+        urlMetric.activeTime = toggleDevice ? toggleDevice.activeTime : 0;
+        urlMetric.totalSessionCount = toggleDevice ? toggleDevice.totalSessionCount : 0;
       });
     }
+  }
+
+  preprocessCalendars(calendars: Calendar[]) {
+    if (calendars) {
+      this.reportData!.calendars = this.normalizeAndSortAppointments(calendars);
+      this.availableAppointmentStatuses = this.getAvailableStatuses(this.reportData!.calendars);
+      this.totalAppointments = this.calculateTotalAppointments(calendars);
+    }
+  }
+
+  groupCalendars() {
+    const withAppointments: Calendar[] = [];
+    const withoutAppointments: Calendar[] = [];
+
+    this.reportData!.calendars.forEach(calendar => {
+      const totalAppointments = calendar.appointments.reduce((sum, appointment) => sum + appointment.count, 0);
+      if (totalAppointments > 0) {
+        withAppointments.push(calendar);
+      } else {
+        withoutAppointments.push(calendar);
+      }
+    });
+    this.filteredCalendars = withAppointments;
+  }
+
+  getAvailableStatuses(calendars: Calendar[]): string[] {
+    const statusesSet = new Set<string>();
+
+    calendars.forEach(calendar => {
+      calendar.appointments.forEach(appointment => {
+        statusesSet.add(appointment.status);
+      });
+    });
+
+    return Array.from(statusesSet).sort();
+  }
+
+  // Function to get the count of a specific appointment status
+  getAppointmentCount(calendar: Calendar, status: string): number {
+    const appointment = calendar.appointments.find(app => app.status === status);
+    return appointment ? appointment.count : 0;
   }
 
   onYearChange(): void {
@@ -617,14 +794,35 @@ export class KpiReportComponent implements OnInit {
     return Math.round(data.value).toLocaleString();
   }
 
+  currencyFormatting(data: any): string {
+    return '$ ' + Math.round(data).toLocaleString();
+  }
+
   percentageFormatting(data: any): string {
-    if (data === undefined || data === 0 || data === null || data === 'N/A') {
+    if (data === 0) {return '0%'}
+    if (data === undefined || data === null || data === 'N/A') {
       return '-';
     }
     return data + '%';
   }
 
+  getStatusSeverity(status: string) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return 'info';
+      case 'won':
+        return 'success';
+      case 'lost':
+        return 'danger';
+      case 'abandoned':
+        return 'warning';
+      default:
+        return 'contrast';  // You can choose to handle unexpected values with a default case
+    }
+  }
+
   timeFormatting(data: number): string {
+    if (data === 0) {return '0s'}
     const secondsInMinute = 60;
     const secondsInHour = secondsInMinute * 60;
     const secondsInDay = secondsInHour * 24;
@@ -683,3 +881,24 @@ export class KpiReportComponent implements OnInit {
 
   protected readonly LegendPosition = LegendPosition;
 }
+
+
+// getAllStatuses(reports: KpiReport[]): Set<string> {
+//   const allStatuses = new Set<string>();
+//   reports.forEach(report => report.appointments.forEach(app => allStatuses.add(app.status)));
+//   return allStatuses;
+// }
+
+// setupAppointmentsLineChart(currentData: KpiReport, previousData: KpiReport[]): void {
+//   const combinedData = [currentData, ...previousData].reverse();
+//
+//   const allStatuses = Array.from(this.getAllStatuses(combinedData)).sort();
+//
+//   this.appointmentsLineChart = allStatuses.map(status => ({
+//     name: this.formatStatus(status),
+//     series: combinedData.map(data => ({
+//       name: this.formatMonthAndYear(data.monthAndYear),
+//       value: data.appointments.find(app => app.status === status)?.count || 0
+//     }))
+//   }));
+// }

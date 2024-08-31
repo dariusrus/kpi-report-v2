@@ -42,6 +42,11 @@ public class GhlLocation implements Serializable {
     private String gaPropertyId;
 
     @NotNull
+    @Size(max = 50)
+    @Column(name = "ga_country_code", length = 50, nullable = false, columnDefinition = "varchar(50) default 'US'")
+    private String gaCountryCode;
+
+    @NotNull
     @Size(max = 200)
     @Column(name = "name", length = 200, nullable = false)
     private String name;

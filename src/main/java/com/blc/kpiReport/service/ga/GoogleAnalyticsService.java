@@ -37,7 +37,7 @@ public class GoogleAnalyticsService {
         return response;
     }
 
-    public GoogleAnalyticsMetric fetchUniqueSiteVisitors(String startDate, String endDate, String gaPropertyId, KpiReport kpiReport) throws IOException {
+    public GoogleAnalyticsMetric fetchUniqueSiteVisitors(String startDate, String endDate, String gaPropertyId, String countryCode, KpiReport kpiReport) throws IOException {
         log.debug("Fetching unique site visitors for propertyId: {} from {} to {}", gaPropertyId, startDate, endDate);
 
         var dateRange = createDateRange(startDate, endDate);
@@ -45,7 +45,7 @@ public class GoogleAnalyticsService {
 
         log.debug("Created date range and metrics list");
 
-        var allReportResponses = runReportsForMetrics(metrics, dateRange, gaPropertyId);
+        var allReportResponses = runReportsForMetrics(metrics, dateRange, gaPropertyId, countryCode);
 
         log.debug("Fetched all report responses");
 
@@ -72,7 +72,7 @@ public class GoogleAnalyticsService {
         return metrics;
     }
 
-    private List<RunReportResponse> runReportsForMetrics(List<Metric> metrics, DateRange dateRange, String gaPropertyId) throws IOException {
+    private List<RunReportResponse> runReportsForMetrics(List<Metric> metrics, DateRange dateRange, String gaPropertyId, String countryCode) throws IOException {
         log.debug("Running reports for metrics");
         var allReportResponses = new ArrayList<RunReportResponse>();
 
@@ -84,7 +84,13 @@ public class GoogleAnalyticsService {
                 var reportRequest = new RunReportRequest()
                     .setProperty("properties/" + gaPropertyId)
                     .setMetrics(Collections.singletonList(metric))
-                    .setDateRanges(Collections.singletonList(dateRange));
+                    .setDateRanges(Collections.singletonList(dateRange))
+                    .setDimensionFilter(new FilterExpression()
+                        .setFilter(new Filter()
+                            .setFieldName("countryId")
+                            .setStringFilter(new StringFilter()
+                                .setMatchType("EXACT")
+                                .setValue(countryCode))));
 
                 log.debug("Running report for metric: {}", metric.getName());
 
@@ -101,7 +107,6 @@ public class GoogleAnalyticsService {
         }
         return allReportResponses;
     }
-
 
     private Integer extractUniqueSiteVisitors(List<RunReportResponse> allReportResponses) {
         log.debug("Extracting unique site visitors from report responses");
