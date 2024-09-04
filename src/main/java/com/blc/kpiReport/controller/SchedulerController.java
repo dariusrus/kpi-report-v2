@@ -1,5 +1,6 @@
 package com.blc.kpiReport.controller;
 
+import com.blc.kpiReport.config.KpiReportGeneratorScheduler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
@@ -26,6 +28,7 @@ import java.util.List;
 public class SchedulerController {
 
     private final ApplicationContext applicationContext;
+    private final KpiReportGeneratorScheduler scheduler;
 
     @Operation(
         summary = "Get information about scheduled cron jobs",
@@ -56,6 +59,32 @@ public class SchedulerController {
             }
         }
         return cronJobInfos;
+    }
+
+    @Operation(
+        summary = "Enable or disable the monthly cron job",
+        description = "Toggles the monthly cron job on or off.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Cron job status updated")
+        }
+    )
+    @GetMapping("/toggle-monthly-cron")
+    public String toggleMonthlyCron(@RequestParam boolean enable) {
+        scheduler.setMonthlyCronEnabled(enable);
+        return "Monthly cron job " + (enable ? "enabled" : "disabled");
+    }
+
+    @Operation(
+        summary = "Enable or disable the daily cron job",
+        description = "Toggles the daily cron job on or off.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Cron job status updated")
+        }
+    )
+    @GetMapping("/toggle-daily-cron")
+    public String toggleDailyCron(@RequestParam boolean enable) {
+        scheduler.setDailyCronEnabled(enable);
+        return "Daily cron job " + (enable ? "enabled" : "disabled");
     }
 
     @Schema(description = "Information about a cron job")

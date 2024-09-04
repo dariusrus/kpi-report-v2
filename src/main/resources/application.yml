@@ -33,7 +33,7 @@ spring:
       username: ian@builderleadconverter.com
       password: bslp hgxo phlj jdrg
     report-notification:
-      recipients: ian@builderleadconverter.com, darius@builderleadconverter.com, ianculanag@gmail.com
+      recipients: ian@builderleadconverter.com,ianculanag@gmail.com
 generator:
   semaphorePermits: 1
   retryBackOffPeriod: 30000

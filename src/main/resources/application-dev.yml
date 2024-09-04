@@ -1,0 +1,15 @@
+logging:
+  level:
+    root: INFO
+  file-path: ../logs/blc-api-integrations/application-dev.log
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/KPI_Report
+    username: PriceRequest
+    password: welike2kupo
+  mail:
+    account:
+      username: ian@builderleadconverter.com
+      password: bslp hgxo phlj jdrg
+    report-notification:
+      recipients: ian@builderleadconverter.com,ianculanag@gmail.com

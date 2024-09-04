@@ -1,0 +1,23 @@
+logging:
+  level:
+    root: INFO
+  file-path: /var/log/blc-api-integrations/application.log
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/KPI_Report
+    username: PriceRequest
+    password: welike2kupo
+  mail:
+    account:
+      username: support@builderleadconverter.com
+      password: xmyi fgfz domm npiu
+    report-notification:
+      recipients: ian@builderleadconverter.com,darius@builderleadconverter.com
+server:
+  ssl:
+    key-store: /etc/letsencrypt/live/prs.builderleadconverter.com/keystore.p12
+    key-store-password: welike2kupo
+    key-store-type: PKCS12
+    key-alias: blc-certs
+    ciphers: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_DHE_RSA_WITH_AES_128_GCM_SHA256, TLS_DHE_RSA_WITH_AES_256_GCM_SHA384, TLS_DHE_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_RSA_WITH_AES_256_CBC_SHA, TLS_DHE_RSA_WITH_AES_128_CBC_SHA256, TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+    enabled-protocols: TLSv1.2
