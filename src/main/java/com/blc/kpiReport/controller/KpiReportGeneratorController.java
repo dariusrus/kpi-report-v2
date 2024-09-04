@@ -59,7 +59,7 @@ public class KpiReportGeneratorController {
     )
     @PostMapping("/monthly/batch")
     public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(@RequestBody GenerateKpiReportsRequest request) throws IOException {
-        return generatorService.generateAllKpiReports(request);
+        return generatorService.generateAllKpiReports(request, false);
     }
 
     @Operation(

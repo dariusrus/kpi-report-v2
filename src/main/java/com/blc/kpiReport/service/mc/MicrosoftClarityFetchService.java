@@ -45,11 +45,18 @@ public class MicrosoftClarityFetchService {
                 .build();
 
             try (Response response = okHttpClient.newCall(request).execute()) {
+                if (response.code() == 403) {
+                    log.warn("Received 403 Forbidden when fetching metrics. Skipping retries and throwing an exception.");
+                    context.setExhaustedOnly();
+                    throw new MicrosoftClarityApiException("403 Forbidden: Access denied for the API call.");
+                }
+
                 if (!response.isSuccessful()) {
                     String errorMessage = "Error fetching metrics: " + response;
                     log.error(errorMessage);
                     throw new MicrosoftClarityApiException(errorMessage);
                 }
+
                 log.info("Successfully fetched metrics for the previous {} days", numOfDays);
                 return response.body().string();
             } catch (IOException e) {

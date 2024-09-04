@@ -52,7 +52,6 @@ public class GhlDataProcessorService {
 
             var contactNode = contactMap.get(opportunity.path("contact").path("id").asText());
             if (contactNode == null) continue;
-            leadSource.setLeadType(determineLeadType(contactNode));  // Determine and set lead type
 
             leadSource.setTotalLeads(leadSource.getTotalLeads() + 1);
             leadSource.setTotalValues(leadSource.getTotalValues() + monetaryValue);
@@ -96,6 +95,8 @@ public class GhlDataProcessorService {
         }
 
         leadSourceMap.values().forEach(leadSource -> {
+            determineLeadTypeForSource(leadSource);
+
             int totalAttempts = leadSource.getTotalLeads();
             leadSource.setWinPercentage(totalAttempts > 0 ? (double) leadSource.getWon() / totalAttempts * 100 : 0.0);
         });
@@ -107,18 +108,22 @@ public class GhlDataProcessorService {
         return leadSources;
     }
 
-    private String determineLeadType(JsonNode contactNode) {
-        String source = contactNode.path("createdBy").path("source").asText();
-        if ("FORM".equalsIgnoreCase(source)
-            || "INTEGRATION".equalsIgnoreCase(source)
-            || "PUBLIC_API".equalsIgnoreCase(source)
-            || "CONVERSATIONS".equalsIgnoreCase(source)
-            || "".equalsIgnoreCase(source)
-        ) {
-            return "Website Lead";
-        } else {
-            return "Manual User Input";
+    private String determineLeadType(String createdBySource) {
+        return switch (createdBySource.toUpperCase()) {
+            case "FORM", "INTEGRATION", "PUBLIC_API", "CONVERSATIONS", "" -> "Website Lead";
+            default -> "Manual User Input";
+        };
+    }
+
+    private void determineLeadTypeForSource(LeadSource leadSource) {
+        for (LeadContact leadContact : leadSource.getLeadContacts()) {
+            String leadType = determineLeadType(leadContact.getCreatedBySource());
+            if ("Website Lead".equals(leadType)) {
+                leadSource.setLeadType("Website Lead");
+                return;
+            }
         }
+        leadSource.setLeadType("Manual User Input");
     }
 
     private List<Calendar> processAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {

@@ -24,6 +24,12 @@ public class DateUtil {
         return date.format(formatter);
     }
 
+    public static String formatDayMonthYear(int day, int month, int year) {
+        LocalDate date = LocalDate.of(year, month, day);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+        return date.format(formatter);
+    }
+
     public static String convertDate(String date) {
         var inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         var outputFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
@@ -40,5 +46,6 @@ public class DateUtil {
         LocalDate updatedDate = localDate.minusYears(2);
         return updatedDate.format(DATE_FORMATTER);
     }
+
     public record FormattedDateRange(String startDate, String endDate) {}
 }

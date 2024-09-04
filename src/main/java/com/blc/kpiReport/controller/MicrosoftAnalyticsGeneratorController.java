@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
@@ -42,5 +43,22 @@ public class MicrosoftAnalyticsGeneratorController {
     @PostMapping(path="/daily" , produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<GenerateKpiReportResponse> generateMicrosoftAnalyticsReport(@RequestBody GenerateClarityReportRequest request) throws IOException {
         return generatorService.generateDailyMicrosoftAnalyticsReport(request);
+    }
+
+    @Operation(
+        summary = "Generate daily Microsoft Analytics Reports for all configured GHL Locations.",
+        description = "Generate the daily reports from Microsoft Analytics for a batch of GHL locations.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Batch report generation started successfully",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = GenerateKpiReportResponse.class))
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    @PostMapping(path = "/daily/batch", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CompletableFuture<List<GenerateKpiReportResponse>> generateBatchMicrosoftAnalyticsReports() {
+        return generatorService.generateDailyMicrosoftAnalyticsReports(false);
     }
 }

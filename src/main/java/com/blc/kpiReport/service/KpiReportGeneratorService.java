@@ -20,6 +20,7 @@ import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
 import com.blc.kpiReport.service.ghl.GoHighLevelApiService;
 import com.blc.kpiReport.service.mc.MicrosoftClarityApiService;
 import com.blc.kpiReport.util.DateUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -39,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
+import static com.blc.kpiReport.util.DateUtil.formatDayMonthYear;
 import static com.blc.kpiReport.util.DateUtil.formatMonthAndYear;
 import static com.blc.kpiReport.util.NumberUtil.roundToTwoDecimalPlaces;
 
@@ -57,6 +59,7 @@ public class KpiReportGeneratorService {
     private final MonthlyAverageRepository monthlyAverageRepository;
     private final MonthlyClarityReportRepository monthlyClarityReportRepository;
     private final GeneratorConfig generatorConfig;
+    private final MailService mailService;
 
     private Semaphore semaphore;
 
@@ -66,17 +69,49 @@ public class KpiReportGeneratorService {
     }
 
     @Transactional
-    public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(GenerateKpiReportsRequest request) {
+    public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(GenerateKpiReportsRequest request, boolean isCronJob) {
         List<GenerateKpiReportResponse> initialResponses = new ArrayList<>();
         List<String> uniqueLocationIds = new ArrayList<>(new HashSet<>(ghlLocations.getGhlLocationIds()));
 
-        List<CompletableFuture<Void>> futures = uniqueLocationIds.stream()
-            .map(locationId -> {
-                var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), initialResponses);
-                return runAsyncReportGeneration(response, request.getMonth(), request.getYear());
-            })
-            .collect(Collectors.toList());
+        uniqueLocationIds.forEach(locationId -> {
+            var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), initialResponses);
+            runAsyncReportGeneration(response, request.getMonth(), request.getYear());
+        });
+
+        CompletableFuture.runAsync(() -> {
+            CompletableFuture.allOf(
+                uniqueLocationIds.stream()
+                    .map(locationId -> {
+                        var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), null);
+                        return runAsyncReportGeneration(response, request.getMonth(), request.getYear());
+                    })
+                    .toArray(CompletableFuture[]::new)
+            ).whenComplete((result, throwable) -> finalizeBatchReport(request.getMonth(), request.getYear(), isCronJob));
+        });
+
         return CompletableFuture.completedFuture(initialResponses);
+    }
+
+    private void finalizeBatchReport(int month, int year, boolean isCronJob) {
+        try {
+            log.info("Sending batch report results for month: {}, year: {}", month, year);
+            var kpiReportStatus = getKpiReportStatusByMonthAndYear(month, year);
+            mailService.sendReportNotification(kpiReportStatus, isCronJob);
+        } catch (Exception e) {
+            log.error("Error during batch finalization for month: {}, year: {}", month, year, e);
+        }
+    }
+
+    private void finalizeBatchReportDaily(int day, int month, int year, boolean isCronJob) {
+        try {
+            String formattedDate = formatDayMonthYear(day, month, year);
+            log.info("Sending daily report results for date: {}", formattedDate);
+            var kpiReportStatus = getKpiReportStatusByMonthAndYear(month, year);
+            mailService.sendDailyReportNotification(formattedDate, kpiReportStatus, isCronJob);
+        } catch (Exception e) {
+            String formattedDate = formatDayMonthYear(day, month, year);
+            log.error("Error during daily report finalization for date: {}", formattedDate, e);
+        }
     }
 
     @Transactional
@@ -114,7 +149,7 @@ public class KpiReportGeneratorService {
                 var ghlLocation = ghlLocationService.findByLocationId(response.getGhlLocationId());
                 var kpiReport = getOrCreateKpiReport(ghlLocation, month, year);
                 generateKpiReport(ghlLocation, month, year, kpiReport).join();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | MessagingException e) {
                 log.error("Interrupted while acquiring semaphore for location ID: {} (Name: {})", response.getGhlLocationId(), response.getSubAgency(), e);
                 Thread.currentThread().interrupt();
             } finally {
@@ -125,7 +160,7 @@ public class KpiReportGeneratorService {
     }
 
     @Async
-    private CompletableFuture<Void> generateKpiReport(GhlLocation ghlLocation, int month, int year, KpiReport kpiReport) {
+    private CompletableFuture<Void> generateKpiReport(GhlLocation ghlLocation, int month, int year, KpiReport kpiReport) throws MessagingException {
         var locationId = ghlLocation.getLocationId();
         kpiReport.setLastStartTime(Instant.now());
         setStatus(kpiReport, ReportStatus.ONGOING);
@@ -583,5 +618,41 @@ public class KpiReportGeneratorService {
 
             monthlyAverageRepository.save(monthlyAverage);
         }
+    }
+
+    @Transactional
+    public CompletableFuture<List<GenerateKpiReportResponse>> generateDailyMicrosoftAnalyticsReports(boolean isCronJob) {
+        List<GenerateKpiReportResponse> initialResponses = new ArrayList<>();
+        List<String> uniqueLocationIds = new ArrayList<>(new HashSet<>(ghlLocations.getGhlLocationIds()));
+
+        uniqueLocationIds.forEach(locationId -> {
+            var response = prepareInitialResponse(locationId, getCurrentMonth(), getCurrentYear(), initialResponses);
+            runAsyncDailyReportGeneration(response, getCurrentMonth(), getCurrentYear(), getCurrentDay());
+        });
+
+        CompletableFuture.runAsync(() -> {
+            CompletableFuture.allOf(
+                uniqueLocationIds.stream()
+                    .map(locationId -> {
+                        var response = prepareInitialResponse(locationId, getCurrentMonth(), getCurrentYear(), null);
+                        return runAsyncDailyReportGeneration(response, getCurrentMonth(), getCurrentYear(), getCurrentDay());
+                    })
+                    .toArray(CompletableFuture[]::new)
+            ).whenComplete((result, throwable) -> finalizeBatchReportDaily(getCurrentDay(), getCurrentMonth(), getCurrentYear(), isCronJob));
+        });
+
+        return CompletableFuture.completedFuture(initialResponses);
+    }
+
+    private int getCurrentDay() {
+        return ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()).getDayOfMonth();
+    }
+
+    private int getCurrentMonth() {
+        return ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()).getMonthValue();
+    }
+
+    private int getCurrentYear() {
+        return ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()).getYear();
     }
 }

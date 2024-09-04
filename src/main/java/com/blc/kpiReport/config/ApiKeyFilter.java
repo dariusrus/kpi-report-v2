@@ -27,7 +27,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     @Value("${spring.application.api-key}")
     private String apiKeyToken;
     private final Logger log = LoggerFactory.getLogger(ApiKeyFilter.class);
-    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/pub/**");
+    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/reports/**");
 
     /**
      * Handles the filtering of incoming HTTP requests.

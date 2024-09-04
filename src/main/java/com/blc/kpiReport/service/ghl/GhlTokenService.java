@@ -1,6 +1,7 @@
 package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.config.GoHighLevelProperties;
+import com.blc.kpiReport.models.pojo.GhlOauthToken;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.service.GhlLocationService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.Duration;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -93,5 +95,46 @@ public class GhlTokenService {
                 }
             }
         });
+    }
+
+    public Optional<GhlOauthToken> getToken(String code) throws IOException {
+
+        log.debug("Request Access Token with code: {}", code);
+
+        OkHttpClient client = new OkHttpClient()
+            .newBuilder()
+            .build();
+
+        // Create the request body
+        okhttp3.MediaType mediaType = okhttp3.MediaType.parse("application/x-www-form-urlencoded");
+
+
+        StringBuffer bodyParams = new StringBuffer();
+        bodyParams.append("client_id=").append(goHighLevelProperties.getClientId()).append("&");
+        bodyParams.append("client_secret=").append(goHighLevelProperties.getClientSecret()).append("&");
+        bodyParams.append("grant_type=authorization_code").append("&");
+        bodyParams.append("code=").append(code);
+
+        RequestBody body = RequestBody.Companion.create(bodyParams.toString(), mediaType);
+
+        // Build the request object, with method, headers
+        Request okhttpRequest = new Request.Builder().url(TOKEN_URL)
+            .method("POST", body).build();
+
+        // Perform the request, this potentially throws an IOException
+        GhlOauthToken ghlOauthToken = null;
+        try (Response okhttpResponse = client.newCall(okhttpRequest).execute()) {
+            String ghlOauthTokenString = okhttpResponse.body().string();
+            ghlOauthToken = objectMapper.readValue(ghlOauthTokenString, GhlOauthToken.class);
+
+            log.debug("------------- response --------------");
+            log.debug( ghlOauthToken.toString() );
+            log.debug("-----------------------------");
+            log.debug( ghlOauthTokenString );
+            log.debug("-----------------------------");
+        } finally {
+            log.debug("------------- DONE ----------------");
+        }
+        return Optional.of(ghlOauthToken);
     }
 }

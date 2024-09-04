@@ -12,6 +12,28 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.header-logo {
+  width: 45px; /* Adjust the width as needed */
+  height: auto;
+}
+
+.me-2 {
+  margin-right: 8px; /* Adjust spacing between the logo and the text */
+}
+
+.dashboard-text {
+  font-size: 2em;
+  font-weight: 600;
+  padding-bottom: 4px;
+}
+
+.sub-agency-name {
+  flex: 1;
+  font-size: 1.3em;
+  font-weight: 200;
+  padding-bottom: 24px;
+}
+
 .header-sub-container {
   display: flex;
   flex-direction: row;
@@ -21,8 +43,8 @@
 }
 
 .header-labels {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: row;
   align-items: start;
 }
 
@@ -35,13 +57,14 @@
   flex: 1;
   font-size: 1.3em;
   font-weight: 500;
+  margin-top:10px;
 }
 
-.sub-agency-name {
-  flex: 1;
-  font-size: 1.3em;
-  text-align: center;
-  font-weight: 200;
+.release-version {
+  font-weight: 100;
+  color: #7c7c7c;
+  font-size: 0.8em;
+  margin-left: 2px;
 }
 
 .dropdown-container {
@@ -221,12 +244,12 @@
 
 .clarity-container {
   position: relative;
-  padding-top: 2rem; /* Adjust as needed for spacing */
+  padding-top: 2rem;
 }
 
 .custom-dropdown-container {
    position: relative;
-   padding-top: 24px; /* Adjust as needed for spacing */
+   padding-top: 24px;
 }
 
 .corner-right {
@@ -236,6 +259,30 @@
   margin: 48px 24px 0px 24px;
 }
 
+.feedback-button {
+  position: fixed;
+  right: 0;
+  top: 40%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: right bottom;
+  z-index: 1000;
+}
 
+.feedback-button button {
+  background-color: #53af9b;
+  color: white;
+  border: none;
+  padding: 10px 20px 10px 20px;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  border-radius: 10px 10px 0 0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, padding-bottom 0.3s ease;
+}
 
+.feedback-button button:hover {
+  transform: translateX(5px);
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+  padding-bottom: 20px;
+}
 

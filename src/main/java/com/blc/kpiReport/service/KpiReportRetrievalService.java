@@ -48,29 +48,35 @@ public class KpiReportRetrievalService {
 
     public KpiReportResponse getKpiReport(String ghlLocationId, int month, int year) {
         var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
-        if (!ObjectUtils.isEmpty(ghlLocation)) {
-            var id = ghlLocation.getId();
-            var kpiReportOptional = repository.findByMonthAndYearAndGhlLocation_Id(month, year, id);
-            if (kpiReportOptional.isPresent()) {
-                var kpiReport = kpiReportOptional.get();
-                var googleAnalyticsMetric = kpiReport.getGoogleAnalyticsMetric();
-                var goHighLevelReport = kpiReport.getGoHighLevelReport();
+        try {
+            if (!ObjectUtils.isEmpty(ghlLocation)) {
+                var id = ghlLocation.getId();
+                var kpiReportOptional = repository.findByMonthAndYearAndGhlLocation_Id(month, year, id);
+                if (kpiReportOptional.isPresent()) {
+                    var kpiReport = kpiReportOptional.get();
+                    var googleAnalyticsMetric = kpiReport.getGoogleAnalyticsMetric();
+                    var goHighLevelReport = kpiReport.getGoHighLevelReport();
 
-                MonthlyClarityReportResponse monthlyClarityResponse = null;
-                if (ObjectUtils.isNotEmpty(kpiReport.getMonthlyClarityReport())) {
-                    monthlyClarityResponse = monthlyClarityReportMapper.toResponse(kpiReport.getMonthlyClarityReport());
-                    monthlyClarityResponse.setDeviceClarityAggregate(monthlyClarityReportMapper.aggregateDataByDeviceType(kpiReport.getMonthlyClarityReport()));
+                    MonthlyClarityReportResponse monthlyClarityResponse = null;
+                    if (ObjectUtils.isNotEmpty(kpiReport.getMonthlyClarityReport())) {
+                        monthlyClarityResponse = monthlyClarityReportMapper.toResponse(kpiReport.getMonthlyClarityReport());
+                        monthlyClarityResponse.setDeviceClarityAggregate(monthlyClarityReportMapper.aggregateDataByDeviceType(kpiReport.getMonthlyClarityReport()));
+                    }
+
+                    return buildReportResponse(ghlLocation,
+                        formatMonthAndYear(month, year),
+                        googleAnalyticsMetric.getUniqueSiteVisitors(),
+                        websiteLeadResponse(goHighLevelReport.getLeadSources()),
+                        calendarMapper.toResponseList(goHighLevelReport.getCalendars()),
+                        pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
+                        contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
+                        monthlyClarityResponse);
                 }
-
-                return buildReportResponse(ghlLocation,
-                    formatMonthAndYear(month, year),
-                    googleAnalyticsMetric.getUniqueSiteVisitors(),
-                    websiteLeadResponse(goHighLevelReport.getLeadSources()),
-                    calendarMapper.toResponseList(goHighLevelReport.getCalendars()),
-                    pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
-                    contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
-                    monthlyClarityResponse);
             }
+        } catch (NullPointerException e) {
+            log.warn("Report for {} for {}, {} is incomplete. Please regenerate this report.",
+                ghlLocation.getName(), month, year);
+            return null;
         }
         return null;
     }

@@ -1,3 +1,6 @@
+logging:
+  level:
+    root: INFO
 server:
   servlet:
     contextPath: /blc-kpi
@@ -23,17 +26,25 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    account:
+      username: ian@builderleadconverter.com
+      password: bslp hgxo phlj jdrg
+    report-notification:
+      recipients: ian@builderleadconverter.com, darius@builderleadconverter.com, ianculanag@gmail.com
 generator:
   semaphorePermits: 1
-  retryBackOffPeriod: 10000
+  retryBackOffPeriod: 30000
   retryMaxAttempts: 3
 google-analytics:
   credentials-file: /ga-blc-0327-001-e20fe1e70555.json
   metricNames:
     - newUsers
 go-high-level:
-  client-id: 66c62f6c2ffde35c5111ce74-m059sl9k
-  client-secret: 79854777-8ce0-4ea5-905f-4dea5074cc09
+  client-id: 66c62f6c2ffde35c5111ce74-m0lfshmu
+  client-secret: f6372543-8118-4075-bbf9-24e973be0083
 microsoft-clarity:
   base-url: https://www.clarity.ms/export-data/api/v1/project-live-insights
   num-of-days: 1
