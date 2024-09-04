@@ -1,0 +1,37 @@
+<configuration>
+    <!-- Log Level -->
+    <springProperty scope="context" name="logLevel" source="logging.level.root"/>
+    <springProperty scope="context" name="logLocation" source="logging.file-path"/>
+
+    <!-- Development Profile -->
+    <springProfile name="dev">
+        <root level="${logLevel}">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <!-- Production Profile -->
+    <springProfile name="prod">
+        <root level="${logLevel}">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <!-- Log to Console -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Save logs to file location -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logLocation}</file>
+        <prudent>true</prudent> <!-- Create directory -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+</configuration>

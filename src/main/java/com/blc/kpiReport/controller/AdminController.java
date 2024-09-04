@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,8 @@ import java.util.List;
 public class AdminController {
 
     private final GhlLocationService ghlLocationService;
+
+    @Autowired
     private GhlLocationsToGenerateProperties ghlLocationsToGenerateProperties;
 
     @Operation(
@@ -106,16 +109,16 @@ public class AdminController {
     @PostMapping("/ghl-location")
     public ResponseEntity<GhlLocation> createGhlLocation(
         @RequestParam String locationId,
-        @RequestParam String gaAccountId,
-        @RequestParam String gaPropertyId,
-        @RequestParam String gaCountryCode,
         @RequestParam String name,
-        @RequestParam String ghlAccessToken,
-        @RequestParam String ghlRefreshToken,
-        @RequestParam String ghlTokenScope,
-        @RequestParam Instant ghlTokenDate,
-        @RequestParam String mcApiToken,
-        @RequestParam ClientType clientType) {
+        @RequestParam(required = false) String gaAccountId,
+        @RequestParam(required = false) String gaPropertyId,
+        @RequestParam(required = false) String gaCountryCode,
+        @RequestParam(required = false) String ghlAccessToken,
+        @RequestParam(required = false) String ghlRefreshToken,
+        @RequestParam(required = false) String ghlTokenScope,
+        @RequestParam(required = false) Instant ghlTokenDate,
+        @RequestParam(required = false) String mcApiToken,
+        @RequestParam(required = false) ClientType clientType) {
 
         GhlLocation ghlLocation = GhlLocation.builder()
             .locationId(locationId)
@@ -150,16 +153,16 @@ public class AdminController {
     @PutMapping("/ghl-location/{locationId}")
     public ResponseEntity<GhlLocation> updateGhlLocation(
         @PathVariable String locationId,
-        @RequestParam String gaAccountId,
-        @RequestParam String gaPropertyId,
-        @RequestParam String gaCountryCode,
         @RequestParam String name,
-        @RequestParam String ghlAccessToken,
-        @RequestParam String ghlRefreshToken,
-        @RequestParam String ghlTokenScope,
-        @RequestParam Instant ghlTokenDate,
-        @RequestParam String mcApiToken,
-        @RequestParam ClientType clientType) {
+        @RequestParam(required = false) String gaAccountId,
+        @RequestParam(required = false) String gaPropertyId,
+        @RequestParam(required = false) String gaCountryCode,
+        @RequestParam(required = false) String ghlAccessToken,
+        @RequestParam(required = false) String ghlRefreshToken,
+        @RequestParam(required = false) String ghlTokenScope,
+        @RequestParam(required = false) Instant ghlTokenDate,
+        @RequestParam(required = false) String mcApiToken,
+        @RequestParam(required = false) ClientType clientType) {
 
         GhlLocation updatedGhlLocation = GhlLocation.builder()
             .locationId(locationId)
