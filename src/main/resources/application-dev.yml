@@ -1,7 +1,7 @@
 logging:
   level:
     root: INFO
-  file-path: ../logs/blc-api-integrations/application-dev.log
+  file-path: ../logs/kpi-reports/application-dev.log
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/KPI_Report
