@@ -131,6 +131,7 @@ public class GhlDataFetchService {
 
     private Map<String, JsonNode> fetchContactsAndMap(List<JsonNode> opportunityList, String accessToken) throws IOException {
         Map<String, JsonNode> contactMap = new HashMap<>();
+        int requestCount = 0;
 
         for (JsonNode opportunity : opportunityList) {
             String contactId = opportunity.path("contact").path("id").asText();
@@ -157,6 +158,17 @@ public class GhlDataFetchService {
                     log.debug("Successfully fetched and added contact with ID {} to the map", contactId);
                 } catch (IOException e) {
                     log.error("Failed to fetch contact with ID {}: {}", contactId, e.getMessage());
+                }
+
+                requestCount++;
+                if (requestCount % 25 == 0) {
+                    try {
+                        log.info("Pausing for 5 seconds after 25 requests...");
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        log.error("Thread interrupted during sleep: {}", e.getMessage());
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }
@@ -293,7 +305,9 @@ public class GhlDataFetchService {
                     JsonNode eventsJson = objectMapper.readTree(eventResponse.body().string());
                     eventsJson.path("events").forEach(events::add);
                 }
-                log.info("Successfully fetched {} events for calendar ID: {} for location ID: {}", events.size(), calendarId, locationId);
+                if (events.size() > 0) {
+                    log.info("Successfully fetched {} events for calendar ID: {} for location ID: {}", events.size(), calendarId, locationId);
+                }
                 eventsMap.put(calendar, events);
             }
             return eventsMap;

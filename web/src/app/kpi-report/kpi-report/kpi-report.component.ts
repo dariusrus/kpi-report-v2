@@ -14,6 +14,7 @@ import {TotalAppointment} from "../../models/ghl/total-appointment";
 import {Calendar} from "../../models/ghl/calendar";
 import {Appointment} from "../../models/ghl/appointment";
 import {SelectItemGroup} from "primeng/api";
+import {LeadSource} from "../../models/ghl/lead-source";
 
 @Component({
   selector: 'app-kpi-report',
@@ -99,6 +100,9 @@ export class KpiReportComponent implements OnInit {
   totalAppointments: TotalAppointment[] = [];
   filteredCalendars: Calendar[] = [];
 
+  advancedPieChartView: [number, number] = [500, 250];
+  pieChartView: [number, number] = [500, 425];
+
   customColors = [
     { name: 'Website Lead', value: '#37C469FF' }, // Green color for Website Lead
     { name: 'Manual User Input', value: '#4571B9FF' }
@@ -135,6 +139,11 @@ export class KpiReportComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.updateChartView();  // Update view size on window resize
+  }
+
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       this.ghlLocationId = params.get('id');
@@ -149,8 +158,22 @@ export class KpiReportComponent implements OnInit {
         const currentYear = currentDate.getFullYear();
 
         this.loadAllData(this.ghlLocationId, currentMonth, currentYear);
+        this.updateChartView();
       }
     });
+  }
+
+  updateChartView() {
+    if (window.innerWidth >= 1400) {
+      this.advancedPieChartView = [700, 250];
+      this.pieChartView = [600, 425];
+    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
+      this.advancedPieChartView = [600, 250];
+      this.pieChartView = [500, 425];
+    } else {
+      this.advancedPieChartView = [500, 250];
+      this.pieChartView = [400, 425];
+    }
   }
 
   handleViewportChange(inViewport: boolean, chartId: string): void {
@@ -175,6 +198,7 @@ export class KpiReportComponent implements OnInit {
         }
 
         this.reportData = currentData;
+        this.preprocessLeadSources();
         this.preprocessDevices(this.selectedDevice);
         this.preprocessCalendars(this.reportData.calendars);
         console.log('DATA LOADED!');
@@ -245,6 +269,28 @@ export class KpiReportComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  private preprocessLeadSources() {
+    if (this.reportData && this.reportData.websiteLead && this.reportData.websiteLead.leadSource) {
+      this.reportData.websiteLead.leadSource = this.reportData.websiteLead.leadSource
+        .sort((a: LeadSource, b: LeadSource) => {
+          if (a.leadType > b.leadType) return -1;
+          if (a.leadType < b.leadType) return 1;
+
+          const aSourceInvalid = !a.source || a.source === "Unspecified";
+          const bSourceInvalid = !b.source || b.source === "Unspecified";
+
+          if (aSourceInvalid && !bSourceInvalid) return 1;
+          if (!aSourceInvalid && bSourceInvalid) return -1;
+          if (aSourceInvalid && bSourceInvalid) return 0;
+
+          if (a.source < b.source) return -1;
+          if (a.source > b.source) return 1;
+
+          return 0;
+        });
+    }
   }
 
   populateChartsAndCards(currentData: KpiReport, currentAverage: MonthlyAverage, previousData: [KpiReport, MonthlyAverage][]): void {

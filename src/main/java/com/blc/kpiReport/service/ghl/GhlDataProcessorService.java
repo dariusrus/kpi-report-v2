@@ -17,6 +17,22 @@ import java.util.*;
 @RequiredArgsConstructor
 public class GhlDataProcessorService {
 
+    public static final String[] websiteLeadSource = new String[] {
+        "chat widget",
+        "contact us form",
+        "database reactivation",
+        "looking for more plans form",
+        "planning guide form",
+        "schedule a talk",
+        "schedule a tour",
+        "schedule a call",
+        "idea book",
+        "scope, budget and booking wizard"
+    };
+    public static final String WEBSITE_LEAD = "Website Lead";
+    public static final String MANUAL_USER_INPUT = "Manual User Input";
+    public static final String UNSPECIFIED = "Unspecified";
+
     public GhlReportData processGhlData(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.info("Processing GHL data for report: {}", goHighLevelReport.getId());
         GhlReportData reportData = GhlReportData.builder()
@@ -37,10 +53,15 @@ public class GhlDataProcessorService {
         var ownerMap = ghlApiData.getOwnerMap();
 
         for (JsonNode opportunity : ghlApiData.getCreatedAtOpportunityList()) {
-            // Logging individual opportunity processing
             log.trace("Processing opportunity: {}", opportunity);
 
             String source = opportunity.path("source").asText();
+            if ("".equals(source) || "null".equals(source) || source == null) {
+                source = UNSPECIFIED;
+            } else {
+                source = toTitleCase(source.trim());
+            }
+
             String status = opportunity.path("status").asText();
             double monetaryValue = opportunity.path("monetaryValue").asDouble();
 
@@ -55,7 +76,9 @@ public class GhlDataProcessorService {
 
             leadSource.setTotalLeads(leadSource.getTotalLeads() + 1);
             leadSource.setTotalValues(leadSource.getTotalValues() + monetaryValue);
-            leadSource.setGoHighLevelReport(goHighLevelReport);
+            if (leadSource.getGoHighLevelReport() == null) {
+                leadSource.setGoHighLevelReport(goHighLevelReport);
+            }
 
             switch (status.toLowerCase()) {
                 case "open":
@@ -89,11 +112,11 @@ public class GhlDataProcessorService {
                 .status(opportunity.path("status").asText().toUpperCase())
                 .build();
 
-            // Add LeadContact to the LeadSource
             leadSource.getLeadContacts().add(leadContact);
             leadContact.setLeadSource(leadSource);
         }
 
+        List<LeadSource> leadSources = new ArrayList<>(leadSourceMap.values());
         leadSourceMap.values().forEach(leadSource -> {
             determineLeadTypeForSource(leadSource);
 
@@ -101,29 +124,60 @@ public class GhlDataProcessorService {
             leadSource.setWinPercentage(totalAttempts > 0 ? (double) leadSource.getWon() / totalAttempts * 100 : 0.0);
         });
 
-        List<LeadSource> leadSources = new ArrayList<>(leadSourceMap.values());
         leadSources.sort(Comparator.comparing(LeadSource::getSource));
 
         log.debug("Processed {} lead sources for report: {}", leadSources.size(), goHighLevelReport.getId());
         return leadSources;
     }
 
+    private String toTitleCase(String input) {
+        if (input == null || input.isEmpty()) return input;
+        try {
+            String[] words = input.split("\\s+");
+            StringBuilder titleCase = new StringBuilder();
+            for (String word : words) {
+                if (word.length() > 1) {
+                    titleCase.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1).toLowerCase());
+                } else {
+                    titleCase.append(word.toUpperCase());
+                }
+                titleCase.append(" ");
+            }
+            return titleCase.toString().trim();
+        } catch (Exception e) {
+            log.error("Error while converting to title case: {}", input, e);
+            return input;
+        }
+    }
+
     private String determineLeadType(String createdBySource) {
         return switch (createdBySource.toUpperCase()) {
-            case "FORM", "INTEGRATION", "PUBLIC_API", "CONVERSATIONS", "" -> "Website Lead";
-            default -> "Manual User Input";
+            case "FORM", "INTEGRATION", "PUBLIC_API" -> WEBSITE_LEAD;
+            default -> MANUAL_USER_INPUT;
         };
     }
 
     private void determineLeadTypeForSource(LeadSource leadSource) {
         for (LeadContact leadContact : leadSource.getLeadContacts()) {
+            if (UNSPECIFIED.equals(leadSource.getSource())) {
+                leadSource.setLeadType(MANUAL_USER_INPUT);
+                return;
+            }
+            for (String source : websiteLeadSource) {
+                if (leadSource.getSource() != null && leadSource.getSource().toLowerCase().contains(source.toLowerCase())) {
+                    leadSource.setLeadType(WEBSITE_LEAD);
+                    return;
+                }
+            }
+
             String leadType = determineLeadType(leadContact.getCreatedBySource());
-            if ("Website Lead".equals(leadType)) {
-                leadSource.setLeadType("Website Lead");
+            if (WEBSITE_LEAD.equals(leadType)) {
+                leadSource.setLeadType(WEBSITE_LEAD);
                 return;
             }
         }
-        leadSource.setLeadType("Manual User Input");
+        leadSource.setLeadType(MANUAL_USER_INPUT);
     }
 
     private List<Calendar> processAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
@@ -152,8 +206,6 @@ public class GhlDataProcessorService {
             }
 
             int totalAppointments = statusCountMap.values().stream().mapToInt(Integer::intValue).sum();
-            log.debug("Total appointments found for calendar {}: {}", calendar.getCalendarGhlId(), totalAppointments);
-
             List<Appointment> appointments = new ArrayList<>();
 
             for (Map.Entry<String, Integer> statusEntry : statusCountMap.entrySet()) {
@@ -176,7 +228,9 @@ public class GhlDataProcessorService {
             calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
             calendars.add(calendar);
 
-            log.debug("Processed {} appointments for calendar: {}", appointments.size(), calendar.getCalendarGhlId());
+            if (appointments.size() > 0) {
+                log.debug("Processed {} appointments for calendar: {}", appointments.size(), calendar.getCalendarGhlId());
+            }
         }
         return calendars;
     }
@@ -252,6 +306,8 @@ public class GhlDataProcessorService {
         List<ContactWon> contactsWon = new ArrayList<>();
         var contactMap = ghlApiData.getContactsWonContactMap();
 
+        Set<String> processedContactNames = new HashSet<>();
+
         for (JsonNode opportunity : ghlApiData.getContactsWonOpportunityList()) {
             String status = opportunity.path("status").asText().toLowerCase();
             if ("won".equals(status)) {
@@ -261,12 +317,16 @@ public class GhlDataProcessorService {
                 var contactName = opportunityContactNode.path("name").asText();
                 var source = contactNode.path("source").asText();
 
-                ContactWon contactWon = ContactWon.builder()
-                    .contactName(contactName)
-                    .source(source)
-                    .goHighLevelReport(goHighLevelReport)
-                    .build();
-                contactsWon.add(contactWon);
+                if (!processedContactNames.contains(contactName)) {
+                    ContactWon contactWon = ContactWon.builder()
+                        .contactName(contactName)
+                        .source(source)
+                        .goHighLevelReport(goHighLevelReport)
+                        .build();
+                    contactsWon.add(contactWon);
+
+                    processedContactNames.add(contactName);
+                }
             }
         }
 

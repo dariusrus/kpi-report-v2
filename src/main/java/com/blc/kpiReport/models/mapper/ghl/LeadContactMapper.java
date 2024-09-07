@@ -33,11 +33,16 @@ public class LeadContactMapper {
     }
 
     private String formatString(String input) {
-        if (input == null || input.trim().isEmpty()) {
+        if (input == null || input.length() == 0 || input.trim().isEmpty()) {
             return "-";
         }
-        return Arrays.stream(input.split("_|\\s+"))
-            .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
-            .collect(Collectors.joining(" "));
+        try {
+            return Arrays.stream(input.split("[_\\s]+"))
+                .filter(word -> !word.isEmpty())
+                .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
+        } catch (Exception e) {
+            return input;
+        }
     }
 }

@@ -90,9 +90,12 @@ app-kpi-report .p-button.p-button-icon-only {
 app-kpi-report .primary-tag > span.p-tag {
   background: #caf1d8 !important;
   color: #179142;
+  font-size: 0.9em;
 }
 
 app-kpi-report .secondary-tag > span.p-tag {
   background: #d0e1fd !important;
   color: #295bac;
+  font-size: 0.9em;
+  white-space: nowrap;
 }

@@ -544,22 +544,22 @@ public class KpiReportGeneratorService {
             return;
         }
 
-        // Initialize accumulators for each ClientType
         Map<ClientType, Double> totalUniqueSiteVisitorsMap = new HashMap<>();
         Map<ClientType, Integer> totalLeadSourcesMap = new HashMap<>();
         Map<ClientType, Double> sumOpportunityToLeadMap = new HashMap<>();
         Map<ClientType, Integer> reportCountMap = new HashMap<>();
+        Map<ClientType, Integer> validOpportunityToLeadCountMap = new HashMap<>();
 
         for (ClientType clientType : ClientType.values()) {
             totalUniqueSiteVisitorsMap.put(clientType, 0.0);
             totalLeadSourcesMap.put(clientType, 0);
             sumOpportunityToLeadMap.put(clientType, 0.0);
             reportCountMap.put(clientType, 0);
+            validOpportunityToLeadCountMap.put(clientType, 0);
         }
 
-        // Iterate through reports and accumulate metrics by ClientType
         for (KpiReport report : reports) {
-            ClientType clientType = report.getGhlLocation().getClientType(); // Access ClientType from GhlLocation
+            ClientType clientType = report.getGhlLocation().getClientType();
 
             if (clientType == null) {
                 continue;
@@ -567,7 +567,7 @@ public class KpiReportGeneratorService {
 
             reportCountMap.put(clientType, reportCountMap.get(clientType) + 1);
 
-            if (report.getGoogleAnalyticsMetric() != null) {
+            if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0) {
                 totalUniqueSiteVisitorsMap.put(clientType,
                     totalUniqueSiteVisitorsMap.get(clientType) + report.getGoogleAnalyticsMetric().getUniqueSiteVisitors());
             }
@@ -575,20 +575,28 @@ public class KpiReportGeneratorService {
             if (report.getGoHighLevelReport() != null) {
                 List<LeadSource> leadSources = report.getGoHighLevelReport().getLeadSources();
                 for (LeadSource leadSource : leadSources) {
-                    totalLeadSourcesMap.put(clientType,
-                        totalLeadSourcesMap.get(clientType) + leadSource.getTotalLeads());
+                    if (leadSource.getTotalLeads() > 0) {
+                        totalLeadSourcesMap.put(clientType,
+                            totalLeadSourcesMap.get(clientType) + leadSource.getTotalLeads());
+                    }
                 }
             }
 
-            if (report.getGoogleAnalyticsMetric() != null && report.getGoHighLevelReport() != null) {
-                double opportunityToLead = (report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum()
-                    / (double) report.getGoogleAnalyticsMetric().getUniqueSiteVisitors()) * 100;
-                sumOpportunityToLeadMap.put(clientType,
-                    sumOpportunityToLeadMap.get(clientType) + opportunityToLead);
+            if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0 &&
+                report.getGoHighLevelReport() != null && !report.getGoHighLevelReport().getLeadSources().isEmpty()) {
+
+                double uniqueVisitors = report.getGoogleAnalyticsMetric().getUniqueSiteVisitors();
+                double totalLeads = report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum();
+
+                if (totalLeads > 0 && uniqueVisitors > 0) {
+                    double opportunityToLead = (totalLeads / uniqueVisitors) * 100;
+                    sumOpportunityToLeadMap.put(clientType,
+                        sumOpportunityToLeadMap.get(clientType) + opportunityToLead);
+                    validOpportunityToLeadCountMap.put(clientType, validOpportunityToLeadCountMap.get(clientType) + 1);
+                }
             }
         }
 
-        // Save the averages for each ClientType
         for (ClientType clientType : ClientType.values()) {
             if (reportCountMap.get(clientType) == 0) {
                 continue;
@@ -596,8 +604,17 @@ public class KpiReportGeneratorService {
 
             double averageUniqueSiteVisitors = totalUniqueSiteVisitorsMap.get(clientType) / reportCountMap.get(clientType);
             double averageTotalLeads = totalLeadSourcesMap.get(clientType) / (double) reportCountMap.get(clientType);
-            double weightedAverageOpportunityToLead = (totalLeadSourcesMap.get(clientType) / totalUniqueSiteVisitorsMap.get(clientType)) * 100;
-            double nonWeightedAverageOpportunityToLead = sumOpportunityToLeadMap.get(clientType) / reportCountMap.get(clientType);
+
+            double weightedAverageOpportunityToLead = 0;
+            double nonWeightedAverageOpportunityToLead = 0;
+
+            if (totalUniqueSiteVisitorsMap.get(clientType) > 0) {
+                weightedAverageOpportunityToLead = (totalLeadSourcesMap.get(clientType) / totalUniqueSiteVisitorsMap.get(clientType)) * 100;
+            }
+
+            if (validOpportunityToLeadCountMap.get(clientType) > 0) {
+                nonWeightedAverageOpportunityToLead = sumOpportunityToLeadMap.get(clientType) / validOpportunityToLeadCountMap.get(clientType);
+            }
 
             log.info("ClientType: {}", clientType);
             log.info("Average Unique Site Visitors: {}", averageUniqueSiteVisitors);

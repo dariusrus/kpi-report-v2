@@ -230,7 +230,7 @@
             <div class="report-title">Monthly Leads Captured</div>
             <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
             <div class="report-data flex-grow-1" *ngIf="isVisible['websiteLeads']">
-              <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.9em'}" [styleClass]="'p-datatable-sm'" @fadeIn>
+              <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable-sm'" @fadeIn>
                 <ng-template pTemplate="caption">
                   <div class="flex flex-wrap justify-content-end gap-2">
                   </div>
@@ -238,14 +238,14 @@
                 <ng-template pTemplate="header">
                   <tr class="custom-tr">
                     <th style="width: 5rem"></th>
-                    <th pSortableColumn="source">Source <p-sortIcon field="source" /></th>
-                    <th pSortableColumn="leadType" class="align-center">Lead Type <p-sortIcon field="leadType" /></th>
-                    <th pSortableColumn="totalLeads">Total Leads <p-sortIcon field="totalLeads" /></th>
-                    <th pSortableColumn="totalValues" class="align-right">Total Values <p-sortIcon field="totalValues" /></th>
-                    <th pSortableColumn="open">Open <p-sortIcon field="open" /></th>
-                    <th pSortableColumn="won">Won <p-sortIcon field="won" /></th>
-                    <th pSortableColumn="lost">Lost <p-sortIcon field="lost" /></th>
-                    <th pSortableColumn="abandoned">Abandoned <p-sortIcon field="abandoned" /></th>
+                    <th pSortableColumn="source">Source</th>
+                    <th pSortableColumn="leadType" class="align-center">Lead Type</th>
+                    <th pSortableColumn="totalLeads">Total Leads</th>
+                    <th pSortableColumn="totalValues" class="align-right">Total Values</th>
+                    <th pSortableColumn="open">Open</th>
+                    <th pSortableColumn="won">Won</th>
+                    <th pSortableColumn="lost">Lost</th>
+                    <th pSortableColumn="abandoned">Abandoned</th>
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-leadSource let-expanded="expanded">
@@ -274,12 +274,12 @@
                           <ng-template pTemplate="header">
                             <tr>
                               <th></th>
-                              <th pSortableColumn="contactName">Contact Name <p-sortIcon field="contactName" /></th>
-                              <th pSortableColumn="contactSource">Contact Source <p-sortIcon field="contactSource" /></th>
-                              <th pSortableColumn="createdBySource">Created By Source <p-sortIcon field="createdBySource" /></th>
-                              <th pSortableColumn="dateAdded">Date Added <p-sortIcon field="dateAdded" /></th>
-                              <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
-                              <th pSortableColumn="ownerName">Owner <p-sortIcon field="ownerName" /></th>
+                              <th pSortableColumn="contactName">Contact Name</th>
+                              <th pSortableColumn="contactSource">Contact Source</th>
+                              <th pSortableColumn="createdBySource">Created By Source</th>
+                              <th pSortableColumn="dateAdded">Date Added</th>
+                              <th pSortableColumn="status">Status</th>
+                              <th pSortableColumn="ownerName">Owner</th>
                             </tr>
                           </ng-template>
                           <ng-template pTemplate="body" let-contact>
@@ -367,7 +367,7 @@
                   </p-floatLabel>
                 </div>
                 <ngx-charts-advanced-pie-chart
-                  [view]="[700, 250]"
+                  [view]="advancedPieChartView"
                   [scheme]="'forest'"
                   [results]="appointmentsPieChart"
                   [gradient]="gradient"
@@ -494,17 +494,13 @@
               </div>
               <div class="col-6 report-data">
                 <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
-                                      [view]="[400, 425]"
+                                      [view]="pieChartView"
                                       [scheme]="'picnic'"
                                       [results]="pipelinesPieChart"
                                       [gradient]="true"
                                       [maxLabelLength]="15"
                                       [trimLabels]="true"
-                                      [legendTitle]="'Legend'"
-                                      [legendPosition]="LegendPosition.Right"
-                                      [legend]="true"
-                                      [doughnut]="true"
-                                      [arcWidth]=".25"
+                                      [labels]="true"
                 >
                 </ngx-charts-pie-chart>
                 <div class="no-data-placeholder" @fadeIn *ngIf="selectedPipelineNoData">
@@ -631,19 +627,16 @@
                         <th style="min-width:12.5rem" pSortableColumn="averageScrollDepth">
                           <div class="flex align-items-center">
                             Average Scroll Depth
-                            <p-sortIcon field="averageScrollDepth"></p-sortIcon>
                           </div>
                         </th>
                         <th style="min-width:12.5rem" pSortableColumn="activeTime">
                           <div class="flex align-items-center">
                             Active Time
-                            <p-sortIcon field="activeTime"></p-sortIcon>
                           </div>
                         </th>
                         <th style="min-width:12.5rem" pSortableColumn="totalSessionCount">
                           <div class="flex align-items-center">
                             Session Count
-                            <p-sortIcon field="totalSessionCount"></p-sortIcon>
                           </div>
                         </th>
                       </tr>
