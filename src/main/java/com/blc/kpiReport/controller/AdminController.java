@@ -153,32 +153,15 @@ public class AdminController {
     @PutMapping("/ghl-location/{locationId}")
     public ResponseEntity<GhlLocation> updateGhlLocation(
         @PathVariable String locationId,
-        @RequestParam String name,
+        @RequestParam(required = false) String name,
         @RequestParam(required = false) String gaAccountId,
         @RequestParam(required = false) String gaPropertyId,
         @RequestParam(required = false) String gaCountryCode,
-        @RequestParam(required = false) String ghlAccessToken,
-        @RequestParam(required = false) String ghlRefreshToken,
-        @RequestParam(required = false) String ghlTokenScope,
-        @RequestParam(required = false) Instant ghlTokenDate,
         @RequestParam(required = false) String mcApiToken,
         @RequestParam(required = false) ClientType clientType) {
 
-        GhlLocation updatedGhlLocation = GhlLocation.builder()
-            .locationId(locationId)
-            .gaAccountId(gaAccountId)
-            .gaPropertyId(gaPropertyId)
-            .gaCountryCode(gaCountryCode)
-            .name(name)
-            .ghlAccessToken(ghlAccessToken)
-            .ghlRefreshToken(ghlRefreshToken)
-            .ghlTokenScope(ghlTokenScope)
-            .ghlTokenDate(ghlTokenDate)
-            .mcApiToken(mcApiToken)
-            .clientType(clientType)
-            .build();
-
-        return ghlLocationService.update(locationId, updatedGhlLocation)
+        return ghlLocationService.update(locationId, name, gaAccountId, gaPropertyId, gaCountryCode,
+                mcApiToken, clientType)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }

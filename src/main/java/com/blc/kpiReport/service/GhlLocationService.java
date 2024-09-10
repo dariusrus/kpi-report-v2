@@ -1,5 +1,6 @@
 package com.blc.kpiReport.service;
 
+import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.response.GhlLocationFullResponse;
 import com.blc.kpiReport.models.response.GhlLocationSummaryResponse;
 import com.blc.kpiReport.repository.GhlLocationRepository;
@@ -33,20 +34,17 @@ public class GhlLocationService {
         return ghlLocationRepository.save(ghlLocation);
     }
 
-    public Optional<GhlLocation> update(String locationId, GhlLocation updatedGhlLocation) {
+    public Optional<GhlLocation> update(String locationId, String name, String gaAccountId, String gaPropertyId,
+                                        String gaCountryCode, String mcApiToken, ClientType clientType) {
         GhlLocation existingLocation = ghlLocationRepository.findByLocationId(locationId);
         if (existingLocation != null) {
-            existingLocation.setLocationId(updatedGhlLocation.getLocationId());
-            existingLocation.setGaAccountId(updatedGhlLocation.getGaAccountId());
-            existingLocation.setGaPropertyId(updatedGhlLocation.getGaPropertyId());
-            existingLocation.setGaCountryCode(updatedGhlLocation.getGaCountryCode());
-            existingLocation.setName(updatedGhlLocation.getName());
-            existingLocation.setGhlAccessToken(updatedGhlLocation.getGhlAccessToken());
-            existingLocation.setGhlRefreshToken(updatedGhlLocation.getGhlRefreshToken());
-            existingLocation.setGhlTokenScope(updatedGhlLocation.getGhlTokenScope());
-            existingLocation.setGhlTokenDate(updatedGhlLocation.getGhlTokenDate());
-            existingLocation.setMcApiToken(updatedGhlLocation.getMcApiToken());
-            existingLocation.setClientType(updatedGhlLocation.getClientType());
+            if (name != null) existingLocation.setName(name);
+            if (gaAccountId != null) existingLocation.setGaAccountId(gaAccountId);
+            if (gaPropertyId != null) existingLocation.setGaPropertyId(gaPropertyId);
+            if (gaCountryCode != null) existingLocation.setGaCountryCode(gaCountryCode);
+            if (mcApiToken != null) existingLocation.setMcApiToken(mcApiToken);
+            if (clientType != null) existingLocation.setClientType(clientType);
+
             ghlLocationRepository.save(existingLocation);
             return Optional.of(existingLocation);
         } else {
