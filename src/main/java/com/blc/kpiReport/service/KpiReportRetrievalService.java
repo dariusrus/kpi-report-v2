@@ -89,13 +89,17 @@ public class KpiReportRetrievalService {
                                                   List<PipelineResponse> pipelines,
                                                   List<ContactsWonResponse> contactsWon,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
+        double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
+            ? 0
+            : roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100);
+
         return KpiReportResponse.builder()
             .subAgency(location.getName())
             .ghlLocationId(location.getLocationId())
             .monthAndYear(monthAndYear)
             .clientType(location.getClientType().toString())
             .uniqueSiteVisitors(uniqueSiteVisitors)
-            .opportunityToLead(roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100))
+            .opportunityToLead(opportunityToLead)
             .websiteLead(websiteLead)
             .calendars(calendars)
             .pipelines(pipelines)
