@@ -1,0 +1,80 @@
+<ng-container>
+  <div class="report-title">
+    Pipeline Stages
+  </div>
+  <div class="report-subtitle">
+    {{ reportData.monthAndYear }}
+  </div>
+  <div class="row" *ngIf="isVisible['pipelines']">
+    <div class="col-6 report-data">
+      <div class="custom-dropdown">
+        <p-floatLabel>
+          <p-dropdown
+            [options]="reportData.pipelines"
+            [(ngModel)]="selectedPipeline"
+            optionLabel="pipelineName"
+            placeholder="Select a Pipeline"
+            (onChange)="onPipelineChange($event)"
+            id="float-label"
+          />
+          <label for="float-label">Select Pipeline</label>
+        </p-floatLabel>
+      </div>
+      <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.8em'}"
+               [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'" @fadeIn>
+        <ng-template pTemplate="header">
+          <tr class="custom-tr">
+            <th>Pipeline Stage</th>
+            <th class="align-center">#</th>
+            <th class="align-center">%</th>
+            <th class="align-right">$</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-pipelineStage>
+          <tr>
+            <td class="align-left">{{ pipelineStage.stageName }}</td>
+            <td [class.zero-value]="pipelineStage.count === 0"
+                class="align-center">{{ pipelineStage.count }}
+            </td>
+            <td [class.zero-value]="pipelineStage.percentage === 0"
+                class="align-center">{{ pipelineStage.percentage }}%
+            </td>
+            <td [class.zero-value]="pipelineStage.monetaryValue === 0"
+                class="align-right">{{ pipelineStage.monetaryValue | currency }}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr class="custom-tr">
+            <td class="align-center font-bold">TOTAL</td>
+            <td class="align-center font-bold">{{ getTotalCounts(selectedPipeline!.pipelineStages) }}</td>
+            <td
+              class="align-center font-bold">{{ getTotalPercentage(selectedPipeline!.pipelineStages) | number:'1.0-2' }}
+              %
+            </td>
+            <td
+              class="align-right font-bold">{{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+    <div class="col-6 report-data">
+      <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                            [view]="pieChartView"
+                            [scheme]="scheme"
+                            [results]="data"
+                            [gradient]="true"
+                            [maxLabelLength]="15"
+                            [trimLabels]="true"
+                            [labels]="true"
+      >
+      </ngx-charts-pie-chart>
+      <div class="no-data-placeholder" @fadeIn *ngIf="selectedPipelineNoData">
+        <div>
+          <i class="pi pi-info-circle"></i> No data for this pipeline.
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

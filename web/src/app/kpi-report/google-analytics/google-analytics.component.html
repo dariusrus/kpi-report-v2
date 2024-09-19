@@ -1,0 +1,40 @@
+<ng-container>
+  <div class="report-title">
+    Google Analytics
+  </div>
+  <div class="report-subtitle">
+    (Last {{ monthCount }} months)
+  </div>
+  <div class="report-data">
+    <ngx-charts-bar-vertical *ngIf="!displayComparisons"
+                             [scheme]="scheme"
+                             [results]="data"
+                             [gradient]="true"
+                             [roundEdges]="false"
+                             [xAxis]="true"
+                             [yAxis]="true"
+                             [showDataLabel]="true"
+                             [showXAxisLabel]="true"
+                             [showYAxisLabel]="true"
+                             [xAxisLabel]="xAxisLabel"
+                             [yAxisLabel]="yAxisLabel"
+    >
+    </ngx-charts-bar-vertical>
+    <ngx-charts-bar-vertical-2d *ngIf="displayComparisons"
+                                [scheme]="schemeAverage"
+                                [results]="dataAverage"
+                                [gradient]="true"
+                                [xAxis]="true"
+                                [yAxis]="true"
+                                [legend]="true"
+                                [legendPosition]="LegendPosition.Below"
+                                [showXAxisLabel]="true"
+                                [showYAxisLabel]="true"
+                                [roundEdges]="false"
+                                [roundDomains]="true"
+                                [xAxisLabel]="xAxisLabel"
+                                [yAxisLabel]="yAxisLabel"
+    >
+    </ngx-charts-bar-vertical-2d>
+  </div>
+</ng-container>

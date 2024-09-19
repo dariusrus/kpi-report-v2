@@ -43,4 +43,5 @@ export class KpiReportService {
 
     return this.http.get<MonthlyAverage>(`${this.apiUrl}/monthly/average`, { headers, params });
   }
+
 }

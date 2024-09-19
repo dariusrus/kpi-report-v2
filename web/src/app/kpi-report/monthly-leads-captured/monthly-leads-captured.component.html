@@ -1,0 +1,108 @@
+<ng-container>
+  <div class="report-title">Monthly Leads Captured</div>
+  <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+  <div class="report-data flex-grow-1" *ngIf="isVisible['websiteLeads']">
+    <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable-sm'" @fadeIn>
+      <ng-template pTemplate="caption">
+        <div class="flex flex-wrap justify-content-end gap-2">
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr class="custom-tr">
+          <th style="width: 5rem"></th>
+          <th pSortableColumn="source">Source</th>
+          <th pSortableColumn="leadType" class="align-center">Lead Type</th>
+          <th pSortableColumn="totalLeads">Total Leads</th>
+          <th pSortableColumn="totalValues" class="align-right">Total Values</th>
+          <th pSortableColumn="open">Open</th>
+          <th pSortableColumn="won">Won</th>
+          <th pSortableColumn="lost">Lost</th>
+          <th pSortableColumn="abandoned">Abandoned</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-leadSource let-expanded="expanded">
+        <tr>
+          <td>
+            <p-button type="button" pRipple [pRowToggler]="leadSource" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+          </td>
+          <td>{{ leadSource.source }}</td>
+          <td class="align-center">
+            <p-tag class="primary-tag" *ngIf="leadSource.leadType === 'Website Lead'" icon="pi pi-home" severity="secondary" value="{{ leadSource.leadType.toUpperCase() }}" />
+            <p-tag class="secondary-tag" *ngIf="leadSource.leadType === 'Manual User Input'" icon="pi pi-user-edit" value="{{ leadSource.leadType.toUpperCase() }}" />
+          </td>
+          <td [class.zero-value]="leadSource.totalLeads === 0" class="align-right">{{ leadSource.totalLeads }}</td>
+          <td [class.zero-value]="leadSource.totalValues === 0" class="align-right">{{ leadSource.totalValues | currency : 'USD' }}</td>
+          <td [class.zero-value]="leadSource.open === 0" class="align-center">{{ leadSource.open }}</td>
+          <td [class.zero-value]="leadSource.won === 0" class="align-center">{{ leadSource.won }}</td>
+          <td [class.zero-value]="leadSource.lost === 0" class="align-center">{{ leadSource.lost }}</td>
+          <td [class.zero-value]="leadSource.abandoned === 0" class="align-center">{{ leadSource.abandoned }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="rowexpansion" let-leadSource>
+        <tr>
+          <td colspan="9">
+            <div class="p-3">
+              <p-table [value]="leadSource.leadContacts" dataKey="contactName"  [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable-sm'">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th></th>
+                    <th pSortableColumn="contactName">Contact Name</th>
+                    <th pSortableColumn="contactSource">Contact Source</th>
+                    <th pSortableColumn="createdBySource">Created By Source</th>
+                    <th pSortableColumn="dateAdded">Date Added</th>
+                    <th pSortableColumn="status">Status</th>
+                    <th pSortableColumn="ownerName">Owner</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-contact>
+                  <tr>
+                    <td class="align-center">
+                      <div [ngStyle]="{'background-color': SharedUtil.getRandomColor(contact.contactName)}"
+                           class="avatar-icon">
+                        {{ SharedUtil.getInitials(contact.contactName) }}
+                      </div>
+                    </td>
+                    <td class="align-left">{{ contact.contactName }}</td>
+                    <td>{{ contact.contactSource }}</td>
+                    <td>{{ contact.createdBySource }}</td>
+                    <td>{{ contact.dateAdded }}</td>
+                    <td>
+                      <p-tag [value]="contact.status" [severity]="getStatusSeverity(contact.status)" />
+                    </td>
+                    <td>
+                                <span *ngIf="contact.ownerName" class="d-flex align-items-center"><p-avatar
+                                  image="{{ contact.ownerPhotoUrl }}"
+                                  [style]="{ 'margin-right': '12px'}"
+                                  shape="circle"/> {{ contact.ownerName }}</span>
+                      <span *ngIf="!contact.ownerName" class="d-flex align-items-center"><p-avatar
+                        label="U" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
+                        shape="circle"/> Unassigned</span>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="7">No contacts available for this lead source.</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="custom-tr">
+          <td></td>
+          <td></td>
+          <td class="align-center font-bold">TOTAL</td>
+          <td class="align-right font-bold">{{ reportData.websiteLead.totalLeads }}</td>
+          <td class="align-right font-bold">{{ reportData.websiteLead.totalValues | currency }}</td>
+          <td class="align-center font-bold">{{ reportData.websiteLead.totalOpen }}</td>
+          <td class="align-center font-bold">{{ reportData.websiteLead.totalWon }}</td>
+          <td class="align-center font-bold">{{ reportData.websiteLead.totalLost }}</td>
+          <td class="align-center font-bold">{{ reportData.websiteLead.totalAbandoned }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</ng-container>

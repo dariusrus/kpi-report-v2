@@ -1,0 +1,70 @@
+<div class="row">
+  <div class="col-3 number-card" *ngIf="isVisible['summary']" (mouseenter)="showTooltip('uniqueSiteVisitors')" (mouseleave)="hideAllTooltips()">
+    <div class="number-card-container">
+      <ngx-charts-number-card
+        [scheme]="scheme"
+        [results]="uniqueSiteVisitors"
+        [valueFormatting]="SharedUtil.valueFormatting"
+        [innerPadding]="0"
+        [cardColor]="'#ffffff'"
+        [bandColor]="'#ffffff'">
+      </ngx-charts-number-card>
+    </div>
+    <div class="custom-tooltip" *ngIf="uniqueSiteVisitorsTooltip" [@dropIn]>
+      The number of users who visited your website for the
+      <span class="font-bold">first time</span>, with an IP address originating from the
+      <span class="font-bold">{{ reportData.country }}</span>.
+    </div>
+  </div>
+  <div class="col-3 number-card" *ngIf="isVisible['summary']" (mouseenter)="showTooltip('totalLeads')" (mouseleave)="hideAllTooltips()">
+    <div class="number-card-container purple">
+      <ngx-charts-number-card
+        [scheme]="scheme"
+        [results]="totalLeads"
+        [valueFormatting]="SharedUtil.valueFormatting"
+        [innerPadding]="0"
+        [cardColor]="'#ffffff'"
+        [bandColor]="'#ffffff'">
+      </ngx-charts-number-card>
+    </div>
+    <div class="custom-tooltip" *ngIf="totalLeadsTooltip" [@dropIn]>
+      The total number of leads captured for the month of
+      <span class="font-bold">{{selectedMonth}}</span>, including both website leads and manual input leads.
+    </div>
+  </div>
+  <div class="col-3 number-card" *ngIf="isVisible['summary']"
+       (mouseenter)="showTooltip('opportunityToLead')" (mouseleave)="hideAllTooltips()">
+    <div class="number-card-container blue">
+      <ngx-charts-number-card
+        [scheme]="scheme"
+        [results]="opportunityToLead"
+        [valueFormatting]="SharedUtil.valueFormatting"
+        [innerPadding]="0"
+        [cardColor]="'#ffffff'"
+        [bandColor]="'#ffffff'">
+      </ngx-charts-number-card>
+    </div>
+    <div class="custom-tooltip" *ngIf="opportunityToLeadTooltip" [@dropIn]>
+      The calculated value of <span class="font-bold">Total Captured Leads</span> divided by
+      <span class="font-bold">Unique Site Visitors</span> for this month.
+    </div>
+  </div>
+  <div class="col-3 number-card" *ngIf="isVisible['summary']"
+       (mouseenter)="showTooltip('totalValues')" (mouseleave)="hideAllTooltips()">
+    <div class="number-card-container green">
+      <ngx-charts-number-card
+        [scheme]="scheme"
+        [results]="totalValues"
+        [valueFormatting]="SharedUtil.valueFormatting"
+        [innerPadding]="0"
+        [cardColor]="'#ffffff'"
+        [bandColor]="'#ffffff'">
+      </ngx-charts-number-card>
+    </div>
+    <div class="custom-tooltip" *ngIf="totalValuesTooltip" [@dropIn]>
+      The total <span class="font-bold">Opportunity Value</span> amount
+      for all leads created this month.
+      (<span class="font-bold">Opportunities</span> from all available Pipelines)
+    </div>
+  </div>
+</div>

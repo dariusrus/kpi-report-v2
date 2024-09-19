@@ -23,10 +23,21 @@ import {FloatLabelModule} from "primeng/floatlabel";
 import {TabMenuModule} from "primeng/tabmenu";
 import {AvatarModule} from "primeng/avatar";
 import {TagModule} from "primeng/tag";
+import {DialogModule} from "primeng/dialog";
+import {InputNumberModule} from "primeng/inputnumber";
+import { GoogleAnalyticsComponent } from './google-analytics/google-analytics.component';
+import { OpportunityToLeadComponent } from './opportunity-to-lead/opportunity-to-lead.component';
+import { MonthlyNumbersComponent } from './monthly-numbers/monthly-numbers.component';
+import { CapturedLeadsCountComponent } from './captured-leads-count/captured-leads-count.component';
+import { LeadValuationComponent } from './lead-valuation/lead-valuation.component';
+import { MonthlyLeadsCapturedComponent } from './monthly-leads-captured/monthly-leads-captured.component';
+import { AppointmentsComponent } from './appointments/appointments.component';
+import { ContactsWonComponent } from './contacts-won/contacts-won.component';
+import { PipelineStagesComponent } from './pipeline-stages/pipeline-stages.component';
 
 @NgModule({
-  declarations: [KpiReportComponent],
-  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent],
+  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule],
   providers: [KpiReportService],
 })
 export class KpiReportModule {}

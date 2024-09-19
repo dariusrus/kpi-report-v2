@@ -9,6 +9,7 @@ export interface KpiReport {
   subAgency: string;
   ghlLocationId: string;
   monthAndYear: string;
+  country: string;
   uniqueSiteVisitors: number;
   opportunityToLead: number;
   websiteLead: WebsiteLead;

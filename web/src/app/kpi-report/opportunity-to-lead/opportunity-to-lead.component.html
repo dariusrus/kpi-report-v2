@@ -1,0 +1,138 @@
+<ng-container>
+  <div class="report-title">
+    Opportunity-to-Lead
+    <i *ngIf="displayComparisons" class="pi pi-question-circle" (click)="showDialog()"></i>
+  </div>
+  <div class="report-subtitle">
+    (Last {{ monthCount }} months)
+  </div>
+  <div class="report-data" *ngIf="isVisible['analytics']">
+    <ngx-charts-line-chart *ngIf="!displayComparisons"
+                           [scheme]="scheme"
+                           [showXAxisLabel]="true"
+                           [showYAxisLabel]="true"
+                           [xAxis]="true"
+                           [yAxis]="true"
+                           [xAxisLabel]="xAxisLabel"
+                           [yAxisLabel]="yAxisLabel"
+                           [roundDomains]="true"
+                           [legendPosition]="LegendPosition.Below"
+                           [legend]="false"
+                           [results]="data"
+                           [curve]="curve"
+                           [yAxisTickFormatting]="SharedUtil.percentageFormatting"
+    >
+    </ngx-charts-line-chart>
+    <ngx-charts-line-chart *ngIf="displayComparisons"
+                           [scheme]="schemeAverage"
+                           [showXAxisLabel]="true"
+                           [showYAxisLabel]="true"
+                           [xAxis]="true"
+                           [yAxis]="true"
+                           [xAxisLabel]="xAxisLabel"
+                           [yAxisLabel]="yAxisLabel"
+                           [roundDomains]="true"
+                           [legendPosition]="LegendPosition.Below"
+                           [legend]="true"
+                           [results]="dataAverage"
+                           [yAxisTickFormatting]="SharedUtil.percentageFormatting"
+                           [curve]="curve"
+    >
+    </ngx-charts-line-chart>
+  </div>
+
+  <p-dialog
+    header="How are Opportunity-to-Lead averages calculated?"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [breakpoints]="{ '1199px': '50vw', '575px': '90vw' }"
+    [style]="{ width: '50vw' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onShow)="renderMathJax()">
+
+    <div class="dialog-text">
+      <p>
+        The <strong>Non-weighted Average O2L</strong> represents a straightforward average of each builder's Opportunity-to-Lead ratio, giving equal weight to each builder in the overall calculation.
+        It assumes that each builder’s O2L ratio remains <strong>proportional</strong> if all builders’ visitor counts are scaled to the same level (e.g. all adjusted to 1,200 visitors).
+        This means that a builder with 100 unique site visitors has the <strong>same impact</strong> on the average as one with 10,000 visitors.
+      </p>
+      <p>
+        In contrast, the <strong>Weighted Average O2L</strong> takes into account the number of unique site visitors each builder receives.
+        Builders with a <strong>higher</strong> number of visitors will have a <strong>more significant</strong> influence on the average, while those with <strong>fewer</strong> visitors will have a <strong>lesser</strong> impact.
+      </p>
+    </div>
+
+    <div class="dialog-text">
+      <p>Shown below is the computation for 4 builders w/ sample data. Feel free to change the values to see how the average changes.</p>
+
+      <p-table [value]="builders" [tableStyle]="{'font-size': '0.9em'}" [styleClass]="'p-datatable-sm'">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Builder</th>
+            <th>Unique Site Visitors</th>
+            <th>Total Leads</th>
+            <th>O2L (%)</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-builder>
+          <tr>
+            <td>{{ builder.name }}</td>
+            <td>
+              <p-inputNumber
+                [(ngModel)]="builder.visitors"
+                (onInput)="calculateO2L()"
+                [min]="0"
+                [mode]="'decimal'"
+                [useGrouping]="false"
+                class="max-w-1rem"
+                styleClass="max-w-1rem"
+                inputStyleClass="max-w-1rem">
+              </p-inputNumber>
+            </td>
+            <td>
+              <p-inputNumber
+                [(ngModel)]="builder.leads"
+                (onInput)="calculateO2L()"
+                [min]="0"
+                [mode]="'decimal'"
+                [useGrouping]="false">
+              </p-inputNumber>
+            </td>
+            <td>{{ (builder.leads / builder.visitors * 100) | number:'1.2-2' }}%</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr>
+            <td><strong>Total</strong></td>
+            <td>{{ totalVisitors }}</td>
+            <td>{{ totalLeadsAverage }}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><strong>Non-weighted Average O2L</strong></td>
+            <td colspan="2"></td>
+            <td>{{ nonWeightedO2L | number:'1.2-2' }}%</td>
+          </tr>
+          <tr>
+            <td><strong>Weighted Average O2L</strong></td>
+            <td colspan="2"></td>
+            <td>{{ weightedO2L | number:'1.2-2' }}%</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div>
+      <h3>Sample Computation:</h3>
+      <h4>1. Non-weighted O2L (Simple Average):</h4>
+      <p class="math" [innerHTML]="nonWeightedFormula"></p>
+      <p class="math" [innerHTML]="nonWeightedComputation"></p>
+
+      <h4>2. Weighted O2L (Weighted Average):</h4>
+      <p class="math" [innerHTML]="weightedFormula"></p>
+      <p class="math" [innerHTML]="weightedComputation"></p>
+    </div>
+
+  </p-dialog>
+</ng-container>

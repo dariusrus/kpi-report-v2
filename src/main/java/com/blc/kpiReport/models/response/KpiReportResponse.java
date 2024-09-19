@@ -17,6 +17,7 @@ import java.util.List;
 public class KpiReportResponse {
     private String subAgency;
     private String ghlLocationId;
+    private String country;
     private String monthAndYear;
     private String clientType;
     private int uniqueSiteVisitors;

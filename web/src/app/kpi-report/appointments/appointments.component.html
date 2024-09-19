@@ -1,0 +1,34 @@
+<ng-container>
+  <div class="report-title">
+    Appointments
+  </div>
+  <div class="report-subtitle">
+    {{ reportData.monthAndYear }}
+  </div>
+  <div class="row" *ngIf="isVisible['appointments']">
+    <div class="col-12 report-data">
+      <div class="custom-dropdown corner-right">
+        <p-floatLabel>
+          <p-dropdown
+            [options]="filteredCalendars"
+            [(ngModel)]="selectedCalendar"
+            optionLabel="calendarName"
+            placeholder="Select a Calendar"
+            [filter]="true"
+            filterBy="calendarName"
+            (onChange)="onCalendarChange($event)"
+            id="float-labeld"
+          />
+          <label for="float-labeld">Select Calendar</label>
+        </p-floatLabel>
+      </div>
+      <ngx-charts-advanced-pie-chart
+        [view]="advancedPieChartView"
+        [scheme]="'forest'"
+        [results]="data"
+        [gradient]="true"
+      >
+      </ngx-charts-advanced-pie-chart>
+    </div>
+  </div>
+</ng-container>

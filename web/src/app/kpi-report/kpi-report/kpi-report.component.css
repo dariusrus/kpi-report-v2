@@ -286,3 +286,83 @@
   padding-bottom: 20px;
 }
 
+.number-card-container.purple {
+  border-left: solid 8px #4051b5;
+}
+
+.number-card-container.blue {
+  border-left: solid 8px #2196f3;
+}
+
+.number-card-container.green {
+  border-left: solid 8px #00b862;
+}
+
+.number-card-container * {
+  cursor: default !important;
+}
+
+.number-card {
+  position: relative;
+}
+
+.number-card-container {
+  background-color: #ffffff;
+  border-radius: 5px;
+  padding: 4px 0 0;
+  height: 160px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  margin-bottom: 32px;
+  cursor: default !important;
+  border-left: solid 8px #647c89;
+  pointer-events: none;
+}
+
+.custom-tooltip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-weight: 200;
+  padding: 16px;
+  font-size: 0.9em;
+  border-radius: 4px;
+  width: 250px;
+  text-align: center;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.custom-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.75) transparent;
+}
+
+.custom-tooltip {
+  opacity: 1;
+}
+
+.custom-tooltip > .font-bold {
+  color: white !important;
+}
+
+.pi-question-circle {
+  cursor: help;
+}
+
+.dialog-text > * {
+  font-size: 0.9em;
+  line-height: 1.5em;
+  color: black !important;
+}
+

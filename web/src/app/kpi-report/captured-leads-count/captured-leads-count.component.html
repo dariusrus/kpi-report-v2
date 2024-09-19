@@ -1,0 +1,40 @@
+<ng-container>
+  <div class="report-title">
+    Captured Leads Count
+  </div>
+  <div class="report-subtitle">
+    (Last {{ monthCount }} months)
+  </div>
+  <div class="report-data flex-grow-1" *ngIf="isVisible['leads']">
+    <ngx-charts-bar-vertical-stacked *ngIf="!displayComparisons"
+                                     [customColors]="customColors"
+                                     [results]="data"
+                                     [gradient]="true"
+                                     [xAxis]="true"
+                                     [yAxis]="true"
+                                     [showDataLabel]="true"
+                                     [showXAxisLabel]="true"
+                                     [showYAxisLabel]="true"
+                                     [xAxisLabel]="xAxisLabel"
+                                     [yAxisLabel]="yAxisLabel"
+    >
+    </ngx-charts-bar-vertical-stacked>
+    <ngx-charts-bar-vertical-2d *ngIf="displayComparisons"
+                                [scheme]="scheme"
+                                [results]="dataAverage"
+                                [gradient]="true"
+                                [xAxis]="true"
+                                [yAxis]="true"
+                                [legend]="true"
+                                [legendPosition]="LegendPosition.Below"
+                                [showXAxisLabel]="true"
+                                [showYAxisLabel]="true"
+                                [roundEdges]="false"
+                                [roundDomains]="true"
+                                [xAxisLabel]="xAxisLabel"
+                                [yAxisLabel]="yAxisLabel"
+                                [rotateXAxisTicks]="true"
+    >
+    </ngx-charts-bar-vertical-2d>
+  </div>
+</ng-container>

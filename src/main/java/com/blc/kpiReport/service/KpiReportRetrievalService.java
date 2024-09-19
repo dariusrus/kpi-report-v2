@@ -92,10 +92,12 @@ public class KpiReportRetrievalService {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
             : roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100);
-
+        var country = "US".equals(location.getGaCountryCode()) ? "United States" :
+            ("CA".equals(location.getGaCountryCode()) ? "Canada" : "United States");
         return KpiReportResponse.builder()
             .subAgency(location.getName())
             .ghlLocationId(location.getLocationId())
+            .country(country)
             .monthAndYear(monthAndYear)
             .clientType(location.getClientType().toString())
             .uniqueSiteVisitors(uniqueSiteVisitors)

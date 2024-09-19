@@ -10,19 +10,24 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import {InViewportModule} from "@elvirus/angular-inviewport";
 import {environment} from "../environments/environment";
 import {APP_CONFIG} from "./app.config";
+import {BarChartModule} from "@swimlane/ngx-charts";
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     KpiReportModule,
     BrowserAnimationsModule,
-    InViewportModule
+    InViewportModule,
+    BarChartModule
   ],
-  providers: [provideHttpClient(withInterceptorsFromDi()), provideAnimationsAsync(), { provide: APP_CONFIG, useValue: environment.appConfig}],
+  providers: [provideHttpClient(withInterceptorsFromDi()), provideAnimationsAsync(), {
+    provide: APP_CONFIG,
+    useValue: environment.appConfig
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
