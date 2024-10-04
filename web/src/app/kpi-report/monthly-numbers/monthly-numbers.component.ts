@@ -3,36 +3,13 @@ import {KpiReport} from "../../models/kpi-report";
 import {SharedUtil} from "../../util/shared-util";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {animate, query, stagger, state, style, transition, trigger} from "@angular/animations";
+import {dropInAnimation} from "../../util/animations";
 
 @Component({
   selector: 'app-monthly-numbers',
   templateUrl: './monthly-numbers.component.html',
   styleUrl: './monthly-numbers.component.css',
-  animations: [
-    trigger('dropIn', [
-      state('void', style({
-        opacity: 0,
-        transform: 'translateY(-20px) translateX(-50%)'
-      })),
-      state('*', style({
-        opacity: 1,
-        transform: 'translateY(0) translateX(-50%)'
-      })),
-      transition(':enter', [
-        style({
-          opacity: 0,
-          transform: 'translateY(-20px) translateX(-50%)'
-        }),
-        animate('300ms ease-in')
-      ]),
-      transition(':leave', [
-        animate('200ms ease-out', style({
-          opacity: 0,
-          transform: 'translateY(0) translateX(-50%)'
-        }))
-      ])
-    ])
-  ]
+  animations: [dropInAnimation]
 })
 export class MonthlyNumbersComponent implements OnInit {
   @Input() uniqueSiteVisitors!: any[];

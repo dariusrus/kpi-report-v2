@@ -6,20 +6,50 @@
     (Last {{ monthCount }} months)
   </div>
   <div class="report-data flex-grow-1" *ngIf="isVisible['leads']">
-    <ngx-charts-bar-vertical-stacked
-      [customColors]="customColorsValue"
-      [results]="data"
-      [gradient]="true"
-      [xAxis]="true"
-      [yAxis]="true"
-      [showDataLabel]="true"
-      [showXAxisLabel]="true"
-      [showYAxisLabel]="true"
-      [xAxisLabel]="xAxisLabel"
-      [dataLabelFormatting]="SharedUtil.currencyFormatting"
-      [yAxisTickFormatting]="SharedUtil.currencyFormatting"
-      [yAxisLabel]="yAxisLabel"
-    >
-    </ngx-charts-bar-vertical-stacked>
+    <ng-container>
+      <div class="performance-index-container">
+        <div class="performance-index-items">
+          <ng-container *ngIf="previousMonthIndex">
+            <div class="performance-index-item-wrapper"
+                 (mouseenter)="showTooltip('fromLastMonth')" (mouseleave)="hideAllTooltips()">
+              <div class="performance-index-item">
+                <div class="performance-index-value">
+                  <i class="pi"
+                     [class.pi-arrow-down]="previousMonthIndex < 0"
+                     [class.pi-arrow-up]="previousMonthIndex > 0"
+                  ></i> {{ SharedUtil.formatToPercentage(previousMonthIndex) }}
+                </div>
+                <div class="performance-index-description">
+                  from Last Month
+                </div>
+              </div>
+              <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
+                  <span *ngIf="previousMonthIndex > 0">
+                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s Unique Site Visitors.
+                  </span>
+                <span *ngIf="previousMonthIndex < 0">
+                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s Unique Site Visitors.
+                  </span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <ngx-charts-bar-vertical-stacked [view]="[600, 400]"
+        [customColors]="customColorsValue"
+        [results]="data"
+        [gradient]="true"
+        [xAxis]="true"
+        [yAxis]="true"
+        [showDataLabel]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [xAxisLabel]="xAxisLabel"
+        [dataLabelFormatting]="SharedUtil.currencyFormatting"
+        [yAxisTickFormatting]="SharedUtil.currencyFormatting"
+        [yAxisLabel]="yAxisLabel"
+      >
+      </ngx-charts-bar-vertical-stacked>
+    </ng-container>
   </div>
 </ng-container>

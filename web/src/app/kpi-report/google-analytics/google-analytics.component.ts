@@ -3,11 +3,13 @@ import {LegendPosition} from "@swimlane/ngx-charts";
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {SharedUtil} from "../../util/shared-util";
+import {dropInAnimation} from "../../util/animations";
 
 @Component({
   selector: 'app-google-analytics',
   templateUrl: './google-analytics.component.html',
-  styleUrl: './google-analytics.component.css'
+  styleUrl: './google-analytics.component.css',
+  animations: [dropInAnimation]
 })
 export class GoogleAnalyticsComponent implements OnInit {
   @Input() reportData!: KpiReport;
@@ -26,10 +28,43 @@ export class GoogleAnalyticsComponent implements OnInit {
   yAxisLabel = '';
   protected readonly LegendPosition = LegendPosition;
 
+  previousMonthIndex: number | null = null;
+  peerComparisonIndex: number | null = null;
+
+  fromLastMonthTooltip = false;
+  peerComparisonTooltip = false;
+
   ngOnInit(): void {
+    this.yAxisLabel = 'Unique Site Visitors (' + this.reportData.country + ')';
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.populateGroupedChart(this.reportData, this.reportDataPreviousMap, this.averageReportData);
-    this.yAxisLabel = 'Unique Site Visitors (' + this.reportData.country + ')';
+    this.computeIndexes(this.reportData, this.reportDataPreviousMap, this.averageReportData);
+  }
+
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'fromLastMonth') {
+      this.fromLastMonthTooltip = true;
+    } else if (hoveredObject === 'peerComparisonTooltip') {
+      this.peerComparisonTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.fromLastMonthTooltip = false;
+    this.peerComparisonTooltip = false;
+  }
+
+  private computeIndexes(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage) {
+    const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
+    if (previousMonth && previousMonth.uniqueSiteVisitors !== null && currentData.uniqueSiteVisitors !== null) {
+      this.previousMonthIndex = ((currentData.uniqueSiteVisitors - previousMonth.uniqueSiteVisitors) / previousMonth.uniqueSiteVisitors) * 100;
+    }
+
+    if (currentAverage && currentAverage.averageUniqueSiteVisitors !== null && currentData.uniqueSiteVisitors !== null) {
+      this.peerComparisonIndex = ((currentData.uniqueSiteVisitors - currentAverage.averageUniqueSiteVisitors) / currentAverage.averageUniqueSiteVisitors) * 100;
+    }
   }
 
   private populateChart(currentData: KpiReport, previousData: any[]): void {
@@ -87,4 +122,6 @@ export class GoogleAnalyticsComponent implements OnInit {
       } : null
     ].filter(Boolean);
   }
+
+  protected readonly SharedUtil = SharedUtil;
 }

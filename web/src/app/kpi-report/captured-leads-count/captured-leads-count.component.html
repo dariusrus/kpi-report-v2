@@ -6,35 +6,121 @@
     (Last {{ monthCount }} months)
   </div>
   <div class="report-data flex-grow-1" *ngIf="isVisible['leads']">
-    <ngx-charts-bar-vertical-stacked *ngIf="!displayComparisons"
-                                     [customColors]="customColors"
-                                     [results]="data"
-                                     [gradient]="true"
-                                     [xAxis]="true"
-                                     [yAxis]="true"
-                                     [showDataLabel]="true"
-                                     [showXAxisLabel]="true"
-                                     [showYAxisLabel]="true"
-                                     [xAxisLabel]="xAxisLabel"
-                                     [yAxisLabel]="yAxisLabel"
-    >
-    </ngx-charts-bar-vertical-stacked>
-    <ngx-charts-bar-vertical-2d *ngIf="displayComparisons"
-                                [scheme]="scheme"
-                                [results]="dataAverage"
-                                [gradient]="true"
-                                [xAxis]="true"
-                                [yAxis]="true"
-                                [legend]="true"
-                                [legendPosition]="LegendPosition.Below"
-                                [showXAxisLabel]="true"
-                                [showYAxisLabel]="true"
-                                [roundEdges]="false"
-                                [roundDomains]="true"
-                                [xAxisLabel]="xAxisLabel"
-                                [yAxisLabel]="yAxisLabel"
-                                [rotateXAxisTicks]="true"
-    >
-    </ngx-charts-bar-vertical-2d>
+    <ng-container *ngIf="!displayComparisons">
+      <div class="performance-index-container">
+        <div class="performance-index-items">
+          <ng-container *ngIf="previousMonthIndex">
+            <div class="performance-index-item-wrapper"
+                 (mouseenter)="showTooltip('fromLastMonth')" (mouseleave)="hideAllTooltips()">
+              <div class="performance-index-item">
+                <div class="performance-index-value">
+                  <i class="pi"
+                     [class.pi-arrow-down]="previousMonthIndex < 0"
+                     [class.pi-arrow-up]="previousMonthIndex > 0"
+                  ></i> {{ SharedUtil.formatToPercentage(previousMonthIndex) }}
+                </div>
+                <div class="performance-index-description">
+                  from Last Month
+                </div>
+              </div>
+              <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
+                  <span *ngIf="previousMonthIndex > 0">
+                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s total captured leads.
+                  </span>
+                <span *ngIf="previousMonthIndex < 0">
+                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s total captured leads.
+                  </span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <ngx-charts-bar-vertical-stacked [view]="[600, 400]"
+                                       [customColors]="customColors"
+                                       [results]="data"
+                                       [gradient]="true"
+                                       [xAxis]="true"
+                                       [yAxis]="true"
+                                       [showDataLabel]="true"
+                                       [showXAxisLabel]="true"
+                                       [showYAxisLabel]="true"
+                                       [xAxisLabel]="xAxisLabel"
+                                       [yAxisLabel]="yAxisLabel"
+      >
+      </ngx-charts-bar-vertical-stacked>
+    </ng-container>
+    <ng-container *ngIf="displayComparisons">
+      <div class="performance-index-wrapper">
+        <div class="performance-index-container">
+          <div class="performance-index-items">
+            <ng-container *ngIf="previousMonthIndex">
+              <div class="performance-index-item-wrapper"
+                   (mouseenter)="showTooltip('fromLastMonth')" (mouseleave)="hideAllTooltips()">
+                <div class="performance-index-item">
+                  <div class="performance-index-value">
+                    <i class="pi"
+                       [class.pi-arrow-down]="previousMonthIndex < 0"
+                       [class.pi-arrow-up]="previousMonthIndex > 0"
+                    ></i> {{ SharedUtil.formatToPercentage(previousMonthIndex) }}
+                  </div>
+                  <div class="performance-index-description">
+                    from Last Month
+                  </div>
+                </div>
+                <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
+                  <span *ngIf="previousMonthIndex > 0">
+                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s total captured leads.
+                  </span>
+                  <span *ngIf="previousMonthIndex < 0">
+                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s total captured leads.
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="peerComparisonIndex">
+              <div class="performance-index-item-wrapper"
+                   (mouseenter)="showTooltip('peerComparisonTooltip')" (mouseleave)="hideAllTooltips()">
+                <div class="performance-index-item">
+                  <div class="performance-index-value">
+                    <i class="pi"
+                       [class.pi-arrow-down]="peerComparisonIndex < 0"
+                       [class.pi-arrow-up]="peerComparisonIndex > 0"
+                    ></i> {{ SharedUtil.formatToPercentage(peerComparisonIndex) }}
+                  </div>
+                  <div class="performance-index-description">
+                    Peer Comparison
+                  </div>
+                </div>
+                <div class="index-custom-tooltip" *ngIf="peerComparisonTooltip" [@dropIn]>
+                  <span *ngIf="peerComparisonIndex > 0">
+                    Captured <span class="font-bold">{{ SharedUtil.formatToPercentage(peerComparisonIndex) }} more</span> than the BLC average total leads.
+                  </span>
+                  <span *ngIf="peerComparisonIndex < 0">
+                    Captured <span class="font-bold">{{ SharedUtil.formatToPercentage(peerComparisonIndex) }} less</span> than the BLC average total leads.
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+      <ngx-charts-bar-vertical-2d [view]="[600, 400]"
+                                  [scheme]="scheme"
+                                  [results]="dataAverage"
+                                  [gradient]="true"
+                                  [xAxis]="true"
+                                  [yAxis]="true"
+                                  [legend]="true"
+                                  [legendPosition]="LegendPosition.Below"
+                                  [showXAxisLabel]="true"
+                                  [showYAxisLabel]="true"
+                                  [roundEdges]="false"
+                                  [roundDomains]="true"
+                                  [xAxisLabel]="xAxisLabel"
+                                  [yAxisLabel]="yAxisLabel"
+                                  [rotateXAxisTicks]="true"
+      >
+      </ngx-charts-bar-vertical-2d>
+    </ng-container>
   </div>
 </ng-container>

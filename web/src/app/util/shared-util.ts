@@ -82,4 +82,10 @@ export class SharedUtil {
 
     return parts.join(' ');
   }
+
+  static formatToPercentage(value: number): string {
+    const absoluteValue = Math.abs(value);
+    const formattedValue = absoluteValue.toFixed(2);
+    return `${formattedValue}%`;
+  }
 }

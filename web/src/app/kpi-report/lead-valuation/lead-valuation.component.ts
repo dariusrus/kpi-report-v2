@@ -25,8 +25,31 @@ export class LeadValuationComponent implements OnInit {
   ];
   protected readonly SharedUtil = SharedUtil;
 
+  previousMonthIndex: number | null = null;
+  fromLastMonthTooltip = false;
+
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
+    this.computeIndexes(this.reportData, this.reportDataPreviousMap);
+  }
+
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'fromLastMonth') {
+      this.fromLastMonthTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.fromLastMonthTooltip = false;
+  }
+
+  private computeIndexes(currentData: KpiReport, previousData: any[]) {
+    const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
+    if (previousMonth && previousMonth.websiteLead.totalValues !== null && currentData.websiteLead.totalValues !== null) {
+      this.previousMonthIndex = ((currentData.websiteLead.totalValues - previousMonth.websiteLead.totalValues) / previousMonth.websiteLead.totalValues) * 100;
+    }
   }
 
   private populateChart(currentData: KpiReport, previousData: any[]): void {

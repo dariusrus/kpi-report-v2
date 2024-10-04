@@ -3,11 +3,13 @@ import {LegendPosition} from "@swimlane/ngx-charts";
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {SharedUtil} from "../../util/shared-util";
+import {dropInAnimation} from "../../util/animations";
 
 @Component({
   selector: 'app-captured-leads-count',
   templateUrl: './captured-leads-count.component.html',
-  styleUrl: './captured-leads-count.component.css'
+  styleUrl: './captured-leads-count.component.css',
+  animations: [dropInAnimation]
 })
 export class CapturedLeadsCountComponent implements OnInit {
   @Input() reportData!: KpiReport;
@@ -24,6 +26,12 @@ export class CapturedLeadsCountComponent implements OnInit {
   yAxisLabel = 'Captured Leads Count';
   protected readonly LegendPosition = LegendPosition;
 
+  previousMonthIndex: number | null = null;
+  peerComparisonIndex: number | null = null;
+
+  fromLastMonthTooltip = false;
+  peerComparisonTooltip = false;
+
   customColors = [
     { name: 'Website Lead', value: '#37C469FF' },
     { name: 'Manual User Input', value: '#4571B9FF' }
@@ -32,7 +40,34 @@ export class CapturedLeadsCountComponent implements OnInit {
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.populateGroupedChart(this.reportData, this.reportDataPreviousMap, this.averageReportData);
+    this.computeIndexes(this.reportData, this.reportDataPreviousMap, this.averageReportData);
     this.yAxisLabel = 'Unique Site Visitors (' + this.reportData.country + ')';
+  }
+
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'fromLastMonth') {
+      this.fromLastMonthTooltip = true;
+    } else if (hoveredObject === 'peerComparisonTooltip') {
+      this.peerComparisonTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.fromLastMonthTooltip = false;
+    this.peerComparisonTooltip = false;
+  }
+
+  private computeIndexes(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage) {
+    const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
+    if (previousMonth && previousMonth.websiteLead.totalLeads !== null && currentData.websiteLead.totalLeads !== null) {
+      this.previousMonthIndex = ((currentData.websiteLead.totalLeads - previousMonth.websiteLead.totalLeads) / previousMonth.websiteLead.totalLeads) * 100;
+    }
+
+    if (currentAverage && currentAverage.averageTotalLeads !== null && currentData.websiteLead.totalLeads !== null) {
+      this.peerComparisonIndex = ((currentData.websiteLead.totalLeads - currentAverage.averageTotalLeads) / currentAverage.averageTotalLeads) * 100;
+    }
   }
 
   private populateChart(currentData: KpiReport, previousData: any[]): void {
@@ -119,4 +154,6 @@ export class CapturedLeadsCountComponent implements OnInit {
       } : null
     ].filter(Boolean);
   }
+
+  protected readonly SharedUtil = SharedUtil;
 }

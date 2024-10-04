@@ -4,13 +4,16 @@ import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {SharedUtil} from "../../util/shared-util";
 import * as shape from "d3-shape";
+import {animate, state, style, transition, trigger} from "@angular/animations";
+import {dropInAnimation} from "../../util/animations";
 
 declare var MathJax: any;
 
 @Component({
   selector: 'app-opportunity-to-lead',
   templateUrl: './opportunity-to-lead.component.html',
-  styleUrl: './opportunity-to-lead.component.css'
+  styleUrl: './opportunity-to-lead.component.css',
+  animations: [dropInAnimation]
 })
 export class OpportunityToLeadComponent implements OnInit {
   @Input() reportData!: KpiReport;
@@ -48,10 +51,18 @@ export class OpportunityToLeadComponent implements OnInit {
   nonWeightedComputation: string = '';
   weightedComputation: string = '';
 
+  previousMonthIndex: number | null = null;
+  peerComparisonIndexWeighted: number | null = null;
+  peerComparisonIndexNonWeighted: number | null = null;
+
+  fromLastMonthTooltip = false;
+  peerComparisonTooltip = false;
+
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.populateGroupedChart(this.reportData, this.reportDataPreviousMap, this.averageReportData);
     this.calculateO2L();
+    this.computeIndexes(this.reportData, this.reportDataPreviousMap, this.averageReportData);
   }
 
   showDialog() {
@@ -65,6 +76,21 @@ export class OpportunityToLeadComponent implements OnInit {
         })
         .catch((err: any) => console.log(err.message));
     }
+  }
+
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'fromLastMonth') {
+      this.fromLastMonthTooltip = true;
+    } else if (hoveredObject === 'peerComparisonTooltip') {
+      this.peerComparisonTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.fromLastMonthTooltip = false;
+    this.peerComparisonTooltip = false;
   }
 
   calculateO2L() {
@@ -109,6 +135,22 @@ export class OpportunityToLeadComponent implements OnInit {
     `;
 
     setTimeout(() => this.renderMathJax(), 0);
+  }
+
+  private computeIndexes(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage) {
+    const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
+
+    if (previousMonth && previousMonth.opportunityToLead !== null && currentData.opportunityToLead !== null) {
+      this.previousMonthIndex = ((currentData.opportunityToLead - previousMonth.opportunityToLead) / previousMonth.opportunityToLead) * 100;
+    }
+
+    if (currentAverage && currentAverage.weightedAverageOpportunityToLead !== null && currentData.opportunityToLead !== null) {
+      this.peerComparisonIndexWeighted = ((currentData.opportunityToLead - currentAverage.weightedAverageOpportunityToLead) / currentAverage.weightedAverageOpportunityToLead) * 100;
+    }
+
+    if (currentAverage && currentAverage.averageOpportunityToLead !== null && currentData.opportunityToLead !== null) {
+      this.peerComparisonIndexNonWeighted = ((currentData.opportunityToLead - currentAverage.averageOpportunityToLead) / currentAverage.averageOpportunityToLead) * 100;
+    }
   }
 
   private populateChart(currentData: KpiReport, previousData: any[]): void {

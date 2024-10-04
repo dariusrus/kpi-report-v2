@@ -48,119 +48,120 @@
     </div>
 
     <div>
-      <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
-           snInViewport
-           (inViewportChange)="handleViewportChange($event, 'analytics')"
-           [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
-      >
-        <div class="col-6">
-          <div class="report-container">
-            <app-google-analytics
-              [reportData]="reportData"
-              [averageReportData]="averageReportData!"
-              [reportDataPreviousMap]="reportDataPreviousMap"
-              [averageReportDataPrevious]="averageReportDataPrevious"
-              [displayComparisons]="displayComparisons"
-              [monthCount]="monthCount"
-              [isVisible]="isVisible"
-            ></app-google-analytics>
+      <ng-container>
+        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'analytics')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
+        >
+          <div class="col-6">
+            <div class="report-container">
+              <app-google-analytics
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [averageReportDataPrevious]="averageReportDataPrevious"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-google-analytics>
+            </div>
           </div>
-        </div>
-        <div class="col-6">
-          <div class="report-container">
-            <app-opportunity-to-lead
-              [reportData]="reportData"
-              [averageReportData]="averageReportData!"
-              [reportDataPreviousMap]="reportDataPreviousMap"
-              [averageReportDataPrevious]="averageReportDataPrevious"
-              [displayComparisons]="displayComparisons"
-              [monthCount]="monthCount"
-              [isVisible]="isVisible"
-            ></app-opportunity-to-lead>
+          <div class="col-6">
+            <div class="report-container">
+              <app-opportunity-to-lead
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [averageReportDataPrevious]="averageReportDataPrevious"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-opportunity-to-lead>
+            </div>
           </div>
-        </div>
 
-      </div>
-      <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
-           snInViewport
-           (inViewportChange)="handleViewportChange($event, 'leads')"
-           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-      >
-        <div class="col-6 d-flex">
-          <div class="report-container flex-grow-1 d-flex flex-column">
-            <app-captured-leads-count
-              [reportData]="reportData"
-              [averageReportData]="averageReportData!"
-              [reportDataPreviousMap]="reportDataPreviousMap"
-              [displayComparisons]="displayComparisons"
-              [monthCount]="monthCount"
-              [isVisible]="isVisible"
-            ></app-captured-leads-count>
+        </div>
+        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'leads')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-6 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-captured-leads-count
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-captured-leads-count>
+            </div>
+          </div>
+          <div class="col-6 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-lead-valuation
+                [reportData]="reportData"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-lead-valuation>
+            </div>
           </div>
         </div>
-        <div class="col-6 d-flex">
-          <div class="report-container flex-grow-1 d-flex flex-column">
-            <app-lead-valuation
-              [reportData]="reportData"
-              [reportDataPreviousMap]="reportDataPreviousMap"
-              [monthCount]="monthCount"
-              [isVisible]="isVisible"
-            ></app-lead-valuation>
+        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'websiteLeads')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-12 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-monthly-leads-captured
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-monthly-leads-captured>
+            </div>
           </div>
         </div>
-      </div>
+        <div class="row report-row align-items-stretch"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'appointments')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
+        >
+          <div class="col-7 d-flex">
+            <div class="report-container custom-dropdown-container">
+              <app-appointments
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-appointments>
+            </div>
+          </div>
+          <div class="col-5 d-flex">
+            <div class="report-container">
+              <app-contacts-won
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-contacts-won>
+            </div>
+          </div>
 
-      <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
-           snInViewport
-           (inViewportChange)="handleViewportChange($event, 'websiteLeads')"
-           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-      >
-        <div class="col-12 d-flex">
-          <div class="report-container flex-grow-1 d-flex flex-column">
-            <app-monthly-leads-captured
-              [reportData]="reportData"
-              [isVisible]="isVisible"
-            ></app-monthly-leads-captured>
+        </div>
+        <div class="row report-row"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'pipelines')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-12">
+            <div class="report-container">
+              <app-pipeline-stages
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-pipeline-stages>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row report-row align-items-stretch"
-           snInViewport
-           (inViewportChange)="handleViewportChange($event, 'appointments')"
-           [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
-      >
-        <div class="col-7 d-flex">
-          <div class="report-container custom-dropdown-container">
-            <app-appointments
-              [reportData]="reportData"
-              [isVisible]="isVisible"
-            ></app-appointments>
-          </div>
-        </div>
-        <div class="col-5 d-flex">
-          <div class="report-container">
-            <app-contacts-won
-              [reportData]="reportData"
-              [isVisible]="isVisible"
-            ></app-contacts-won>
-          </div>
-        </div>
-
-      </div>
-      <div class="row report-row"
-           snInViewport
-           (inViewportChange)="handleViewportChange($event, 'pipelines')"
-           [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-      >
-        <div class="col-12">
-          <div class="report-container">
-            <app-pipeline-stages
-              [reportData]="reportData"
-              [isVisible]="isVisible"
-            ></app-pipeline-stages>
-          </div>
-        </div>
-      </div>
+      </ng-container>
       <ng-container *ngIf="reportData.monthlyClarityReport && reportData.monthlyClarityReport.deviceClarityAggregate.length > 0">
         <h2>Website Analytics</h2>
         <div class="row report-row align-items-stretch"
@@ -230,13 +231,55 @@
         <div class="row report-row align-items-stretch"
              snInViewport
              (inViewportChange)="handleViewportChange($event, 'urlMetrics')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-        >
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}">
           <div class="col-12">
             <div class="report-container report-container-sm clarity-container">
               <div class="report-title">URL Metrics</div>
               <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data" *ngIf="isVisible['urlMetrics']">
+              <div class="table-toggle">
+                <p-toggleButton
+                  [(ngModel)]="advancedTableOptions"
+                  onLabel="Toggle Advanced Table"
+                  offLabel="Toggle Advanced Table"/>
+              </div>
+              <div class="report-data no-top" *ngIf="isVisible['urlMetrics'] && !advancedTableOptions">
+                <p-table
+                  #dt1
+                  [value]="topUrls"
+                  dataKey="id"
+                  [rows]="5"
+                  [paginator]="false"
+                  [tableStyle]="{'font-size': '0.8em'}"
+                  [responsiveLayout]="'scroll'"
+                  @fadeIn>
+                  <ng-template pTemplate="header">
+                    <tr class="custom-tr">
+                      <th style="min-width:20rem">URL</th>
+                      <th style="min-width:12.5rem">Average Scroll Depth</th>
+                      <th style="min-width:12.5rem">Active Time</th>
+                      <th style="min-width:12.5rem">Session Count</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-urlMetric>
+                    <tr>
+                      <td>
+                        <a [href]="urlMetric.url" target="_blank" style="color: #17a2b8; text-decoration: none;">
+                          {{ urlMetric.url }}
+                        </a>
+                      </td>
+                      <td>{{ SharedUtil.percentageFormatting(urlMetric.averageScrollDepth) }}</td>
+                      <td>{{ SharedUtil.timeFormatting(urlMetric.activeTime) }}</td>
+                      <td>{{ urlMetric.totalSessionCount }}</td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="4">No data available.</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+              <div class="report-data no-top" *ngIf="isVisible['urlMetrics'] && advancedTableOptions">
                 <div class="custom-dropdown corner-right">
                   <p-floatLabel>
                     <p-dropdown
@@ -311,6 +354,70 @@
               </div>
             </div>
           </div>
+        </div>
+        <div id="ai-analytics" class="row insights-row"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'aiAnalytics')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}">
+          <ng-container *ngIf="isVisible['aiAnalytics']">
+            <p class="insights-header">Analytics Insights <span>powered by AI</span></p>
+            <div class="col-4 insight-card" @fadeIn>
+              <div class="ai-takeaway-container">
+                <div class="ai-takeaway-header">
+                  Device Performance
+                </div>
+                <div class="ai-takeaways">
+                  <ul>
+                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.devicePerformance">
+                      <span [innerHTML]="takeaway"></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-4 insight-card" @fadeIn>
+              <div class="ai-takeaway-container">
+                <div class="ai-takeaway-header">
+                  URL Engagement
+                </div>
+                <div class="ai-takeaways">
+                  <ul>
+                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.urlEngagement">
+                      <span [innerHTML]="takeaway"></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-4 insight-card" @fadeIn>
+              <div class="ai-takeaway-container">
+                <div class="ai-takeaway-header">
+                  User Behavior
+                </div>
+                <div class="ai-takeaways">
+                  <ul>
+                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.userBehavior">
+                      <span [innerHTML]="takeaway"></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div style="display: none" class="col-12 insight-card">
+              <div class="ai-takeaway-container">
+                <div class="ai-takeaway-header">
+                  Insights and Suggestions
+                </div>
+                <div class="ai-takeaways">
+                  <ul>
+                    <li *ngFor="let suggestions of analyticsInsights.insightsAndSuggestions">
+                      <span [innerHTML]="suggestions"></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </ng-container>
     </div>
