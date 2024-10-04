@@ -2,7 +2,9 @@ package com.blc.kpiReport.models.mapper.ghl;
 
 import com.blc.kpiReport.models.response.ghl.PipelineResponse;
 import com.blc.kpiReport.models.response.ghl.PipelineStageResponse;
+import com.blc.kpiReport.models.response.ghl.SalesPersonConversionResponse;
 import com.blc.kpiReport.schema.ghl.PipelineStage;
+import com.blc.kpiReport.schema.ghl.SalesPersonConversion;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,12 +38,22 @@ public class PipelineStageMapper {
 
     private List<PipelineStageResponse> mapToPipelineStageResponseList(List<PipelineStage> pipelineStages) {
         return pipelineStages.stream()
-            .map(stage -> PipelineStageResponse.builder()
-                .stageName(stage.getStageName())
-                .count(stage.getCount())
-                .percentage(roundToTwoDecimalPlaces(stage.getPercentage()))
-                .monetaryValue(stage.getMonetaryValue())
-                .build())
-            .collect(Collectors.toList());
+                .map(stage -> PipelineStageResponse.builder()
+                        .stageName(stage.getStageName())
+                        .count(stage.getCount())
+                        .percentage(roundToTwoDecimalPlaces(stage.getPercentage()))
+                        .monetaryValue(stage.getMonetaryValue())
+                        .salesPersonConversions(mapToSalesPersonConversionResponseList(stage.getSalesPersonConversions()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<SalesPersonConversionResponse> mapToSalesPersonConversionResponseList(List<SalesPersonConversion> salesPersonConversions) {
+        return salesPersonConversions.stream()
+                .map(conversion -> SalesPersonConversionResponse.builder()
+                        .salesPersonName(conversion.getSalesPersonName())
+                        .count(conversion.getCount())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

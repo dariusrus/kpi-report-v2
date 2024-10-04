@@ -238,6 +238,8 @@ public class GhlDataProcessorService {
     private List<PipelineStage> processPipelineStages(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.debug("Processing pipeline stages for report: {}", goHighLevelReport.getId());
         Map<String, PipelineStageInfo> pipelineStageMap = new HashMap<>();
+        Map<String, Map<String, SalesPersonConversion>> salesPersonConversionMap = new HashMap<>();
+        var ownerMap = ghlApiData.getOwnerMap();
 
         for (JsonNode pipelineNode : ghlApiData.getPipelineJson().path("pipelines")) {
             String pipelineName = pipelineNode.path("name").asText();
@@ -246,6 +248,7 @@ public class GhlDataProcessorService {
                 String stageName = stageNode.path("name").asText();
                 int position = stageNode.path("position").asInt();
                 pipelineStageMap.put(stageId, new PipelineStageInfo(stageName, pipelineName, position));
+                salesPersonConversionMap.put(stageId, new HashMap<>());
             }
         }
 
@@ -261,10 +264,22 @@ public class GhlDataProcessorService {
             if (stageInfo == null) continue;
 
             String pipelineName = stageInfo.getPipelineName();
-
             stageCountMap.put(stageId, stageCountMap.getOrDefault(stageId, 0) + 1);
             stageMonetaryValueMap.put(stageId, stageMonetaryValueMap.getOrDefault(stageId, 0.0) + monetaryValue);
             pipelineTotalCountMap.put(pipelineName, pipelineTotalCountMap.getOrDefault(pipelineName, 0) + 1);
+
+            String salesPersonId = opportunity.path("assignedTo").asText();
+            var ownerNode = ownerMap.get(salesPersonId);
+            String salesPersonName = ownerNode != null ? ownerNode.path("name").asText() : "Unknown";
+
+            Map<String, SalesPersonConversion> stageSalesMap = salesPersonConversionMap.get(stageId);
+            SalesPersonConversion conversion = stageSalesMap.getOrDefault(salesPersonId, SalesPersonConversion.builder()
+                    .salesPersonId(salesPersonId)
+                    .salesPersonName(salesPersonName)
+                    .count(0)
+                    .build());
+            conversion.setCount(conversion.getCount() + 1);
+            stageSalesMap.put(salesPersonId, conversion);
         }
 
         List<PipelineStage> pipelineStages = new ArrayList<>();
@@ -282,20 +297,28 @@ public class GhlDataProcessorService {
             int pipelineTotalCount = pipelineTotalCountMap.getOrDefault(pipelineName, 0);
             double percentage = pipelineTotalCount > 0 ? (double) count / pipelineTotalCount * 100 : 0;
 
+            List<SalesPersonConversion> salesPersonConversions = new ArrayList<>(salesPersonConversionMap.get(stageId).values());
+
             PipelineStage pipelineStage = PipelineStage.builder()
-                .pipelineName(pipelineName)
-                .stageName(stageName)
-                .count(count)
-                .percentage(percentage)
-                .monetaryValue(monetaryValue)
-                .position(position)
-                .goHighLevelReport(goHighLevelReport)
-                .build();
+                    .pipelineName(pipelineName)
+                    .stageName(stageName)
+                    .count(count)
+                    .percentage(percentage)
+                    .monetaryValue(monetaryValue)
+                    .position(position)
+                    .goHighLevelReport(goHighLevelReport)
+                    .salesPersonConversions(salesPersonConversions)
+                    .build();
+
+            for (SalesPersonConversion conversion : salesPersonConversions) {
+                conversion.setPipelineStage(pipelineStage);  // Ensure each conversion references its parent stage
+            }
+
             pipelineStages.add(pipelineStage);
         }
 
         pipelineStages.sort(Comparator.comparing(PipelineStage::getPipelineName)
-            .thenComparing(PipelineStage::getPosition));
+                .thenComparing(PipelineStage::getPosition));
 
         log.debug("Processed {} pipeline stages for report: {}", pipelineStages.size(), goHighLevelReport.getId());
         return pipelineStages;

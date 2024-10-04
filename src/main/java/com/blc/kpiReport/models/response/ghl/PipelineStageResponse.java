@@ -2,6 +2,8 @@ package com.blc.kpiReport.models.response.ghl;
 
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -12,5 +14,6 @@ public class PipelineStageResponse {
     private int count;
     private double percentage;
     private double monetaryValue;
+    private List<SalesPersonConversionResponse> salesPersonConversions;
 }
 

@@ -65,7 +65,7 @@ public class GhlDataFetchService {
             var contactsWonOpportunityList = filterContactsWon(opportunityList, startDate, endDate);
             var contactsWonContactMap = fetchContactsAndMap(contactsWonOpportunityList, accessToken);
 
-            var ownersMap = fetchOwnersAndMap(createdAtOpportunityList, contactsWonOpportunityList, accessToken);
+            var ownersMap = fetchOwnersAndMap(opportunityList, accessToken);
 
             var eventsMap = fetchEventForEachCalendar(locationId, accessToken, startDate, endDate);
             var pipelineJson = fetchPipelineStages(accessToken, locationId);
@@ -88,15 +88,10 @@ public class GhlDataFetchService {
         }
     }
 
-    private Map<String, JsonNode> fetchOwnersAndMap(List<JsonNode> createdAtOpportunityList, List<JsonNode> contactsWonOpportunityList, String accessToken) throws IOException {
+    private Map<String, JsonNode> fetchOwnersAndMap(List<JsonNode> opportunityList, String accessToken) throws IOException {
         Map<String, JsonNode> ownerMap = new HashMap<>();
 
-        // Combine both lists
-        List<JsonNode> combinedOpportunityList = new ArrayList<>();
-        combinedOpportunityList.addAll(createdAtOpportunityList);
-        combinedOpportunityList.addAll(contactsWonOpportunityList);
-
-        for (JsonNode opportunity : combinedOpportunityList) {
+        for (JsonNode opportunity : opportunityList) {
             String userId = opportunity.path("assignedTo").asText();
             if (userId != null && !userId.isEmpty() && !ownerMap.containsKey(userId)) {
                 String url = String.format(OWNER_URL_TEMPLATE, GHL_API_BASE_URL, userId);

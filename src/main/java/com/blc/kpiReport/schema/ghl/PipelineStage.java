@@ -3,12 +3,14 @@ package com.blc.kpiReport.schema.ghl;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "pipeline_stage")
@@ -52,6 +54,10 @@ public class PipelineStage extends DateAudit implements Serializable {
     @NotNull
     @Column(name = "monetary_value")
     private double monetaryValue;
+
+    @OneToMany(mappedBy = "pipelineStage", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<SalesPersonConversion> salesPersonConversions;
 
     @ManyToOne
     @JoinColumn(name = "go_high_level_report_id", nullable = false)
