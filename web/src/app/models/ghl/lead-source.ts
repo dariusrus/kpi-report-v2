@@ -1,3 +1,5 @@
+import {LeadContact} from "./lead-contact";
+
 export interface LeadSource {
   source: string;
   totalLeads: number;
@@ -8,4 +10,5 @@ export interface LeadSource {
   abandoned: number;
   winPercentage: number;
   leadType: string;
+  leadContacts: LeadContact[];
 }

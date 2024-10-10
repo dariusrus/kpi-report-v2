@@ -12,7 +12,7 @@
     <div class="container header-sub-container">
       <div class="header-labels d-flex align-items-center">
         <img src="https://www.builderleadconverter.com/wp-content/uploads/2021/02/favicon.png" alt="Logo" class="header-logo me-2"/>
-        <div class="title">KPI Report V2 <span class="release-version">beta 1.0</span></div>
+        <div class="title">KPI Report V2 <span class="release-version">beta 1.1</span></div>
       </div>
 
       <div class="dropdown-container">
@@ -156,6 +156,7 @@
             <div class="report-container">
               <app-pipeline-stages
                 [reportData]="reportData"
+                [reportDataPreviousMap]="reportDataPreviousMap"
                 [isVisible]="isVisible"
               ></app-pipeline-stages>
             </div>
@@ -359,7 +360,7 @@
              snInViewport
              (inViewportChange)="handleViewportChange($event, 'aiAnalytics')"
              [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}">
-          <ng-container *ngIf="isVisible['aiAnalytics']">
+          <ng-container *ngIf="analyticsInsights && isVisible['aiAnalytics']">
             <p class="insights-header">Analytics Insights <span>powered by AI</span></p>
             <div class="col-4 insight-card" @fadeIn>
               <div class="ai-takeaway-container">
@@ -368,7 +369,7 @@
                 </div>
                 <div class="ai-takeaways">
                   <ul>
-                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.devicePerformance">
+                    <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.devicePerformance">
                       <span [innerHTML]="takeaway"></span>
                     </li>
                   </ul>
@@ -396,7 +397,7 @@
                 </div>
                 <div class="ai-takeaways">
                   <ul>
-                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.userBehavior">
+                    <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.userBehavior">
                       <span [innerHTML]="takeaway"></span>
                     </li>
                   </ul>
@@ -410,7 +411,7 @@
                 </div>
                 <div class="ai-takeaways">
                   <ul>
-                    <li *ngFor="let suggestions of analyticsInsights.insightsAndSuggestions">
+                    <li *ngFor="let suggestions of analyticsInsights?.insightsAndSuggestions">
                       <span [innerHTML]="suggestions"></span>
                     </li>
                   </ul>

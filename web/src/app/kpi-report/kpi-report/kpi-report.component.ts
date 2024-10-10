@@ -11,6 +11,8 @@ import {PipelineStage} from "../../models/ghl/pipeline-stage";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {LeadSource} from "../../models/ghl/lead-source";
 import {SharedUtil} from "../../util/shared-util";
+import {HttpClient} from "@angular/common/http";
+import {AnalyticsInsights} from "../../models/ghl/analytic-insights";
 
 
 @Component({
@@ -90,11 +92,18 @@ export class KpiReportComponent implements OnInit {
   deviceTypes: string[] = ['PC', 'Tablet', 'Mobile'];
   selectedDevice = 'PC';
 
+  topUrls: any[] = [];
+
+  advancedTableOptions = false;
+
+  analyticsInsights: AnalyticsInsights | null = null; // TODO: Update on OpenAI account init
+
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
-              @Inject(APP_CONFIG) private config: AppConfig) {
+              @Inject(APP_CONFIG) private config: AppConfig,
+              private http: HttpClient) {
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth(); // hack
+    const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
 
     this.selectedMonth = '';
@@ -200,6 +209,7 @@ export class KpiReportComponent implements OnInit {
                 this.reportDataPreviousMap = previousData;
                 this.populateChartsAndCards(currentData, currentAverage, previousData);
                 this.isLoading = false;
+                console.log(this.reportData);
               },
               error: (error) => {
                 console.error('Failed to fetch previous months\' KPI report data:', error);
@@ -324,8 +334,25 @@ export class KpiReportComponent implements OnInit {
         urlMetric.activeTime = toggleDevice ? toggleDevice.activeTime : 0;
         urlMetric.totalSessionCount = toggleDevice ? toggleDevice.totalSessionCount : 0;
       });
+
+
+      this.topUrls = this.reportData.monthlyClarityReport.urls.map((urlMetric: any) => {
+        const totalSessionCount = urlMetric.devices.reduce((sum: number, device: any) => sum + (device.totalSessionCount || 0), 0);
+        const totalAverageScrollDepth = urlMetric.devices.reduce((sum: number, device: any) => sum + (device.averageScrollDepth || 0), 0);
+        const totalActiveTime = urlMetric.devices.reduce((sum: number, device: any) => sum + (device.activeTime || 0), 0);
+
+        return {
+          ...urlMetric,
+          totalSessionCount,
+          totalAverageScrollDepth,
+          totalActiveTime
+        };
+      })
+        .sort((a, b) => b.totalSessionCount - a.totalSessionCount)
+        .slice(0, 5);
     }
   }
+
 
   onYearChange(): void {
     const currentDate = new Date();

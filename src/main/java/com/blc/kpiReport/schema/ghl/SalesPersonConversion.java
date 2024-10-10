@@ -41,6 +41,10 @@ public class SalesPersonConversion extends DateAudit implements Serializable {
     @Column(name = "count")
     private int count;
 
+    @NotNull
+    @Column(name = "monetary_value")
+    private Double monetaryValue;
+
     @ManyToOne
     @JoinColumn(name = "pipeline_stage_id", nullable = false)
     @JsonBackReference

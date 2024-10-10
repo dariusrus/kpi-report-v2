@@ -1,65 +1,81 @@
 <ng-container>
   <div class="report-title">
-    Pipeline Stages
+    Pipeline Stage Conversions
   </div>
   <div class="report-subtitle">
     {{ reportData.monthAndYear }}
   </div>
   <div class="row" *ngIf="isVisible['pipelines']">
-    <div class="col-6 report-data">
-      <div class="custom-dropdown">
-        <p-floatLabel>
-          <p-dropdown
-            [options]="reportData.pipelines"
-            [(ngModel)]="selectedPipeline"
-            optionLabel="pipelineName"
-            placeholder="Select a Pipeline"
-            (onChange)="onPipelineChange($event)"
-            id="float-label"
-          />
-          <label for="float-label">Select Pipeline</label>
-        </p-floatLabel>
+    <div class="col-8 report-data">
+      <div class="dropdown-row">
+        <div class="custom-dropdown">
+          <p-floatLabel>
+            <p-multiSelect
+              [options]="salesPersons"
+              [(ngModel)]="selectedSalesPersons"
+              optionLabel="name"
+              placeholder="Select Sales Person"
+              display="chip"
+              (onChange)="onParameterChange()"
+              id="float-label"
+            />
+            <label for="float-label">Select Sales Person</label>
+          </p-floatLabel>
+        </div>
+        <div class="custom-dropdown">
+          <p-floatLabel>
+            <p-dropdown
+              [options]="reportData.pipelines"
+              [(ngModel)]="selectedPipeline"
+              optionLabel="pipelineName"
+              placeholder="Select a Pipeline"
+              (onChange)="onPipelineChange($event)"
+              id="float-label-sales-person"
+            />
+            <label for="float-label-sales-person">Select Pipeline</label>
+          </p-floatLabel>
+        </div>
       </div>
-      <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.8em'}"
-               [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'" @fadeIn>
-        <ng-template pTemplate="header">
-          <tr class="custom-tr">
-            <th>Pipeline Stage</th>
-            <th class="align-center">#</th>
-            <th class="align-center">%</th>
-            <th class="align-right">$</th>
-          </tr>
-        </ng-template>
+      <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.9em'}"
+               [responsiveLayout]="'scroll'" @fadeIn>
         <ng-template pTemplate="body" let-pipelineStage>
           <tr>
-            <td class="align-left">{{ pipelineStage.stageName }}</td>
-            <td [class.zero-value]="pipelineStage.count === 0"
-                class="align-center">{{ pipelineStage.count }}
+            <td class="align-left" style="width: 50%">{{ pipelineStage.stageName }}</td>
+            <td [class.zero-value]="getSalesPersonDataForStage(pipelineStage).count === 0"
+                [class.font-bold]="getSalesPersonDataForStage(pipelineStage).count > 0"
+                class="align-center pipeline-td" style="width: 10%">
+              {{ getSalesPersonDataForStage(pipelineStage).count }}
             </td>
-            <td [class.zero-value]="pipelineStage.percentage === 0"
-                class="align-center">{{ pipelineStage.percentage }}%
+            <td class="align-center" style="width: 13%">
+              <span class="performance-index-td">
+                <i class="pi"
+                   [class.pi-arrow-down]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"
+                   [class.pi-arrow-up]="getSalesPersonDataForStage(pipelineStage).performanceIndex > 0"
+                ></i>
+                <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>
+              </span>
             </td>
-            <td [class.zero-value]="pipelineStage.monetaryValue === 0"
-                class="align-right">{{ pipelineStage.monetaryValue | currency }}
+            <td [class.zero-value]="getSalesPersonDataForStage(pipelineStage).monetaryValue === 0"
+                class="align-right" style="width: 27%">
+              {{ getSalesPersonDataForStage(pipelineStage).monetaryValue | currency }}
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="footer">
           <tr class="custom-tr">
             <td class="align-center font-bold">TOTAL</td>
-            <td class="align-center font-bold">{{ getTotalCounts(selectedPipeline!.pipelineStages) }}</td>
-            <td
-              class="align-center font-bold">{{ getTotalPercentage(selectedPipeline!.pipelineStages) | number:'1.0-2' }}
-              %
+            <td class="align-center font-bold" style="width: 10%">
+              {{ getTotalCounts(selectedPipeline!.pipelineStages) }}
             </td>
-            <td
-              class="align-right font-bold">{{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
+            <td></td>
+            <td class="align-right font-bold" style="width: 30%">
+              {{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
             </td>
           </tr>
         </ng-template>
       </p-table>
     </div>
-    <div class="col-6 report-data">
+    <div class="col-4 report-data">
       <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
                             [view]="pieChartView"
                             [scheme]="scheme"
@@ -67,7 +83,7 @@
                             [gradient]="true"
                             [maxLabelLength]="15"
                             [trimLabels]="true"
-                            [labels]="true"
+                            [doughnut]="true"
       >
       </ngx-charts-pie-chart>
       <div class="no-data-placeholder" @fadeIn *ngIf="selectedPipelineNoData">

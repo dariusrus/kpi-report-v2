@@ -7,4 +7,5 @@ export interface UrlMetric {
   averageScrollDepth: number | null;
   activeTime: number | null;
   totalSessionCount: number | null;
+  pageTitle: string;
 }

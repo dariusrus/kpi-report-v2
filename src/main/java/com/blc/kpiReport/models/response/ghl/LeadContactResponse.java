@@ -13,6 +13,7 @@ public class LeadContactResponse {
     private String contactName;
     private String contactSource;
     private String createdBySource;
+    private String attributionSource;
     private String dateAdded;
     private String ownerName;
     private String ownerPhotoUrl;

@@ -4,9 +4,9 @@ logging:
   file-path: ../logs/kpi-reports/application-dev.log
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5454/KPI_Report
+    url: jdbc:postgresql://localhost:5432/KPI_Report
     username: PriceRequest
-    password: welike2kupo
+    password:
   mail:
     account:
       username: ian@builderleadconverter.com

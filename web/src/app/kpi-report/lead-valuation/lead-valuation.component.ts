@@ -2,11 +2,13 @@ import {Component, Input, OnInit} from '@angular/core';
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {SharedUtil} from "../../util/shared-util";
+import {dropInAnimation} from "../../util/animations";
 
 @Component({
   selector: 'app-lead-valuation',
   templateUrl: './lead-valuation.component.html',
-  styleUrl: './lead-valuation.component.css'
+  styleUrl: './lead-valuation.component.css',
+  animations: [dropInAnimation]
 })
 export class LeadValuationComponent implements OnInit {
   @Input() reportData!: KpiReport;

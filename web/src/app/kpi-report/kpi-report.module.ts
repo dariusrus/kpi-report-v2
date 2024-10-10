@@ -34,10 +34,13 @@ import { MonthlyLeadsCapturedComponent } from './monthly-leads-captured/monthly-
 import { AppointmentsComponent } from './appointments/appointments.component';
 import { ContactsWonComponent } from './contacts-won/contacts-won.component';
 import { PipelineStagesComponent } from './pipeline-stages/pipeline-stages.component';
+import { ButtonModule} from "primeng/button";
+import {SelectButtonModule} from "primeng/selectbutton";
+import {MultiSelectModule} from "primeng/multiselect";
 
 @NgModule({
   declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent],
-  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule],
+    imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule],
   providers: [KpiReportService],
 })
 export class KpiReportModule {}

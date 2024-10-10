@@ -10,7 +10,9 @@ import java.util.List;
 @Setter
 @Builder
 public class SalesPersonConversionResponse {
+    private String salesPersonId;
     private String salesPersonName;
     private int count;
+    private double monetaryValue;
 }
 

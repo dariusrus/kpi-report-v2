@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,7 +28,8 @@ public class GhlDataProcessorService {
         "schedule a tour",
         "schedule a call",
         "idea book",
-        "scope, budget and booking wizard"
+        "scope, budget and booking wizard",
+        "social media"
     };
     public static final String WEBSITE_LEAD = "Website Lead";
     public static final String MANUAL_USER_INPUT = "Manual User Input";
@@ -46,6 +48,20 @@ public class GhlDataProcessorService {
         return reportData;
     }
 
+    private String formatString(String input) {
+        if (input == null || input.length() == 0 || input.trim().isEmpty()) {
+            return "-";
+        }
+        try {
+            return Arrays.stream(input.split("[_\\s]+"))
+                    .filter(word -> !word.isEmpty())
+                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                    .collect(Collectors.joining(" "));
+        } catch (Exception e) {
+            return input;
+        }
+    }
+
     private List<LeadSource> processLeadSources(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.debug("Processing lead sources for report: {}", goHighLevelReport.getId());
         Map<String, LeadSource> leadSourceMap = new HashMap<>();
@@ -60,6 +76,25 @@ public class GhlDataProcessorService {
                 source = UNSPECIFIED;
             } else {
                 source = toTitleCase(source.trim());
+            }
+
+            Set<String> attributionMediums = new HashSet<>();
+            for (JsonNode attribution : opportunity.path("attributions")) {
+                String medium = attribution.path("medium").asText().toLowerCase();
+                if (!medium.isEmpty()) {
+                    attributionMediums.add(toTitleCase(formatString(medium)));
+                }
+
+                if (medium.contains("facebook") || medium.contains("instagram") || medium.contains("gbp")) {
+                    source = "Social Media";
+                }
+            }
+
+            var attributionSource = String.join(", ", attributionMediums);
+
+            if ("Database Reactivation".equalsIgnoreCase(source)) {
+                log.debug("Skipping lead with source 'Database Reactivation'");
+                continue;
             }
 
             String status = opportunity.path("status").asText();
@@ -106,6 +141,7 @@ public class GhlDataProcessorService {
                 .contactName(opportunity.path("contact").path("name").asText())
                 .contactSource(contactNode.path("source").asText())
                 .createdBySource(contactNode.path("createdBy").path("source").asText())
+                .attributionSource(attributionSource)
                 .dateAdded(contactNode.path("dateAdded").asText().substring(0, 10))
                 .ownerName(ownerNode != null ? ownerNode.path("name").asText() : "")
                 .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
@@ -277,8 +313,10 @@ public class GhlDataProcessorService {
                     .salesPersonId(salesPersonId)
                     .salesPersonName(salesPersonName)
                     .count(0)
+                    .monetaryValue(0.0)
                     .build());
             conversion.setCount(conversion.getCount() + 1);
+            conversion.setMonetaryValue(conversion.getMonetaryValue() + monetaryValue);
             stageSalesMap.put(salesPersonId, conversion);
         }
 

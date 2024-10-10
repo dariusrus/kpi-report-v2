@@ -15,6 +15,9 @@ import com.blc.kpiReport.repository.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.MonthlyAverage;
 import com.blc.kpiReport.schema.ghl.LeadSource;
+import com.blc.kpiReport.schema.mc.DeviceMetric;
+import com.blc.kpiReport.schema.mc.MonthlyClarityReport;
+import com.blc.kpiReport.schema.mc.UrlMetric;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,7 +62,8 @@ public class KpiReportRetrievalService {
 
                     MonthlyClarityReportResponse monthlyClarityResponse = null;
                     if (ObjectUtils.isNotEmpty(kpiReport.getMonthlyClarityReport())) {
-                        monthlyClarityResponse = monthlyClarityReportMapper.toResponse(kpiReport.getMonthlyClarityReport());
+                        // TODO: Work on temporary code
+                        monthlyClarityResponse = monthlyClarityReportMapper.toResponse(filterTop100ActiveUrls(kpiReport.getMonthlyClarityReport()));
                         monthlyClarityResponse.setDeviceClarityAggregate(monthlyClarityReportMapper.aggregateDataByDeviceType(kpiReport.getMonthlyClarityReport()));
                     }
 
@@ -79,6 +83,26 @@ public class KpiReportRetrievalService {
             return null;
         }
         return null;
+    }
+
+    public MonthlyClarityReport filterTop100ActiveUrls(MonthlyClarityReport report) {
+        List<UrlMetric> top100Urls = report.getUrls().stream()
+                .sorted((url1, url2) -> {
+                    Integer totalActiveTime1 = url1.getDevices().stream()
+                            .mapToInt(DeviceMetric::getActiveTime)
+                            .sum();
+
+                    Integer totalActiveTime2 = url2.getDevices().stream()
+                            .mapToInt(DeviceMetric::getActiveTime)
+                            .sum();
+
+                    return totalActiveTime2.compareTo(totalActiveTime1);
+                })
+                .limit(100)
+                .collect(Collectors.toList());
+
+        report.setUrls(top100Urls);
+        return report;
     }
 
     private KpiReportResponse buildReportResponse(GhlLocation location,

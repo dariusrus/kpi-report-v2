@@ -3,6 +3,7 @@ package com.blc.kpiReport.schema.mc;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
@@ -24,7 +25,8 @@ public class UrlMetric extends DateAudit implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 5000)
+    @Size(max = 5000)
     private String url;
 
     @OneToMany(mappedBy = "urlMetric", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

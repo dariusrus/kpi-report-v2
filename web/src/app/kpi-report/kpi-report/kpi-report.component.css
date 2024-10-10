@@ -535,3 +535,35 @@
   color: white !important;
   font-weight: 500;
 }
+
+/* pipeline stages */
+.pipeline-td.font-bold {
+  font-weight: 500;
+}
+
+
+.dropdown-row {
+  display: flex;
+}
+
+.dropdown-row > * {
+  margin-right: 24px;
+}
+
+.performance-index-td {
+  display: flex;
+  justify-content: space-between;
+}
+
+.performance-index-td > .pi {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+.performance-index-td > .pi-arrow-down {
+  color: indianred;
+}
+
+.performance-index-td > .pi-arrow-up {
+  color: mediumseagreen;
+}

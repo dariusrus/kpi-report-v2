@@ -19,6 +19,7 @@ public class LeadContactMapper {
             .contactName(formatString(leadContact.getContactName()))
             .contactSource(formatString(leadContact.getContactSource()))
             .createdBySource(formatString(leadContact.getCreatedBySource()))
+            .attributionSource(formatString(leadContact.getAttributionSource()))
             .dateAdded(leadContact.getDateAdded())
             .ownerName(leadContact.getOwnerName())
             .ownerPhotoUrl(leadContact.getOwnerPhotoUrl())

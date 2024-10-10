@@ -27,8 +27,7 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
+              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -115,5 +114,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "c258dd24-4a30-4fe6-821e-1422324bf654"
   }
 }

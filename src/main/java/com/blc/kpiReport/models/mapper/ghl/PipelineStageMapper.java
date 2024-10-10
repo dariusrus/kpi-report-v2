@@ -51,8 +51,10 @@ public class PipelineStageMapper {
     private List<SalesPersonConversionResponse> mapToSalesPersonConversionResponseList(List<SalesPersonConversion> salesPersonConversions) {
         return salesPersonConversions.stream()
                 .map(conversion -> SalesPersonConversionResponse.builder()
+                        .salesPersonId(conversion.getSalesPersonId())
                         .salesPersonName(conversion.getSalesPersonName())
                         .count(conversion.getCount())
+                        .monetaryValue(conversion.getMonetaryValue())
                         .build())
                 .collect(Collectors.toList());
     }

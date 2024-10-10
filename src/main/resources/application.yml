@@ -17,7 +17,7 @@ spring:
       password: Welike2kupo!
       roles: USER
   datasource:
-    url: jdbc:postgresql://localhost:5454/KPI_Report
+    url: jdbc:postgresql://localhost:5432/KPI_Report
     username: PriceRequest
     password: welike2kupo
   jpa:
@@ -39,7 +39,7 @@ generator:
   retryBackOffPeriod: 30000
   retryMaxAttempts: 3
 google-analytics:
-  credentials-file: /ga-blc-0327-001-e20fe1e70555.json
+  credentials-file: /ga-blc-0327-001-94fee12f04e8.json
   metricNames:
     - newUsers
 go-high-level:

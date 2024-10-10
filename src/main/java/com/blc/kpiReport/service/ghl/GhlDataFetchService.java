@@ -227,41 +227,46 @@ public class GhlDataFetchService {
             .collect(Collectors.toList());
     }
 
-    private List<JsonNode> fetchOpportunities(String locationId, String accessToken, String startDate, String endDate) throws IOException {
-        return retryTemplate.execute(context -> {
-            log.info("Attempt {} to fetch opportunities for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startDate, endDate);
+private List<JsonNode> fetchOpportunities(String locationId, String accessToken, String startDate, String endDate) throws IOException {
+    return retryTemplate.execute(context -> {
+        log.info("Attempt {} to fetch opportunities for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startDate, endDate);
 
-            var allOpportunities = new ArrayList<JsonNode>();
-            var formattedStartDate = formatDate(subtractOneYear(startDate));
-            var formattedEndDate = formatDate(endDate);
-            var url = buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, 1);
+        var allOpportunities = new ArrayList<JsonNode>();
+        var formattedStartDate = formatDate(subtractOneYear(startDate));
+        var formattedEndDate = formatDate(endDate);
+        var url = buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, 1);
 
-            while (url != null) {
-                log.debug("Fetching opportunities from URL: {}", url);
-                var request = new Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .addHeader("Version", "2021-07-28")
-                    .addHeader("Accept", "application/json")
-                    .build();
+        while (url != null) {
+            log.debug("Fetching opportunities from URL: {}", url);
+            var request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Version", "2021-07-28")
+                .addHeader("Accept", "application/json")
+                .build();
 
-                try (var response = okHttpClient.newCall(request).execute()) {
-                    if (!response.isSuccessful()) throw new IOException("Error fetching opportunities: " + response);
+            try (var response = okHttpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) throw new IOException("Error fetching opportunities: " + response);
 
-                    var responseJson = objectMapper.readTree(response.body().string());
-                    var opportunities = responseJson.path("opportunities");
-                    opportunities.forEach(allOpportunities::add);
+                var responseJson = objectMapper.readTree(response.body().string());
+                var opportunities = responseJson.path("opportunities");
+                opportunities.forEach(opportunity -> {
+                    var contactEmail = opportunity.path("contact").path("email").asText();
+                    if (!contactEmail.contains("builderleadconverter.com")) {
+                        allOpportunities.add(opportunity);
+                    }
+                });
 
-                    var nextPage = responseJson.path("meta").path("nextPage").asInt();
-                    url = nextPage > 0 ? buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, nextPage) : null;
-                    log.debug("Next page URL: {}", url);
-                }
+                var nextPage = responseJson.path("meta").path("nextPage").asInt();
+                url = nextPage > 0 ? buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, nextPage) : null;
+                log.debug("Next page URL: {}", url);
             }
-            log.info("Successfully fetched {} opportunities for location ID: {}", allOpportunities.size(), locationId);
-            return allOpportunities;
-        });
-    }
+        }
+        log.info("Successfully fetched {} opportunities for location ID: {}", allOpportunities.size(), locationId);
+        return allOpportunities;
+    });
+}
 
     private String buildOpportunityUrl(String locationId, String startDate, String endDate, int page) {
         return String.format(OPPORTUNITY_URL_TEMPLATE, GHL_API_BASE_URL, locationId, endDate, startDate, page);
