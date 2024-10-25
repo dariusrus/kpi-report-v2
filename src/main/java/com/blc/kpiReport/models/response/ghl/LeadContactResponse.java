@@ -14,6 +14,7 @@ public class LeadContactResponse {
     private String contactSource;
     private String createdBySource;
     private String attributionSource;
+    private String attributionMedium;
     private String dateAdded;
     private String ownerName;
     private String ownerPhotoUrl;

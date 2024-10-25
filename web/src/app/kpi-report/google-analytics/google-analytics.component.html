@@ -7,6 +7,30 @@
   </div>
   <div class="report-data">
     <ng-container *ngIf="!displayComparisons">
+      <div class="corner-selector">
+        <div class="helper-tooltip">
+          <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
+        </div>
+        <div class="main-dropdown">
+          <div class="index-custom-tooltip" *ngIf="infoTooltip" [@dropIn]>
+            The graph shows cities in <span *ngIf="reportData.country === 'United States'">the </span><span class="font-bold-info">{{ reportData.country }}</span> where new users spent an average of <span class="font-bold-info">30 seconds or more</span> engaging with your website.
+            Selected cities can be toggled in this dropdown.
+          </div>
+          <p-floatLabel>
+            <p-multiSelect
+              [options]="cities"
+              [(ngModel)]="selectedCities"
+              optionLabel="cityCount"
+              placeholder="Select Cities"
+              [selectedItemsLabel]="selectedCitiesLabel"
+              (onChange)="updateSelectedCities()"
+              id="float-label"
+              [maxSelectedLabels]="1"
+            />
+            <label for="float-label">Select Cities</label>
+          </p-floatLabel>
+        </div>
+      </div>
       <div class="performance-index-container">
         <div class="performance-index-items">
           <ng-container *ngIf="previousMonthIndex">
@@ -35,7 +59,7 @@
           </ng-container>
         </div>
       </div>
-      <ngx-charts-bar-vertical [view]="[600, 400]"
+      <ngx-charts-bar-vertical [view]="view"
                                [scheme]="scheme"
                                [results]="data"
                                [gradient]="true"
@@ -105,7 +129,7 @@
           </div>
         </div>
       </div>
-      <ngx-charts-bar-vertical-2d [view]="[600, 400]"
+      <ngx-charts-bar-vertical-2d [view]="view"
                                   [scheme]="schemeAverage"
                                   [results]="dataAverage"
                                   [gradient]="true"
@@ -116,7 +140,6 @@
                                   [showXAxisLabel]="true"
                                   [showYAxisLabel]="true"
                                   [roundEdges]="false"
-                                  [roundDomains]="true"
                                   [xAxisLabel]="xAxisLabel"
                                   [yAxisLabel]="yAxisLabel"
       >

@@ -1,4 +1,4 @@
-package com.blc.kpiReport.repository;
+package com.blc.kpiReport.repository.ga;
 
 import com.blc.kpiReport.schema.ga.GoogleAnalyticsMetric;
 import org.springframework.data.jpa.repository.JpaRepository;

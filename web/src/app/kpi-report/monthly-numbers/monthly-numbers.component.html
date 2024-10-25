@@ -11,9 +11,8 @@
       </ngx-charts-number-card>
     </div>
     <div class="custom-tooltip" *ngIf="uniqueSiteVisitorsTooltip" [@dropIn]>
-      The number of users who visited your website for the
-      <span class="font-bold">first time</span>, with an IP address originating from the
-      <span class="font-bold">{{ reportData.country }}</span>.
+      The number of <span class="font-bold">new users</span> who actively engaged with your website,
+      w/ IP addresses from <span *ngIf="reportData.country === 'United States'">the </span><span class="font-bold">{{ reportData.country }}</span>.
     </div>
   </div>
   <div class="col-3 number-card" *ngIf="isVisible['summary']" (mouseenter)="showTooltip('totalLeads')" (mouseleave)="hideAllTooltips()">

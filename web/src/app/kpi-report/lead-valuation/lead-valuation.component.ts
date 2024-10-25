@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {SharedUtil} from "../../util/shared-util";
@@ -29,10 +29,27 @@ export class LeadValuationComponent implements OnInit {
 
   previousMonthIndex: number | null = null;
   fromLastMonthTooltip = false;
+  view: [number, number] = [600, 400];
 
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.computeIndexes(this.reportData, this.reportDataPreviousMap);
+    this.updateChartView();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.updateChartView();
+  }
+
+  updateChartView() {
+    if (window.innerWidth >= 1400) {
+      this.view = [600, 400];
+    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
+      this.view = [500, 400];
+    } else {
+      this.view = [400, 400];
+    }
   }
 
   showTooltip(hoveredObject: string) {
@@ -50,7 +67,18 @@ export class LeadValuationComponent implements OnInit {
   private computeIndexes(currentData: KpiReport, previousData: any[]) {
     const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
     if (previousMonth && previousMonth.websiteLead.totalValues !== null && currentData.websiteLead.totalValues !== null) {
-      this.previousMonthIndex = ((currentData.websiteLead.totalValues - previousMonth.websiteLead.totalValues) / previousMonth.websiteLead.totalValues) * 100;
+      const currentValue = currentData.websiteLead.totalValues;
+      const previousValue = previousMonth.websiteLead.totalValues;
+
+      if (previousValue === 0 && currentValue > 0) {
+        this.previousMonthIndex = 100;
+      } else if (previousValue > 0 && currentValue === 0) {
+        this.previousMonthIndex = -100;
+      } else if (previousValue === 0 && currentValue === 0) {
+        this.previousMonthIndex = 0;
+      } else {
+        this.previousMonthIndex = ((currentValue - previousValue) / previousValue) * 100;
+      }
     }
   }
 

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.blc</groupId>
 	<artifactId>kpi-report-v2</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>beta-1.1</version>
 	<name>kpi-report-v2</name>
 	<description>BLC KPI Report Generator V2</description>
 	<url/>
@@ -46,7 +46,8 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>1.18.30</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -145,16 +146,26 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
 				<configuration>
-					<excludes>
-						<exclude>
+					<annotationProcessorPaths>
+						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
+							<version>1.18.30</version>
+						</path>
+					</annotationProcessorPaths>
+					<source>17</source>
+					<target>17</target>
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

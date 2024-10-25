@@ -1,4 +1,4 @@
-package com.blc.kpiReport.repository;
+package com.blc.kpiReport.repository.ghl;
 
 import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.schema.MonthlyAverage;

@@ -15,6 +15,7 @@ public class ContactWonMapper {
             .contactName(contactWon.getContactName())
             .contactEmail(contactWon.getContactEmail())
             .contactSource(contactWon.getSource())
+            .attributionSource(contactWon.getAttributionSource())
             .build();
     }
 

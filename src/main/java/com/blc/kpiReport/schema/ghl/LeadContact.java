@@ -44,6 +44,10 @@ public class LeadContact extends DateAudit implements Serializable {
     @Column(name = "attribution_source", length = 500)
     private String attributionSource;
 
+    @Size(max = 500)
+    @Column(name = "attribution_medium", length = 500)
+    private String attributionMedium;
+
     @Size(max = 200)
     @Column(name = "date_added", length = 200, nullable = false)
     private String dateAdded;

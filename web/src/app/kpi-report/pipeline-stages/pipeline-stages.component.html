@@ -46,13 +46,27 @@
                 class="align-center pipeline-td" style="width: 10%">
               {{ getSalesPersonDataForStage(pipelineStage).count }}
             </td>
-            <td class="align-center" style="width: 13%">
+            <td class="align-right" style="width: 13%">
               <span class="performance-index-td">
-                <i class="pi"
-                   [class.pi-arrow-down]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"
-                   [class.pi-arrow-up]="getSalesPersonDataForStage(pipelineStage).performanceIndex > 0"
-                ></i>
-                <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>
+                <p-chip *ngIf="getSalesPersonDataForStage(pipelineStage).performanceIndex !== 0" [styleClass]="'pl-0 pr-3 conversion-chip ' +
+                          (getSalesPersonDataForStage(pipelineStage).performanceIndex > 0 ? 'increase' :
+                          getSalesPersonDataForStage(pipelineStage).performanceIndex < 0 ? 'decrease' : '')">
+                    <span class="conversion-rate"
+                          [class.increase]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"
+                          [class.decrease]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"
+                          style="font-size: 0.9em; padding-top: 4px; padding-bottom: 4px; display: flex;">
+                      <i class="pi" style="font-size: 0.6em; margin-right: 4px;"
+                         [class.pi-arrow-down]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"
+                         [class.pi-arrow-up]="getSalesPersonDataForStage(pipelineStage).performanceIndex > 0"
+                      ></i>
+                      <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>
+                    </span>
+                </p-chip>
+<!--                <i class="pi"-->
+<!--                   [class.pi-arrow-down]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"-->
+<!--                   [class.pi-arrow-up]="getSalesPersonDataForStage(pipelineStage).performanceIndex > 0"-->
+<!--                ></i>-->
+<!--                <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>-->
               </span>
             </td>
             <td [class.zero-value]="getSalesPersonDataForStage(pipelineStage).monetaryValue === 0"

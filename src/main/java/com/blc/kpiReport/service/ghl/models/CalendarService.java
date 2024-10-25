@@ -1,6 +1,6 @@
 package com.blc.kpiReport.service.ghl.models;
 
-import com.blc.kpiReport.repository.CalendarRepository;
+import com.blc.kpiReport.repository.ghl.CalendarRepository;
 import com.blc.kpiReport.schema.ghl.Calendar;
 import org.springframework.stereotype.Service;
 

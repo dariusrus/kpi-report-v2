@@ -2,16 +2,18 @@ package com.blc.kpiReport.service;
 
 import com.blc.kpiReport.models.ClientType;
 import com.blc.kpiReport.models.mapper.MonthlyAverageMapper;
+import com.blc.kpiReport.models.mapper.ga.CityAnalyticsMapper;
 import com.blc.kpiReport.models.mapper.ghl.*;
 import com.blc.kpiReport.models.mapper.mc.DailyMetricMapper;
 import com.blc.kpiReport.models.mapper.mc.MonthlyClarityReportMapper;
 import com.blc.kpiReport.models.response.KpiReportResponse;
 import com.blc.kpiReport.models.response.MonthlyAverageResponse;
+import com.blc.kpiReport.models.response.ga.CityAnalyticsResponse;
 import com.blc.kpiReport.models.response.ghl.*;
 import com.blc.kpiReport.models.response.mc.DailyMetricResponse;
 import com.blc.kpiReport.models.response.mc.MonthlyClarityReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
-import com.blc.kpiReport.repository.MonthlyAverageRepository;
+import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.MonthlyAverage;
 import com.blc.kpiReport.schema.ghl.LeadSource;
@@ -45,6 +47,7 @@ public class KpiReportRetrievalService {
     private final LeadSourceMapper leadSourceMapper;
     private final LeadContactMapper leadContactMapper;
     private final DailyMetricMapper dailyMetricMapper;
+    private final CityAnalyticsMapper cityAnalyticsMapper;
     private final MonthlyClarityReportMapper monthlyClarityReportMapper;
     private final MonthlyAverageRepository monthlyAverageRepository;
     private final MonthlyAverageMapper monthlyAverageMapper;
@@ -70,6 +73,7 @@ public class KpiReportRetrievalService {
                     return buildReportResponse(ghlLocation,
                         formatMonthAndYear(month, year),
                         googleAnalyticsMetric.getUniqueSiteVisitors(),
+                        cityAnalyticsMapper.toResponseList(googleAnalyticsMetric.getCityAnalytics()),
                         websiteLeadResponse(goHighLevelReport.getLeadSources()),
                         calendarMapper.toResponseList(goHighLevelReport.getCalendars()),
                         pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
@@ -108,6 +112,7 @@ public class KpiReportRetrievalService {
     private KpiReportResponse buildReportResponse(GhlLocation location,
                                                   String monthAndYear,
                                                   Integer uniqueSiteVisitors,
+                                                  List<CityAnalyticsResponse> cityAnalytics,
                                                   WebsiteLeadResponse websiteLead,
                                                   List<CalendarResponse> calendars,
                                                   List<PipelineResponse> pipelines,
@@ -125,6 +130,7 @@ public class KpiReportRetrievalService {
             .monthAndYear(monthAndYear)
             .clientType(location.getClientType().toString())
             .uniqueSiteVisitors(uniqueSiteVisitors)
+            .cityAnalytics(cityAnalytics)
             .opportunityToLead(opportunityToLead)
             .websiteLead(websiteLead)
             .calendars(calendars)

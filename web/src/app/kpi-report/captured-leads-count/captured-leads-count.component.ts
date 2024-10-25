@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {LegendPosition} from "@swimlane/ngx-charts";
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
@@ -36,12 +36,29 @@ export class CapturedLeadsCountComponent implements OnInit {
     { name: 'Website Lead', value: '#37C469FF' },
     { name: 'Manual User Input', value: '#4571B9FF' }
   ];
+  view: [number, number] = [600, 400];
 
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.populateGroupedChart(this.reportData, this.reportDataPreviousMap, this.averageReportData);
     this.computeIndexes(this.reportData, this.reportDataPreviousMap, this.averageReportData);
     this.yAxisLabel = 'Unique Site Visitors (' + this.reportData.country + ')';
+    this.updateChartView();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.updateChartView();
+  }
+
+  updateChartView() {
+    if (window.innerWidth >= 1400) {
+      this.view = [600, 400];
+    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
+      this.view = [500, 400];
+    } else {
+      this.view = [400, 400];
+    }
   }
 
   showTooltip(hoveredObject: string) {
@@ -61,12 +78,35 @@ export class CapturedLeadsCountComponent implements OnInit {
 
   private computeIndexes(currentData: KpiReport, previousData: any[], currentAverage: MonthlyAverage) {
     const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
+
     if (previousMonth && previousMonth.websiteLead.totalLeads !== null && currentData.websiteLead.totalLeads !== null) {
-      this.previousMonthIndex = ((currentData.websiteLead.totalLeads - previousMonth.websiteLead.totalLeads) / previousMonth.websiteLead.totalLeads) * 100;
+      const currentTotalLeads = currentData.websiteLead.totalLeads;
+      const previousTotalLeads = previousMonth.websiteLead.totalLeads;
+
+      if (previousTotalLeads === 0 && currentTotalLeads > 0) {
+        this.previousMonthIndex = 100;
+      } else if (previousTotalLeads > 0 && currentTotalLeads === 0) {
+        this.previousMonthIndex = -100;
+      } else if (previousTotalLeads === 0 && currentTotalLeads === 0) {
+        this.previousMonthIndex = 0;
+      } else {
+        this.previousMonthIndex = ((currentTotalLeads - previousTotalLeads) / previousTotalLeads) * 100;
+      }
     }
 
     if (currentAverage && currentAverage.averageTotalLeads !== null && currentData.websiteLead.totalLeads !== null) {
-      this.peerComparisonIndex = ((currentData.websiteLead.totalLeads - currentAverage.averageTotalLeads) / currentAverage.averageTotalLeads) * 100;
+      const currentTotalLeads = currentData.websiteLead.totalLeads;
+      const averageTotalLeads = currentAverage.averageTotalLeads;
+
+      if (averageTotalLeads === 0 && currentTotalLeads > 0) {
+        this.peerComparisonIndex = 100;
+      } else if (averageTotalLeads > 0 && currentTotalLeads === 0) {
+        this.peerComparisonIndex = -100;
+      } else if (averageTotalLeads === 0 && currentTotalLeads === 0) {
+        this.peerComparisonIndex = 0;
+      } else {
+        this.peerComparisonIndex = ((currentTotalLeads - averageTotalLeads) / averageTotalLeads) * 100;
+      }
     }
   }
 

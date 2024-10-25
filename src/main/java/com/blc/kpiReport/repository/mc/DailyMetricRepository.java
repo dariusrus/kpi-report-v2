@@ -1,4 +1,4 @@
-package com.blc.kpiReport.repository;
+package com.blc.kpiReport.repository.mc;
 
 import com.blc.kpiReport.schema.mc.DailyMetric;
 import org.springframework.data.jpa.repository.JpaRepository;

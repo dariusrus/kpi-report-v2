@@ -11,8 +11,8 @@ import com.blc.kpiReport.models.request.GenerateKpiReportsRequest;
 import com.blc.kpiReport.models.response.GenerateKpiReportBatchResponse;
 import com.blc.kpiReport.models.response.GenerateKpiReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
-import com.blc.kpiReport.repository.MonthlyAverageRepository;
-import com.blc.kpiReport.repository.MonthlyClarityReportRepository;
+import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
+import com.blc.kpiReport.repository.mc.MonthlyClarityReportRepository;
 import com.blc.kpiReport.schema.*;
 import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.mc.*;
@@ -174,7 +174,7 @@ public class KpiReportGeneratorService {
             log.debug("Date range for KPI report: {} to {}", startDate, endDate);
 
             var googleAnalyticsMetric = googleAnalyticsService
-                .fetchUniqueSiteVisitors(startDate, endDate, ghlLocation.getGaPropertyId(), ghlLocation.getGaCountryCode(), kpiReport);
+                .fetchGaReporting(startDate, endDate, ghlLocation.getGaPropertyId(), ghlLocation.getGaCountryCode(), kpiReport);
 
             log.debug("Fetched Google Analytics metric for KPI report ID: {}", kpiReport.getId());
 
@@ -221,7 +221,7 @@ public class KpiReportGeneratorService {
             log.info("Processing DailyMetric for day: {}", dailyMetric.getDay());
 
             for (Metric metric : dailyMetric.getMetrics()) {
-                log.info("Processing Metric: {}", metric.getMetricName());
+                log.debug("Processing Metric: {}", metric.getMetricName());
 
                 for (Information info : metric.getInformationList()) {
                     String url = info.getUrl();
@@ -231,7 +231,7 @@ public class KpiReportGeneratorService {
                         continue; // Skip if any of these values are null
                     }
 
-                    log.info("Processing Information for URL: {} and Device: {}", url, deviceType);
+                    log.debug("Processing Information for URL: {} and Device: {}", url, deviceType);
 
                     urlDeviceMetricMap.putIfAbsent(url, new HashMap<>());
                     Map<String, DeviceMetric> deviceMetricMap = urlDeviceMetricMap.get(url);
@@ -243,27 +243,27 @@ public class KpiReportGeneratorService {
                         Integer totalSessionCount = deviceMetric.getTotalSessionCount() == null ? 0 : deviceMetric.getTotalSessionCount();
                         totalSessionCount += Integer.valueOf(info.getTotalSessionCount());
                         deviceMetric.setTotalSessionCount(totalSessionCount);
-                        log.info("Aggregated Session Count for URL: {} and Device: {}. New total: {}", url, deviceType, totalSessionCount);
+                        log.debug("Aggregated Session Count for URL: {} and Device: {}. New total: {}", url, deviceType, totalSessionCount);
                     }
                     if ("ScrollDepth".equals(metric.getMetricName())) {
                         double totalScrollDepth = deviceMetric.getAverageScrollDepth() == null ? 0 : deviceMetric.getAverageScrollDepth();
                         totalScrollDepth += info.getAverageScrollDepth();
                         deviceMetric.setAverageScrollDepth(totalScrollDepth);
-                        log.info("Aggregated ScrollDepth for URL: {} and Device: {}. New total: {}", url, deviceType, totalScrollDepth);
+                        log.debug("Aggregated ScrollDepth for URL: {} and Device: {}. New total: {}", url, deviceType, totalScrollDepth);
                     }
                     if ("EngagementTime".equals(metric.getMetricName())) {
                         if (info.getTotalTime() != null) {
                             int totalTime = deviceMetric.getTotalTime() == null ? 0 : deviceMetric.getTotalTime();
                             totalTime += info.getTotalTime();
                             deviceMetric.setTotalTime(totalTime);
-                            log.info("Aggregated EngagementTime (Total) for URL: {} and Device: {}. New total time: {}", url, deviceType, totalTime);
+                            log.debug("Aggregated EngagementTime (Total) for URL: {} and Device: {}. New total time: {}", url, deviceType, totalTime);
                         }
 
                         if (info.getActiveTime() != null) {
                             int activeTime = deviceMetric.getActiveTime() == null ? 0 : deviceMetric.getActiveTime();
                             activeTime += info.getActiveTime();
                             deviceMetric.setActiveTime(activeTime);
-                            log.info("Aggregated EngagementTime (Active) for URL: {} and Device: {}. New active time: {}", url, deviceType, activeTime);
+                            log.debug("Aggregated EngagementTime (Active) for URL: {} and Device: {}. New active time: {}", url, deviceType, activeTime);
                         }
                     }
                     deviceMetric.setDeviceType(deviceType);
@@ -282,7 +282,7 @@ public class KpiReportGeneratorService {
         for (Map.Entry<String, Map<String, DeviceMetric>> entry : urlDeviceMetricMap.entrySet()) {
             String url = entry.getKey();
             Map<String, DeviceMetric> deviceMetricsMap = entry.getValue();
-            log.info("Creating UrlMetric for URL: {}", url);
+            log.debug("Creating UrlMetric for URL: {}", url);
 
             if (url == null) {
                 log.error("URL is null for entry: {}", entry);
@@ -310,7 +310,7 @@ public class KpiReportGeneratorService {
                 if (deviceMetric.getAverageScrollDepth() != null && validDays > 0) {
                     double averageScrollDepth = deviceMetric.getAverageScrollDepth() / validDays;
                     deviceMetric.setAverageScrollDepth(averageScrollDepth);
-                    log.info("Calculated average ScrollDepth for Device: {} and URL: {}. Average: {}. Valid Days: {}.", deviceType, url, averageScrollDepth, validDays);
+                    log.debug("Calculated average ScrollDepth for Device: {} and URL: {}. Average: {}. Valid Days: {}.", deviceType, url, averageScrollDepth, validDays);
                 }
 
                 deviceMetric.setUrlMetric(urlMetric);

@@ -3,6 +3,7 @@ export interface LeadContact {
   contactSource: string;
   createdBySource: string;
   attributionSource: string;
+  attributionMedium: string;
   dateAdded: string;
   ownerName: string;
   ownerPhotoUrl: string;

@@ -49,6 +49,7 @@ export class PipelineStagesComponent implements OnInit {
       this.selectedSalesPersons = this.salesPersons;
     }
     this.setupChart();
+    this.updateChartView();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -91,7 +92,7 @@ export class PipelineStagesComponent implements OnInit {
     if (window.innerWidth >= 1400) {
       this.pieChartView = [400, 425];
     } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
-      this.pieChartView = [400, 425];
+      this.pieChartView = [350, 425];
     } else {
       this.pieChartView = [300, 425];
     }

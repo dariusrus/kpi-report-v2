@@ -36,8 +36,7 @@
           </ng-container>
         </div>
       </div>
-
-      <ngx-charts-line-chart [view]="[600, 400]"
+      <ngx-charts-line-chart [view]="view"
                              [scheme]="scheme"
                              [showXAxisLabel]="true"
                              [showYAxisLabel]="true"
@@ -108,7 +107,7 @@
           </div>
         </div>
       </div>
-      <ngx-charts-line-chart [view]="[600, 400]"
+      <ngx-charts-line-chart [view]="view"
                              [scheme]="schemeAverage"
                              [showXAxisLabel]="true"
                              [showYAxisLabel]="true"
@@ -126,7 +125,6 @@
       </ngx-charts-line-chart>
     </ng-container>
   </div>
-
   <p-dialog
     header="How are Opportunity-to-Lead averages calculated?"
     [(visible)]="dialogVisible"

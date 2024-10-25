@@ -25,17 +25,17 @@
               </div>
               <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
                   <span *ngIf="previousMonthIndex > 0">
-                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s Unique Site Visitors.
+                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s lead valuation.
                   </span>
                 <span *ngIf="previousMonthIndex < 0">
-                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s Unique Site Visitors.
+                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s lead valuation.
                   </span>
               </div>
             </div>
           </ng-container>
         </div>
       </div>
-      <ngx-charts-bar-vertical-stacked [view]="[600, 400]"
+      <ngx-charts-bar-vertical-stacked [view]="view"
         [customColors]="customColorsValue"
         [results]="data"
         [gradient]="true"

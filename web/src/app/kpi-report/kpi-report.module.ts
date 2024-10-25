@@ -34,13 +34,15 @@ import { MonthlyLeadsCapturedComponent } from './monthly-leads-captured/monthly-
 import { AppointmentsComponent } from './appointments/appointments.component';
 import { ContactsWonComponent } from './contacts-won/contacts-won.component';
 import { PipelineStagesComponent } from './pipeline-stages/pipeline-stages.component';
+import { AttributionDistributionComponent } from "./attribution-distribution/attribution-distribution.component";
 import { ButtonModule} from "primeng/button";
 import {SelectButtonModule} from "primeng/selectbutton";
 import {MultiSelectModule} from "primeng/multiselect";
+import {ChipModule} from "primeng/chip";
 
 @NgModule({
-  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent],
-    imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, AttributionDistributionComponent],
+    imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule],
   providers: [KpiReportService],
 })
 export class KpiReportModule {}

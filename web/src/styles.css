@@ -43,6 +43,11 @@ app-kpi-report ngx-charts-pie-chart .chart-legend .legend-labels {
   max-width: 275px !important;
 }
 
+app-kpi-report ngx-charts-area-chart .chart-legend .legend-labels {
+  width: auto !important;
+  max-width: 275px !important;
+}
+
 app-kpi-report ngx-charts-gauge .chart-legend {
   display: table-caption;
   margin-top: -50px;

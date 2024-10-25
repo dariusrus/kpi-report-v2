@@ -3,11 +3,13 @@ import {KpiReport} from "../../models/kpi-report";
 import {Calendar} from "../../models/ghl/calendar";
 import {Appointment} from "../../models/ghl/appointment";
 import {TotalAppointment} from "../../models/ghl/total-appointment";
+import {dropInAnimation} from "../../util/animations";
 
 @Component({
   selector: 'app-appointments',
   templateUrl: './appointments.component.html',
-  styleUrl: './appointments.component.css'
+  styleUrl: './appointments.component.css',
+  animations: [dropInAnimation]
 })
 export class AppointmentsComponent implements OnInit{
   @Input() reportData!: KpiReport;
@@ -20,6 +22,8 @@ export class AppointmentsComponent implements OnInit{
   availableAppointmentStatuses: string[] = [];
   totalAppointments: TotalAppointment[] = [];
   advancedPieChartView: [number, number] = [500, 250];
+
+  infoTooltip = false;
 
   ngOnInit(): void {
     this.preprocessCalendars(this.reportData.calendars);
@@ -54,6 +58,18 @@ export class AppointmentsComponent implements OnInit{
     } else {
       this.advancedPieChartView = [500, 250];
     }
+  }
+
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'infoTooltip') {
+      this.infoTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.infoTooltip = false;
   }
 
   normalizeAndSortAppointments(calendars: Calendar[]): Calendar[] {

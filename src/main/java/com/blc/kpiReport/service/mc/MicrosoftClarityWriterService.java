@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.mc;
 
-import com.blc.kpiReport.repository.DailyMetricRepository;
-import com.blc.kpiReport.repository.MetricRepository;
+import com.blc.kpiReport.repository.mc.DailyMetricRepository;
+import com.blc.kpiReport.repository.mc.MetricRepository;
 import com.blc.kpiReport.schema.mc.DailyMetric;
 import com.blc.kpiReport.schema.KpiReport;
 import com.blc.kpiReport.schema.mc.Metric;

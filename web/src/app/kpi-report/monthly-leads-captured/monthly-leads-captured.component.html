@@ -49,7 +49,8 @@
                     <th pSortableColumn="contactName">Contact Name</th>
                     <th pSortableColumn="contactSource">Contact Source</th>
                     <th pSortableColumn="createdBySource">Created By Source</th>
-                    <th pSortableColumn="attributionSource">Attribution Source(s)</th>
+                    <th pSortableColumn="attributionSource">Session Source(s)</th>
+<!--                    <th pSortableColumn="attributionMedium">Medium(s)</th>-->
                     <th pSortableColumn="dateAdded">Date Added</th>
                     <th pSortableColumn="status">Status</th>
                     <th pSortableColumn="ownerName">Owner</th>
@@ -66,16 +67,31 @@
                     <td class="align-left">{{ contact.contactName }}</td>
                     <td>{{ contact.contactSource }}</td>
                     <td>{{ contact.createdBySource }}</td>
-                    <td>{{ contact.attributionSource || '-' }}</td>
+                    <td>
+                      <ng-container *ngIf="contact.attributionSource; else noAttribution">
+                        <ng-container *ngFor="let source of contact.attributionSource.split(',')">
+                          <p-chip class="me-1">
+                            <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ source }}</span>
+                          </p-chip>
+                        </ng-container>
+                      </ng-container>
+                      <ng-template #noAttribution>
+                        -
+                      </ng-template>
+                    </td>
+<!--                    <td>{{ contact.attributionMedium || '-' }}</td>-->
                     <td>{{ contact.dateAdded }}</td>
                     <td>
                       <p-tag [value]="contact.status" [severity]="getStatusSeverity(contact.status)" />
                     </td>
                     <td>
-                                <span *ngIf="contact.ownerName" class="d-flex align-items-center"><p-avatar
-                                  image="{{ contact.ownerPhotoUrl }}"
-                                  [style]="{ 'margin-right': '12px'}"
-                                  shape="circle"/> {{ contact.ownerName }}</span>
+                      <span *ngIf="contact.ownerName && contact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                        image="{{ contact.ownerPhotoUrl }}"
+                        [style]="{ 'margin-right': '12px'}"
+                        shape="circle"/> {{ contact.ownerName }}</span>
+                      <span *ngIf="contact.ownerName && !contact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                        label="{{ SharedUtil.getFirstLetter(contact.ownerName) }}" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
+                        shape="circle"/> {{ contact.ownerName }}</span>
                       <span *ngIf="!contact.ownerName" class="d-flex align-items-center"><p-avatar
                         label="U" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
                         shape="circle"/> Unassigned</span>

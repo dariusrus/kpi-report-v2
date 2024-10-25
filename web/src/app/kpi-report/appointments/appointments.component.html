@@ -7,20 +7,28 @@
   </div>
   <div class="row" *ngIf="isVisible['appointments']">
     <div class="col-12 report-data">
-      <div class="custom-dropdown corner-right">
-        <p-floatLabel>
-          <p-dropdown
-            [options]="filteredCalendars"
-            [(ngModel)]="selectedCalendar"
-            optionLabel="calendarName"
-            placeholder="Select a Calendar"
-            [filter]="true"
-            filterBy="calendarName"
-            (onChange)="onCalendarChange($event)"
-            id="float-labeld"
-          />
-          <label for="float-labeld">Select Calendar</label>
-        </p-floatLabel>
+      <div class="corner-selector">
+        <div class="helper-tooltip">
+          <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
+        </div>
+        <div class="main-dropdown">
+          <div class="index-custom-tooltip" *ngIf="infoTooltip" [@dropIn]>
+            The graph shows appointments from the selected calendar. Only calendars with appointments set within the month of <span class="font-bold-info">{{reportData.monthAndYear}}</span> are shown as options in the dropdown.
+          </div>
+          <p-floatLabel>
+            <p-dropdown
+              [options]="filteredCalendars"
+              [(ngModel)]="selectedCalendar"
+              optionLabel="calendarName"
+              placeholder="Select a Calendar"
+              [filter]="true"
+              filterBy="calendarName"
+              (onChange)="onCalendarChange($event)"
+              id="float-labeled"
+            />
+            <label for="float-labeled">Select Calendar</label>
+          </p-floatLabel>
+        </div>
       </div>
       <ngx-charts-advanced-pie-chart
         [view]="advancedPieChartView"

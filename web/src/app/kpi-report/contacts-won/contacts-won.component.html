@@ -16,7 +16,7 @@
           <tr>
             <th></th>
             <th>Name</th>
-            <th>Source</th>
+            <th>Session Source(s)</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-contactWon>
@@ -28,7 +28,18 @@
               </div>
             </td>
             <td class="align-left">{{ contactWon.contactName }}</td>
-            <td class="align-left">{{ contactWon.contactSource ? contactWon.contactSource : 'N/A' }}</td>
+            <td>
+              <ng-container *ngIf="contactWon.attributionSource; else noAttribution">
+                <ng-container *ngFor="let source of contactWon.attributionSource.split(',')">
+                  <p-chip class="me-1">
+                    <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ source }}</span>
+                  </p-chip>
+                </ng-container>
+              </ng-container>
+              <ng-template #noAttribution>
+                -
+              </ng-template>
+            </td>
           </tr>
         </ng-template>
       </p-table>

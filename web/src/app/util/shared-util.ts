@@ -40,6 +40,15 @@ export class SharedUtil {
     return initials.toUpperCase();
   }
 
+  static getFirstLetter(name: string): string {
+    if (!name || name.trim() === '') return 'N/A';
+    const ignoreWords = ["and", "or"];
+    const firstWord = name
+      .split(' ')
+      .find(word => !ignoreWords.includes(word.toLowerCase()));
+    return firstWord ? firstWord[0].toUpperCase() : 'N/A';
+  }
+
   static getRandomColor(name: string): string {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {

@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.ghl.models;
 
 import com.blc.kpiReport.schema.ghl.LeadSource;
-import com.blc.kpiReport.repository.LeadSourceRepository;
+import com.blc.kpiReport.repository.ghl.LeadSourceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

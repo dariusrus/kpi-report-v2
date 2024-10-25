@@ -42,6 +42,7 @@ google-analytics:
   credentials-file: /ga-blc-0327-001-94fee12f04e8.json
   metricNames:
     - newUsers
+    - averageSessionDuration
 go-high-level:
   client-id: 66c62f6c2ffde35c5111ce74-m0lfshmu
   client-secret: f6372543-8118-4075-bbf9-24e973be0083

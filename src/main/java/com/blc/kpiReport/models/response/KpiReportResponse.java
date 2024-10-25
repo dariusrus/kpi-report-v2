@@ -1,5 +1,6 @@
 package com.blc.kpiReport.models.response;
 
+import com.blc.kpiReport.models.response.ga.CityAnalyticsResponse;
 import com.blc.kpiReport.models.response.ghl.CalendarResponse;
 import com.blc.kpiReport.models.response.ghl.ContactsWonResponse;
 import com.blc.kpiReport.models.response.ghl.PipelineResponse;
@@ -21,6 +22,7 @@ public class KpiReportResponse {
     private String monthAndYear;
     private String clientType;
     private int uniqueSiteVisitors;
+    private List<CityAnalyticsResponse> cityAnalytics;
     private double opportunityToLead;
     private WebsiteLeadResponse websiteLead;
     private List<CalendarResponse> calendars;

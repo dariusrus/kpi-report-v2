@@ -78,19 +78,8 @@ public class GhlDataProcessorService {
                 source = toTitleCase(source.trim());
             }
 
-            Set<String> attributionMediums = new HashSet<>();
-            for (JsonNode attribution : opportunity.path("attributions")) {
-                String medium = attribution.path("medium").asText().toLowerCase();
-                if (!medium.isEmpty()) {
-                    attributionMediums.add(toTitleCase(formatString(medium)));
-                }
-
-                if (medium.contains("facebook") || medium.contains("instagram") || medium.contains("gbp")) {
-                    source = "Social Media";
-                }
-            }
-
-            var attributionSource = String.join(", ", attributionMediums);
+            var attributionSource = getAttributionSources(opportunity);
+            var attributionMedium = getAttributionMediums(opportunity);
 
             if ("Database Reactivation".equalsIgnoreCase(source)) {
                 log.debug("Skipping lead with source 'Database Reactivation'");
@@ -142,6 +131,7 @@ public class GhlDataProcessorService {
                 .contactSource(contactNode.path("source").asText())
                 .createdBySource(contactNode.path("createdBy").path("source").asText())
                 .attributionSource(attributionSource)
+                .attributionMedium(attributionMedium)
                 .dateAdded(contactNode.path("dateAdded").asText().substring(0, 10))
                 .ownerName(ownerNode != null ? ownerNode.path("name").asText() : "")
                 .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
@@ -164,6 +154,28 @@ public class GhlDataProcessorService {
 
         log.debug("Processed {} lead sources for report: {}", leadSources.size(), goHighLevelReport.getId());
         return leadSources;
+    }
+
+    private String getAttributionSources(JsonNode opportunity) {
+        Set<String> attributionSessionSources = new HashSet<>();
+        for (JsonNode attribution : opportunity.path("attributions")) {
+            String utmSessionSource = attribution.path("utmSessionSource").asText();
+            if (!utmSessionSource.isEmpty()) {
+                attributionSessionSources.add(utmSessionSource);
+            }
+        }
+        return String.join(", ", attributionSessionSources);
+    }
+
+    private String getAttributionMediums(JsonNode opportunity) {
+        Set<String> attributionMediums = new HashSet<>();
+        for (JsonNode attribution : opportunity.path("attributions")) {
+            String medium = attribution.path("medium").asText().toLowerCase();
+            if (!medium.isEmpty()) {
+                attributionMediums.add(toTitleCase(formatString(medium)));
+            }
+        }
+        return String.join(", ", attributionMediums);
     }
 
     private String toTitleCase(String input) {
@@ -377,11 +389,13 @@ public class GhlDataProcessorService {
 
                 var contactName = opportunityContactNode.path("name").asText();
                 var source = contactNode.path("source").asText();
+                var attributionSource = getAttributionSources(opportunity);
 
                 if (!processedContactNames.contains(contactName)) {
                     ContactWon contactWon = ContactWon.builder()
                         .contactName(contactName)
                         .source(source)
+                        .attributionSource(attributionSource)
                         .goHighLevelReport(goHighLevelReport)
                         .build();
                     contactsWon.add(contactWon);

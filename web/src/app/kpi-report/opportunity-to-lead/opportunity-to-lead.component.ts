@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {LegendPosition} from "@swimlane/ngx-charts";
 import {KpiReport} from "../../models/kpi-report";
 import {MonthlyAverage} from "../../models/monthly-average";
@@ -57,12 +57,29 @@ export class OpportunityToLeadComponent implements OnInit {
 
   fromLastMonthTooltip = false;
   peerComparisonTooltip = false;
+  view: [number, number] = [600, 400];
 
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
     this.populateGroupedChart(this.reportData, this.reportDataPreviousMap, this.averageReportData);
     this.calculateO2L();
     this.computeIndexes(this.reportData, this.reportDataPreviousMap, this.averageReportData);
+    this.updateChartView();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.updateChartView();
+  }
+
+  updateChartView() {
+    if (window.innerWidth >= 1400) {
+      this.view = [600, 400];
+    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
+      this.view = [500, 400];
+    } else {
+      this.view = [400, 400];
+    }
   }
 
   showDialog() {
@@ -141,15 +158,48 @@ export class OpportunityToLeadComponent implements OnInit {
     const previousMonth = previousData.length > 0 ? previousData[0][0] : null;
 
     if (previousMonth && previousMonth.opportunityToLead !== null && currentData.opportunityToLead !== null) {
-      this.previousMonthIndex = ((currentData.opportunityToLead - previousMonth.opportunityToLead) / previousMonth.opportunityToLead) * 100;
+      const currentOpportunityToLead = currentData.opportunityToLead;
+      const previousOpportunityToLead = previousMonth.opportunityToLead;
+
+      if (previousOpportunityToLead === 0 && currentOpportunityToLead > 0) {
+        this.previousMonthIndex = 100;
+      } else if (previousOpportunityToLead > 0 && currentOpportunityToLead === 0) {
+        this.previousMonthIndex = -100;
+      } else if (previousOpportunityToLead === 0 && currentOpportunityToLead === 0) {
+        this.previousMonthIndex = 0;
+      } else {
+        this.previousMonthIndex = ((currentOpportunityToLead - previousOpportunityToLead) / previousOpportunityToLead) * 100;
+      }
     }
 
     if (currentAverage && currentAverage.weightedAverageOpportunityToLead !== null && currentData.opportunityToLead !== null) {
-      this.peerComparisonIndexWeighted = ((currentData.opportunityToLead - currentAverage.weightedAverageOpportunityToLead) / currentAverage.weightedAverageOpportunityToLead) * 100;
+      const currentOpportunityToLead = currentData.opportunityToLead;
+      const weightedAverageOpportunityToLead = currentAverage.weightedAverageOpportunityToLead;
+
+      if (weightedAverageOpportunityToLead === 0 && currentOpportunityToLead > 0) {
+        this.peerComparisonIndexWeighted = 100;
+      } else if (weightedAverageOpportunityToLead > 0 && currentOpportunityToLead === 0) {
+        this.peerComparisonIndexWeighted = -100;
+      } else if (weightedAverageOpportunityToLead === 0 && currentOpportunityToLead === 0) {
+        this.peerComparisonIndexWeighted = 0;
+      } else {
+        this.peerComparisonIndexWeighted = ((currentOpportunityToLead - weightedAverageOpportunityToLead) / weightedAverageOpportunityToLead) * 100;
+      }
     }
 
     if (currentAverage && currentAverage.averageOpportunityToLead !== null && currentData.opportunityToLead !== null) {
-      this.peerComparisonIndexNonWeighted = ((currentData.opportunityToLead - currentAverage.averageOpportunityToLead) / currentAverage.averageOpportunityToLead) * 100;
+      const currentOpportunityToLead = currentData.opportunityToLead;
+      const averageOpportunityToLead = currentAverage.averageOpportunityToLead;
+
+      if (averageOpportunityToLead === 0 && currentOpportunityToLead > 0) {
+        this.peerComparisonIndexNonWeighted = 100;
+      } else if (averageOpportunityToLead > 0 && currentOpportunityToLead === 0) {
+        this.peerComparisonIndexNonWeighted = -100;
+      } else if (averageOpportunityToLead === 0 && currentOpportunityToLead === 0) {
+        this.peerComparisonIndexNonWeighted = 0;
+      } else {
+        this.peerComparisonIndexNonWeighted = ((currentOpportunityToLead - averageOpportunityToLead) / averageOpportunityToLead) * 100;
+      }
     }
   }
 

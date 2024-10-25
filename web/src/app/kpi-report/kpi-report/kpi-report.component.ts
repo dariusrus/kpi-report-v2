@@ -98,6 +98,213 @@ export class KpiReportComponent implements OnInit {
 
   analyticsInsights: AnalyticsInsights | null = null; // TODO: Update on OpenAI account init
 
+  single = [
+    {
+      name: '(not set)',
+      value: 344,
+    },
+    {
+      name: 'Miami',
+      value: 201,
+    },
+    {
+      name: 'Ocala',
+      value: 178,
+    },
+    {
+      name: 'Orlando',
+      value: 108,
+    },
+    {
+      name: 'Atlanta',
+      value: 87,
+    },
+    {
+      name: 'New York',
+      value: 84,
+    },
+    {
+      name: 'Ashburn',
+      value: 27,
+    },
+    {
+      name: 'Los Angeles',
+      value: 25,
+    },
+    {
+      name: 'Tampa',
+      value: 25,
+    },
+    {
+      name: 'Chicago',
+      value: 23,
+    },
+    {
+      name: 'Gainesville',
+      value: 23,
+    },
+    {
+      name: 'Houston',
+      value: 21,
+    },
+    {
+      name: 'Jacksonville',
+      value: 18,
+    },
+    {
+      name: 'Washington',
+      value: 17,
+    },
+    {
+      name: 'Belleview',
+      value: 16,
+    },
+    {
+      name: 'Columbus',
+      value: 14,
+    },
+    {
+      name: 'Summerfield',
+      value: 13,
+    },
+    {
+      name: 'Las Vegas',
+      value: 12,
+    },
+    {
+      name: 'Dallas',
+      value: 11,
+    },
+    {
+      name: 'Philadelphia',
+      value: 11,
+    },
+    {
+      name: 'San Jose',
+      value: 10,
+    },
+    {
+      name: 'Denver',
+      value: 9,
+    },
+    {
+      name: 'Silver Springs Shores',
+      value: 9,
+    },
+    {
+      name: 'Boston',
+      value: 8,
+    },
+    {
+      name: 'Port St. Lucie',
+      value: 8,
+    },
+    {
+      name: 'Dunnellon',
+      value: 7,
+    },
+    {
+      name: 'St. Cloud',
+      value: 7,
+    },
+    {
+      name: 'Apopka',
+      value: 6,
+    },
+    {
+      name: 'Kansas City',
+      value: 6,
+    },
+    {
+      name: 'The Villages',
+      value: 6,
+    },
+    {
+      name: 'Trinity',
+      value: 6,
+    },
+    {
+      name: 'Baltimore',
+      value: 5,
+    },
+    {
+      name: 'Hialeah',
+      value: 5,
+    },
+    {
+      name: 'Keystone Heights',
+      value: 5,
+    },
+    {
+      name: 'Bay Lake',
+      value: 4,
+    },
+    {
+      name: 'Canton',
+      value: 4,
+    },
+    {
+      name: 'Charleston',
+      value: 4,
+    },
+    {
+      name: 'Clearwater',
+      value: 4,
+    },
+    {
+      name: 'Des Moines',
+      value: 4,
+    },
+    {
+      name: 'Escondido',
+      value: 4,
+    },
+    {
+      name: 'Eustis',
+      value: 4,
+    },
+    {
+      name: 'Kissimmee',
+      value: 4,
+    },
+    {
+      name: 'Largo',
+      value: 4,
+    },
+    {
+      name: 'Lebanon',
+      value: 4,
+    },
+    {
+      name: 'Live Oak',
+      value: 4,
+    },
+    {
+      name: 'Melbourne',
+      value: 4,
+    },
+    {
+      name: 'Pembroke Pines',
+      value: 4,
+    },
+    {
+      name: 'Phoenix',
+      value: 4,
+    },
+    {
+      name: 'Sacramento',
+      value: 4,
+    },
+    {
+      name: 'Wesley Chapel',
+      value: 4,
+    },
+    {
+      name: 'Winter Haven',
+      value: 4,
+    },
+  ];
+
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
               @Inject(APP_CONFIG) private config: AppConfig,
@@ -110,6 +317,15 @@ export class KpiReportComponent implements OnInit {
     this.selectedYear = currentYear;
 
     this.filterAndSortMonths(currentMonth, currentYear);
+  }
+
+  transformData(data: any[]): any[] {
+    return data
+      .map(item => ({
+        name: item.city,
+        value: item.uniqueSiteVisitors
+      }))
+      .slice(0, 10);  // Limit to top 15 items
   }
 
   @HostListener('window:scroll', [])
@@ -178,6 +394,8 @@ export class KpiReportComponent implements OnInit {
           this.isLoading = false;
           return;
         }
+
+        this.single = this.transformData(this.reportData.cityAnalytics);
 
         this.kpiReportService.getMonthlyAverage(currentMonth, currentYear, this.clientType).subscribe({
           next: (currentAverage) => {
@@ -349,7 +567,7 @@ export class KpiReportComponent implements OnInit {
         };
       })
         .sort((a, b) => b.totalSessionCount - a.totalSessionCount)
-        .slice(0, 5);
+        .slice(0, 10);
     }
   }
 
