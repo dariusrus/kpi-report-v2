@@ -14,6 +14,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class GhlDataFetchService {
     private static final String CALENDAR_URL_TEMPLATE = "%s/calendars/?locationId=%s";
     private static final String CONTACT_URL_TEMPLATE = "%s/contacts/%s";
     private static final String OWNER_URL_TEMPLATE = "%s/users/%s";
-
+    private static final String CONVERSATIONS_URL_TEMPLATE = "%s/conversations/search?locationId=%s&sort=asc&startAfterDate=%d&limit=100";
 
     private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper;
@@ -70,6 +71,8 @@ public class GhlDataFetchService {
             var eventsMap = fetchEventForEachCalendar(locationId, accessToken, startDate, endDate);
             var pipelineJson = fetchPipelineStages(accessToken, locationId);
 
+            var conversationsMap = fetchConversations(locationId, accessToken, startDate, endDate);
+
             log.info("Successfully fetched GHL data for location ID: {}", locationId);
             return GhlApiData.builder()
                 .opportunityList(opportunityList)
@@ -81,11 +84,153 @@ public class GhlDataFetchService {
                 .calendarMap(eventsMap)
                 .ownerMap(ownersMap)
                 .pipelineJson(pipelineJson)
+                .conversationsMap(conversationsMap)
                 .build();
         } catch (IOException e) {
             log.error("Failed to fetch GHL data: {}", e.getMessage());
             throw new GhlApiException("Failed to fetch GHL data after multiple attempts", e);
         }
+    }
+
+    private Map<JsonNode, List<JsonNode>> fetchConversations(String locationId, String accessToken, String startDate, String endDate) throws IOException {
+        log.info("Starting to fetch conversations for location ID: {}, startDate: {}, endDate: {}", locationId, startDate, endDate);
+
+        long epochStartDate = LocalDate.parse(startDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+        long epochEndDate = LocalDate.parse(endDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+        log.debug("Converted startDate to epoch: {}, endDate to epoch: {}", epochStartDate, epochEndDate);
+
+        Map<JsonNode, List<JsonNode>> conversationsWithMessages = new HashMap<>();
+        long startAfterDate = epochStartDate;
+        boolean continueFetching = true;
+
+        while (continueFetching) {
+            String url = String.format(CONVERSATIONS_URL_TEMPLATE, GHL_API_BASE_URL, locationId, startAfterDate);
+            log.debug("Constructed URL for fetching conversations: {}", url);
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Version", "2021-04-15")
+                    .addHeader("Accept", "application/json")
+                    .build();
+
+            log.debug("Sending request to fetch conversations with startAfterDate: {}", startAfterDate);
+
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    log.error("Error response received while fetching conversations: {}", response);
+                    throw new IOException("Error fetching conversations: " + response);
+                }
+
+                JsonNode responseJson = objectMapper.readTree(response.body().string());
+                JsonNode conversations = responseJson.path("conversations");
+                log.debug("Fetched {} conversations from response", conversations.size());
+
+                if (conversations.isEmpty()) {
+                    log.info("No more conversations to process, ending fetch loop.");
+                    break;
+                }
+
+                for (JsonNode conversation : conversations) {
+                    String type = conversation.path("type").asText();
+                    long dateUpdated = conversation.path("dateUpdated").asLong();
+                    log.debug("Processing conversation ID: {}, type: {}, dateUpdated: {}", conversation.path("id").asText(), type, dateUpdated);
+
+                    if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL")) &&
+                            dateUpdated >= epochStartDate && dateUpdated <= epochEndDate) {
+
+                        log.debug("Fetching messages for conversation ID: {}", conversation.path("id").asText());
+                        List<JsonNode> messages = fetchMessagesForConversation(conversation.path("id").asText(), accessToken, epochStartDate, epochEndDate);
+                        log.info("Fetched {} messages for conversation ID: {}", messages.size(), conversation.path("id").asText());
+                        conversationsWithMessages.put(conversation, messages);
+                    }
+
+                    if (dateUpdated > epochEndDate) {
+                        log.info("Date updated exceeds end date, stopping fetch.");
+                        continueFetching = false;
+                        break;
+                    }
+                    startAfterDate = conversation.path("sort").get(0).asLong();
+                    log.debug("Updated startAfterDate for next request: {}", startAfterDate);
+                }
+
+                if (conversations.size() < 100) {
+                    log.info("Less than 100 conversations fetched, ending fetch loop.");
+                    continueFetching = false;
+                }
+            } catch (IOException e) {
+                log.error("Failed to fetch conversations for location ID: {}, with startAfterDate: {}. Exception: {}", locationId, startAfterDate, e.getMessage());
+                throw e;
+            }
+        }
+
+        log.info("Successfully fetched and processed {} conversations with messages for location ID: {}", conversationsWithMessages.size(), locationId);
+        return conversationsWithMessages;
+    }
+
+    private List<JsonNode> fetchMessagesForConversation(String conversationId, String accessToken, long epochStartDate, long epochEndDate) throws IOException {
+        List<JsonNode> messages = new ArrayList<>();
+        boolean hasNextPage = true;
+        String lastMessageId = null;
+        int requestCount = 0;  // Counter for tracking the number of API calls
+
+        while (hasNextPage) {
+            String url = String.format("%s/conversations/%s/messages?limit=100%s",
+                    GHL_API_BASE_URL, conversationId, (lastMessageId != null ? "&lastMessageId=" + lastMessageId : ""));
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Version", "2021-04-15")
+                    .addHeader("Accept", "application/json")
+                    .build();
+
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) throw new IOException("Error fetching messages for conversation ID: " + conversationId);
+
+                JsonNode responseJson = objectMapper.readTree(response.body().string());
+                JsonNode messagesContainer = responseJson.path("messages");
+                JsonNode messageNodes = messagesContainer.path("messages");
+
+                if (messageNodes.isEmpty()) break;
+
+                for (JsonNode message : messageNodes) {
+                    String dateAddedStr = message.path("dateAdded").asText();
+
+                    if (!dateAddedStr.isEmpty()) {
+                        long dateAdded = Instant.parse(dateAddedStr).toEpochMilli();
+
+                        if (dateAdded >= epochStartDate && dateAdded <= epochEndDate) {
+                            messages.add(message);
+                        } else {
+                            hasNextPage = false;
+                            break;
+                        }
+                    }
+                }
+
+                hasNextPage = messagesContainer.path("nextPage").asBoolean();
+                lastMessageId = messagesContainer.path("lastMessageId").asText(null);
+            } catch (IOException e) {
+                log.error("Failed to fetch messages for conversation ID: {}", conversationId);
+                throw e;
+            }
+
+            requestCount++;
+            if (requestCount % 25 == 0) {
+                try {
+                    log.info("Pausing for 5 seconds after 25 requests...");
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    log.error("Thread interrupted during sleep: {}", e.getMessage());
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        log.debug("Fetched {} messages for conversation ID: {}", messages.size(), conversationId);
+        return messages;
     }
 
     private Map<String, JsonNode> fetchOwnersAndMap(List<JsonNode> opportunityList, String accessToken) throws IOException {
@@ -227,46 +372,46 @@ public class GhlDataFetchService {
             .collect(Collectors.toList());
     }
 
-private List<JsonNode> fetchOpportunities(String locationId, String accessToken, String startDate, String endDate) throws IOException {
-    return retryTemplate.execute(context -> {
-        log.info("Attempt {} to fetch opportunities for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startDate, endDate);
+    private List<JsonNode> fetchOpportunities(String locationId, String accessToken, String startDate, String endDate) throws IOException {
+        return retryTemplate.execute(context -> {
+            log.info("Attempt {} to fetch opportunities for location ID: {}, from {} to {}", context.getRetryCount() + 1, locationId, startDate, endDate);
 
-        var allOpportunities = new ArrayList<JsonNode>();
-        var formattedStartDate = formatDate(subtractOneYear(startDate));
-        var formattedEndDate = formatDate(endDate);
-        var url = buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, 1);
+            var allOpportunities = new ArrayList<JsonNode>();
+            var formattedStartDate = formatDate(subtractOneYear(startDate));
+            var formattedEndDate = formatDate(endDate);
+            var url = buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, 1);
 
-        while (url != null) {
-            log.debug("Fetching opportunities from URL: {}", url);
-            var request = new Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("Authorization", "Bearer " + accessToken)
-                .addHeader("Version", "2021-07-28")
-                .addHeader("Accept", "application/json")
-                .build();
+            while (url != null) {
+                log.debug("Fetching opportunities from URL: {}", url);
+                var request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Version", "2021-07-28")
+                    .addHeader("Accept", "application/json")
+                    .build();
 
-            try (var response = okHttpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) throw new IOException("Error fetching opportunities: " + response);
+                try (var response = okHttpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) throw new IOException("Error fetching opportunities: " + response);
 
-                var responseJson = objectMapper.readTree(response.body().string());
-                var opportunities = responseJson.path("opportunities");
-                opportunities.forEach(opportunity -> {
-                    var contactEmail = opportunity.path("contact").path("email").asText();
-                    if (!contactEmail.contains("builderleadconverter.com")) {
-                        allOpportunities.add(opportunity);
-                    }
-                });
+                    var responseJson = objectMapper.readTree(response.body().string());
+                    var opportunities = responseJson.path("opportunities");
+                    opportunities.forEach(opportunity -> {
+                        var contactEmail = opportunity.path("contact").path("email").asText();
+                        if (!contactEmail.contains("builderleadconverter.com")) {
+                            allOpportunities.add(opportunity);
+                        }
+                    });
 
-                var nextPage = responseJson.path("meta").path("nextPage").asInt();
-                url = nextPage > 0 ? buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, nextPage) : null;
-                log.debug("Next page URL: {}", url);
+                    var nextPage = responseJson.path("meta").path("nextPage").asInt();
+                    url = nextPage > 0 ? buildOpportunityUrl(locationId, formattedStartDate, formattedEndDate, nextPage) : null;
+                    log.debug("Next page URL: {}", url);
+                }
             }
-        }
-        log.info("Successfully fetched {} opportunities for location ID: {}", allOpportunities.size(), locationId);
-        return allOpportunities;
-    });
-}
+            log.info("Successfully fetched {} opportunities for location ID: {}", allOpportunities.size(), locationId);
+            return allOpportunities;
+        });
+    }
 
     private String buildOpportunityUrl(String locationId, String startDate, String endDate, int page) {
         return String.format(OPPORTUNITY_URL_TEMPLATE, GHL_API_BASE_URL, locationId, endDate, startDate, page);

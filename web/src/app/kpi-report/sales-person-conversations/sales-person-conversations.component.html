@@ -1,0 +1,172 @@
+<ng-container>
+  <div class="report-title">
+    Sales Person Conversations
+  </div>
+  <div class="report-subtitle">
+    {{ reportData.monthAndYear }}
+  </div>
+  <div class="row">
+    <div class="col-12 report-data">
+      <div class="dropdown-row">
+        <div class="custom-dropdown">
+          <p-floatLabel>
+            <p-multiSelect
+              [options]="salesPersons"
+              [(ngModel)]="selectedSalesPersons"
+              optionLabel="name"
+              placeholder="Select Sales Person"
+              display="chip"
+              (onChange)="filterConversations()"
+              id="sales-person-multiselect"
+            ></p-multiSelect>
+            <label for="sales-person-multiselect">Select Sales Person</label>
+          </p-floatLabel>
+        </div>
+      </div>
+
+      <div class="row conversation-number-card-container">
+        <div class="col-3">
+          <div class="conversation-number-card">
+            <div class="conversation-number">
+              {{ totalSmsCount }}
+            </div>
+            <div class="conversation-number-label">
+              Total SMS
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="conversation-number-card">
+            <div class="conversation-number">
+              {{ totalEmailCount }}
+            </div>
+            <div class="conversation-number-label">
+              Total Emails
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="conversation-number-card">
+            <div class="conversation-number">
+              {{ totalCallCount }}
+            </div>
+            <div class="conversation-number-label">
+              Total Calls
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="conversation-number-card">
+            <div class="conversation-number">
+              {{ totalLiveChatCount }}
+            </div>
+            <div class="conversation-number-label">
+              Total Live Chat Messages
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p-table rowExpandMode="single" [value]="sortedConversations" dataKey="contactId" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable-sm'">
+        <ng-template pTemplate="header">
+          <tr class="custom-tr">
+            <th style="width: 5rem"></th>
+            <th></th>
+            <th>Contact Name</th>
+            <th>Contact Email</th>
+            <th>Contact Phone</th>
+            <th class="align-center">Last Message Type</th>
+<!--            <th>Last Manual Message Date</th>-->
+            <th class="align-center">Message Count</th>
+            <th class="align-center">Sales Person</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-conversation let-expanded="expanded">
+          <tr>
+            <td>
+              <p-button type="button" pRipple [pRowToggler]="conversation" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                        (click)="populateEvents(conversation)"/>
+            </td>
+            <td class="align-center">
+              <div [ngStyle]="{'background-color': SharedUtil.getRandomColor(conversation.contactName)}"
+                   class="avatar-icon">
+                {{ SharedUtil.getInitials(conversation.contactName) }}
+              </div>
+            </td>
+            <td>{{ titleCase(conversation.contactName) }}</td>
+            <td>{{ conversation.contactEmail }}</td>
+            <td>{{ conversation.contactPhone }} </td>
+            <td class="align-center">
+                <p-chip class="me-1">
+                  <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ getFormattedMessageType(conversation.lastMessageType) }}</span>
+                </p-chip>
+            </td>
+<!--            <td>{{ conversation.lastManualMessageDate | date: 'short' }}</td>-->
+            <td class="align-center">{{ conversation.conversationMessages.length }}</td>
+            <td>
+              <span *ngIf="conversation.salesPersonName && conversation.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                image="{{ conversation.ownerPhotoUrl }}"
+                [style]="{ 'margin-right': '12px'}"
+                shape="circle"/> {{ conversation.salesPersonName }}</span>
+              <span *ngIf="conversation.salesPersonName && !conversation.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                label="{{ SharedUtil.getFirstLetter(conversation.salesPersonName) }}" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
+                shape="circle"/> {{ conversation.salesPersonName }}</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="rowexpansion" let-conversation>
+          <tr>
+            <td colspan="12">
+              <div class="p-3">
+                <p-timeline [value]="conversation.events" align="left" [styleClass]="'custom-timeline'">
+                  <ng-template pTemplate="marker" let-event>
+                    <span
+                      class="timeline-icon"
+                      [style.background-color]="getMessageColor(event.messageType)">
+                            <i class="pi" [ngClass]="getMessageIcon(event.messageType)"></i>
+                    </span>
+                  </ng-template>
+                  <ng-template pTemplate="content" let-event>
+                    <div *ngIf="event.direction === 'outbound' || (!event.direction && event.messageType === 'E-mail')" class="message-card outbound">
+                      <div class="message-card-duration">
+                        {{ formatDuration(event.callDuration) }}
+                      </div>
+                      <div *ngIf="!event.direction && event.messageType === 'E-mail'" class="message-card-email">
+                        <span style="font-style: italic">Email sent to {{ titleCase(conversation.contactName) }}</span>
+                      </div>
+                      <div class="message-card-body">
+                        {{ event.messageBody }}
+                      </div>
+                      <div class="message-card-date">
+                        {{ event.dateAdded | date: 'short' }}
+                      </div>
+                      <div class="message-card-status">
+                        {{ event.status || 'Sent' }}
+                      </div>
+                    </div>
+                  </ng-template>
+                  <ng-template pTemplate="opposite" let-event>
+                    <div *ngIf="event.direction === 'inbound'" class="message-card inbound">
+                      <div class="message-card-duration">
+                        {{ formatDuration(event.callDuration) }}
+                      </div>
+                      <div class="message-card-body">
+                        {{ event.messageBody }}
+                      </div>
+                      <div class="message-card-date">
+                        {{ event.dateAdded | date: 'short' }}
+                      </div>
+                      <div class="message-card-status">
+                        {{ event.status }}
+                      </div>
+                    </div>
+                  </ng-template>
+                </p-timeline>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</ng-container>

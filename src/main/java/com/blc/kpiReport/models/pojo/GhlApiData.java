@@ -21,5 +21,6 @@ public class GhlApiData {
     private Map<JsonNode, List<JsonNode>> calendarMap;
     private Map<String, JsonNode> ownerMap;
     private JsonNode pipelineJson;
+    private Map<JsonNode, List<JsonNode>> conversationsMap;
 }
 

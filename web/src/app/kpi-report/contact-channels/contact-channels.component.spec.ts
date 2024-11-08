@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AttributionDistributionComponent } from './attribution-distribution.component';
+import { ContactChannelsComponent } from './contact-channels.component';
 
 describe('LeadValuationComponent', () => {
-  let component: AttributionDistributionComponent;
-  let fixture: ComponentFixture<AttributionDistributionComponent>;
+  let component: ContactChannelsComponent;
+  let fixture: ComponentFixture<ContactChannelsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AttributionDistributionComponent]
+      declarations: [ContactChannelsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AttributionDistributionComponent);
+    fixture = TestBed.createComponent(ContactChannelsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

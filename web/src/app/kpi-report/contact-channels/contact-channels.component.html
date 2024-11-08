@@ -1,0 +1,48 @@
+<ng-container>
+  <div class="report-title">
+    Contact Channels
+  </div>
+  <div class="report-subtitle">
+    {{ reportData.monthAndYear }}
+  </div>
+  <div class="report-data flex-grow-1" *ngIf="isVisible['leads']">
+    <ng-container>
+      <div class="corner-selector">
+        <div class="helper-tooltip">
+          <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
+        </div>
+        <div class="main-dropdown">
+          <div class="index-custom-tooltip" *ngIf="infoTooltip" [@dropIn]>
+            The graph shows the channels <span class="font-bold-info">(Attribution)</span> from which contacts originated and interacted with your website for the <span class="font-bold-info">first time</span>, helping to identify which channels are driving the most captured leads.
+          </div>
+          <p-floatLabel>
+            <p-multiSelect
+              [options]="attributionSources"
+              [(ngModel)]="selectedSources"
+              placeholder="Sources Displayed"
+              [selectedItemsLabel]="selectedSourcesLabel"
+              (onChange)="updateSelectedSources()"
+              id="float-label"
+              [maxSelectedLabels]="1"
+            />
+            <label for="float-label">Select Channels</label>
+          </p-floatLabel>
+        </div>
+      </div>
+      <ngx-charts-area-chart
+        [view]="view"
+        [scheme]="'forest'"
+        [results]="data"
+        [legend]="true"
+        [legendPosition]="LegendPosition.Right"
+        [xAxis]="true"
+        [yAxis]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [xAxisLabel]="xAxisLabel"
+        [yAxisLabel]="yAxisLabel"
+      >
+      </ngx-charts-area-chart>
+    </ng-container>
+  </div>
+</ng-container>

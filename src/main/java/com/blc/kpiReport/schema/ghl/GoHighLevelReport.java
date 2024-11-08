@@ -44,6 +44,10 @@ public class GoHighLevelReport extends DateAudit implements Serializable {
     @JsonManagedReference
     private List<PipelineStage> pipelineStages;
 
+    @OneToMany(mappedBy = "goHighLevelReport", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<SalesPersonConversation> salesPersonConversations;
+
     @OneToOne
     @JoinColumn(name = "kpi_report_id", nullable = false)
     @JsonBackReference

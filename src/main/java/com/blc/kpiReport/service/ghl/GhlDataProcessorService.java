@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,7 @@ public class GhlDataProcessorService {
             .calendars(processAppointments(ghlApiData, goHighLevelReport))
             .pipelineStages(processPipelineStages(ghlApiData, goHighLevelReport))
             .contactsWon(processContactsWon(ghlApiData, goHighLevelReport))
+            .salesPersonConversations(processSalesPersonConversations(ghlApiData, goHighLevelReport))
             .build();
 
         log.info("GHL data processing completed successfully for report: {}", goHighLevelReport.getId());
@@ -226,6 +228,81 @@ public class GhlDataProcessorService {
             }
         }
         leadSource.setLeadType(MANUAL_USER_INPUT);
+    }
+
+    public List<SalesPersonConversation> processSalesPersonConversations(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+        List<SalesPersonConversation> salesPersonConversations = new ArrayList<>();
+
+        Map<JsonNode, List<JsonNode>> conversationsMap = ghlApiData.getConversationsMap();
+        Map<String, JsonNode> ownerMap = ghlApiData.getOwnerMap();
+
+        for (Map.Entry<JsonNode, List<JsonNode>> entry : conversationsMap.entrySet()) {
+            JsonNode conversationNode = entry.getKey();
+            List<JsonNode> messages = entry.getValue();
+
+            String salesPersonId = conversationNode.path("assignedTo").asText();
+            JsonNode ownerNode = ownerMap.get(salesPersonId);
+            String salesPersonName = ownerNode != null ? ownerNode.path("name").asText() : "Unknown";
+
+            String contactId = conversationNode.path("contactId").asText();
+            String contactName = conversationNode.path("contactName").asText();
+            String contactEmail = conversationNode.path("email").asText();
+            String contactPhone = conversationNode.path("phone").asText();
+
+            Instant lastManualMessageDate = conversationNode.has("lastManualMessageDate")
+                    ? Instant.ofEpochMilli(conversationNode.path("lastManualMessageDate").asLong()) : null;
+            String lastMessageType = conversationNode.path("lastMessageType").asText();
+
+            SalesPersonConversation salesPersonConversation = SalesPersonConversation.builder()
+                    .salesPersonId(salesPersonId)
+                    .salesPersonName(salesPersonName)
+                    .contactId(contactId)
+                    .contactName(contactName)
+                    .contactEmail(contactEmail)
+                    .contact_phone(contactPhone)
+                    .lastManualMessageDate(lastManualMessageDate)
+                    .lastMessageType(lastMessageType)
+                    .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
+                    .goHighLevelReport(goHighLevelReport)
+                    .build();
+
+            List<ConversationMessage> conversationMessages = new ArrayList<>();
+
+            for (JsonNode messageNode : messages) {
+                String messageType = messageNode.path("messageType").asText();
+                String direction = messageNode.path("direction").asText();
+                String status = messageNode.path("status").asText();
+                String body = messageNode.path("body").asText();
+                Instant dateAdded = Instant.parse(messageNode.path("dateAdded").asText());
+
+                if ("TYPE_CALL".equals(messageType) || "TYPE_SMS".equals(messageType) ||
+                        "TYPE_EMAIL".equals(messageType) || "TYPE_LIVE_CHAT".equals(messageType)) {
+
+                    int callDuration = 0;
+                    if ("TYPE_CALL".equals(messageType) && messageNode.has("meta") &&
+                            messageNode.path("meta").has("call")) {
+                        callDuration = messageNode.path("meta").path("call").path("duration").asInt(0);
+                    }
+
+                    ConversationMessage conversationMessage = ConversationMessage.builder()
+                            .messageType(messageType)
+                            .direction(direction)
+                            .status(status)
+                            .callDuration(callDuration)
+                            .messageBody(body)
+                            .dateAdded(dateAdded)
+                            .salesPersonConversation(salesPersonConversation)
+                            .build();
+                    conversationMessages.add(conversationMessage);
+                }
+            }
+
+            if (!conversationMessages.isEmpty()) {
+                salesPersonConversation.setConversationMessages(conversationMessages);
+                salesPersonConversations.add(salesPersonConversation);
+            }
+        }
+        return salesPersonConversations;
     }
 
     private List<Calendar> processAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {

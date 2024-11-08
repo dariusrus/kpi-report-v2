@@ -5,6 +5,11 @@ import {ContactWon} from "./ghl/contact-won";
 import {MonthlyClarityReport} from "./mc/monthly-clarity-report";
 import {Calendar} from "./ghl/calendar";
 import {CityAnalytics} from "./ga/city-analytics";
+import {SalesPersonConversion} from "./ghl/sales-person-conversion";
+import {
+  SalesPersonConversationsComponent
+} from "../kpi-report/sales-person-conversations/sales-person-conversations.component";
+import {SalesPersonConversation} from "./ghl/sales-person-conversation";
 
 export interface KpiReport {
   subAgency: string;
@@ -20,4 +25,5 @@ export interface KpiReport {
   contactsWon: ContactWon[];
   clientType: string;
   monthlyClarityReport: MonthlyClarityReport;
+  salesPersonConversations: SalesPersonConversation[];
 }

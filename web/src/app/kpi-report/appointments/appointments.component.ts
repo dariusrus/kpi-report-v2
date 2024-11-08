@@ -21,7 +21,7 @@ export class AppointmentsComponent implements OnInit{
   selectedCalendar: Calendar | null = null;
   availableAppointmentStatuses: string[] = [];
   totalAppointments: TotalAppointment[] = [];
-  advancedPieChartView: [number, number] = [500, 250];
+  advancedPieChartView: [number, number] = [400, 250];
 
   infoTooltip = false;
 
@@ -52,11 +52,11 @@ export class AppointmentsComponent implements OnInit{
 
   updateChartView() {
     if (window.innerWidth >= 1400) {
-      this.advancedPieChartView = [700, 250];
-    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
       this.advancedPieChartView = [600, 250];
-    } else {
+    } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
       this.advancedPieChartView = [500, 250];
+    } else {
+      this.advancedPieChartView = [400, 250];
     }
   }
 

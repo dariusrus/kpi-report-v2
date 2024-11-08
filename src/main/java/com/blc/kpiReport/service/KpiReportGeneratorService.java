@@ -321,8 +321,8 @@ public class KpiReportGeneratorService {
         }
         urlMetrics.sort(Comparator.comparingInt((UrlMetric urlMetric) ->
             urlMetric.getDevices().stream()
-                .mapToInt(DeviceMetric::getActiveTime)
-                .sum()
+            .mapToInt(deviceMetric -> deviceMetric.getActiveTime() != null ? deviceMetric.getActiveTime() : 0)
+            .sum()
         ).reversed());
         monthlyClarityReport.setUrls(urlMetrics);
 

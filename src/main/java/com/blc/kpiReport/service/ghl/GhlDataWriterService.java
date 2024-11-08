@@ -21,6 +21,8 @@ public class GhlDataWriterService {
     private final AppointmentService appointmentService;
     private final PipelineStageService pipelineStageService;
     private final ContactWonService contactWonService;
+    private final SalesPersonConversationService salesPersonConversationService;
+    private final ConversationMessageService conversationMessageService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteGhlApiData(GoHighLevelReport goHighLevelReport) {
@@ -29,6 +31,7 @@ public class GhlDataWriterService {
         calendarService.deleteByGoHighLevelReportId(id);
         pipelineStageService.deleteByGoHighLevelReportId(id);
         contactWonService.deleteByGoHighLevelReportId(id);
+        salesPersonConversationService.deleteByGoHighLevelReportId(id);
         log.info("Successfully deleted data for GoHighLevelReport with ID: {}", id);
     }
 
@@ -40,6 +43,7 @@ public class GhlDataWriterService {
             .calendars(saveCalendars(ghlReportData.getCalendars()))
             .pipelineStages(savePipelineStages(ghlReportData.getPipelineStages()))
             .contactsWon(saveContactsWon(ghlReportData.getContactsWon()))
+            .salesPersonConversations(saveSalesPersonConversation(ghlReportData.getSalesPersonConversations()))
             .build();
 
         log.info("GHL report data saved successfully");
@@ -82,5 +86,17 @@ public class GhlDataWriterService {
     private List<ContactWon> saveContactsWon(List<ContactWon> contactsWon) {
         log.debug("Saving {} contacts won", contactsWon.size());
         return contactWonService.saveAll(contactsWon);
+    }
+
+    private List<SalesPersonConversation> saveSalesPersonConversation(List<SalesPersonConversation> salesPersonConversations) {
+        log.debug("Saving {} sales person conversations", salesPersonConversations.size());
+        List<SalesPersonConversation> savedSalesPersonConversations = salesPersonConversationService.saveAll(salesPersonConversations);
+        savedSalesPersonConversations.forEach(salesPersonConversation -> {
+            if (salesPersonConversation.getConversationMessages() != null && !salesPersonConversation.getConversationMessages().isEmpty()) {
+                salesPersonConversation.getConversationMessages().forEach(conversationMessage -> conversationMessage.setSalesPersonConversation(salesPersonConversation));
+                conversationMessageService.saveAll(salesPersonConversation.getConversationMessages());
+            }
+        });
+        return savedSalesPersonConversations;
     }
 }

@@ -136,12 +136,12 @@
           </div>
           <div class="col-6 d-flex">
             <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-attribution-distribution
+              <app-contact-channels
                 [reportData]="reportData"
                 [reportDataPreviousMap]="reportDataPreviousMap"
                 [monthCount]="monthCount"
                 [isVisible]="isVisible"
-              ></app-attribution-distribution>
+              ></app-contact-channels>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@
              (inViewportChange)="handleViewportChange($event, 'appointments')"
              [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
         >
-          <div class="col-7 d-flex">
+          <div class="col-6 d-flex">
             <div class="report-container custom-dropdown-container">
               <app-appointments
                 [reportData]="reportData"
@@ -172,7 +172,7 @@
               ></app-appointments>
             </div>
           </div>
-          <div class="col-5 d-flex">
+          <div class="col-6 d-flex">
             <div class="report-container">
               <app-contacts-won
                 [reportData]="reportData"
@@ -194,6 +194,21 @@
                 [reportDataPreviousMap]="reportDataPreviousMap"
                 [isVisible]="isVisible"
               ></app-pipeline-stages>
+            </div>
+          </div>
+        </div>
+        <div class="row report-row"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'conversations')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-12">
+            <div class="report-container">
+              <app-sales-person-conversations
+                [reportData]="reportData"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [isVisible]="isVisible"
+              ></app-sales-person-conversations>
             </div>
           </div>
         </div>

@@ -48,8 +48,8 @@
                     <th></th>
                     <th pSortableColumn="contactName">Contact Name</th>
                     <th pSortableColumn="contactSource">Contact Source</th>
-                    <th pSortableColumn="createdBySource">Created By Source</th>
-                    <th pSortableColumn="attributionSource">Session Source(s)</th>
+<!--                    <th pSortableColumn="createdBySource">Created By Source</th>-->
+                    <th pSortableColumn="attributionSource">Session Channel(s)</th>
 <!--                    <th pSortableColumn="attributionMedium">Medium(s)</th>-->
                     <th pSortableColumn="dateAdded">Date Added</th>
                     <th pSortableColumn="status">Status</th>
@@ -66,7 +66,7 @@
                     </td>
                     <td class="align-left">{{ contact.contactName }}</td>
                     <td>{{ contact.contactSource }}</td>
-                    <td>{{ contact.createdBySource }}</td>
+<!--                    <td>{{ contact.createdBySource }}</td>-->
                     <td>
                       <ng-container *ngIf="contact.attributionSource; else noAttribution">
                         <ng-container *ngFor="let source of contact.attributionSource.split(',')">

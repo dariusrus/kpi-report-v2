@@ -16,7 +16,8 @@
           <tr>
             <th></th>
             <th>Name</th>
-            <th>Session Source(s)</th>
+            <th>Contact Source</th>
+            <th>Session Channel(s)</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-contactWon>
@@ -27,7 +28,8 @@
                 {{ SharedUtil.getInitials(contactWon.contactName) }}
               </div>
             </td>
-            <td class="align-left">{{ contactWon.contactName }}</td>
+            <td class="align-left">{{ contactWon.contactName | titlecase }}</td>
+            <td class="align-left">{{ contactWon.contactSource ? contactWon.contactSource : '-' }}</td>
             <td>
               <ng-container *ngIf="contactWon.attributionSource; else noAttribution">
                 <ng-container *ngFor="let source of contactWon.attributionSource.split(',')">

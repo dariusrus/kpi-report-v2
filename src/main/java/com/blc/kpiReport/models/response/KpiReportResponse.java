@@ -1,10 +1,7 @@
 package com.blc.kpiReport.models.response;
 
 import com.blc.kpiReport.models.response.ga.CityAnalyticsResponse;
-import com.blc.kpiReport.models.response.ghl.CalendarResponse;
-import com.blc.kpiReport.models.response.ghl.ContactsWonResponse;
-import com.blc.kpiReport.models.response.ghl.PipelineResponse;
-import com.blc.kpiReport.models.response.ghl.WebsiteLeadResponse;
+import com.blc.kpiReport.models.response.ghl.*;
 import com.blc.kpiReport.models.response.mc.MonthlyClarityReportResponse;
 import lombok.*;
 
@@ -28,6 +25,7 @@ public class KpiReportResponse {
     private List<CalendarResponse> calendars;
     private List<PipelineResponse> pipelines;
     private List<ContactsWonResponse> contactsWon;
+    private List<SalesPersonConversationResponse> salesPersonConversations;
     private MonthlyClarityReportResponse monthlyClarityReport;
 }
 

@@ -17,7 +17,7 @@ public class GoogleAnalyticsService {
 
     private final GaDataFetchService fetchService;
     private final GaDataProcessorService processorService;
-    private final GaDatWriterService writerService;
+    private final GaDataWriterService writerService;
     private final GoogleAnalyticsRepository repository;
 
     public GoogleAnalyticsMetric fetchGaReporting(String startDate, String endDate, String gaPropertyId, String gaCountryCode, KpiReport kpiReport) throws GaApiException {

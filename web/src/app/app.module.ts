@@ -11,10 +11,12 @@ import {InViewportModule} from "@elvirus/angular-inviewport";
 import {environment} from "../environments/environment";
 import {APP_CONFIG} from "./app.config";
 import {BarChartModule} from "@swimlane/ngx-charts";
+import { SalesPipelineReportComponent } from './kpi-report/sales-pipeline-report/sales-pipeline-report.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    SalesPipelineReportComponent,
   ],
   imports: [
     BrowserModule,

@@ -34,15 +34,18 @@ import { MonthlyLeadsCapturedComponent } from './monthly-leads-captured/monthly-
 import { AppointmentsComponent } from './appointments/appointments.component';
 import { ContactsWonComponent } from './contacts-won/contacts-won.component';
 import { PipelineStagesComponent } from './pipeline-stages/pipeline-stages.component';
-import { AttributionDistributionComponent } from "./attribution-distribution/attribution-distribution.component";
+import { ContactChannelsComponent } from "./contact-channels/contact-channels.component";
+import { SalesPersonConversationsComponent } from "./sales-person-conversations/sales-person-conversations.component";
 import { ButtonModule} from "primeng/button";
 import {SelectButtonModule} from "primeng/selectbutton";
 import {MultiSelectModule} from "primeng/multiselect";
 import {ChipModule} from "primeng/chip";
+import {TimelineModule} from "primeng/timeline";
+import {CardModule} from "primeng/card";
 
 @NgModule({
-  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, AttributionDistributionComponent],
-    imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent],
+  imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule, TimelineModule, CardModule],
   providers: [KpiReportService],
 })
 export class KpiReportModule {}

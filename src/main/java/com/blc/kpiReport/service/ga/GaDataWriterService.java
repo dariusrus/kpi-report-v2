@@ -3,7 +3,6 @@ package com.blc.kpiReport.service.ga;
 import com.blc.kpiReport.repository.ga.GoogleAnalyticsRepository;
 import com.blc.kpiReport.schema.ga.CityAnalytics;
 import com.blc.kpiReport.schema.ga.GoogleAnalyticsMetric;
-import com.blc.kpiReport.schema.ghl.GoHighLevelReport;
 import com.blc.kpiReport.service.ga.models.CityAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GaDatWriterService {
+public class GaDataWriterService {
 
     private final GoogleAnalyticsRepository repository;
     private final CityAnalyticsService cityAnalyticsService;

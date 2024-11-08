@@ -17,6 +17,7 @@ import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.MonthlyAverage;
 import com.blc.kpiReport.schema.ghl.LeadSource;
+import com.blc.kpiReport.schema.ghl.SalesPersonConversation;
 import com.blc.kpiReport.schema.mc.DeviceMetric;
 import com.blc.kpiReport.schema.mc.MonthlyClarityReport;
 import com.blc.kpiReport.schema.mc.UrlMetric;
@@ -46,6 +47,7 @@ public class KpiReportRetrievalService {
     private final ContactWonMapper contactWonMapper;
     private final LeadSourceMapper leadSourceMapper;
     private final LeadContactMapper leadContactMapper;
+    private final SalesPersonConversationMapper salesPersonConversationMapper;
     private final DailyMetricMapper dailyMetricMapper;
     private final CityAnalyticsMapper cityAnalyticsMapper;
     private final MonthlyClarityReportMapper monthlyClarityReportMapper;
@@ -78,6 +80,7 @@ public class KpiReportRetrievalService {
                         calendarMapper.toResponseList(goHighLevelReport.getCalendars()),
                         pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
                         contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
+                        salesPersonConversationMapper.toResponseList(goHighLevelReport.getSalesPersonConversations()),
                         monthlyClarityResponse);
                 }
             }
@@ -92,15 +95,15 @@ public class KpiReportRetrievalService {
     public MonthlyClarityReport filterTop100ActiveUrls(MonthlyClarityReport report) {
         List<UrlMetric> top100Urls = report.getUrls().stream()
                 .sorted((url1, url2) -> {
-                    Integer totalActiveTime1 = url1.getDevices().stream()
-                            .mapToInt(DeviceMetric::getActiveTime)
+                    int totalActiveTime1 = url1.getDevices().stream()
+                            .mapToInt(deviceMetric -> deviceMetric.getActiveTime() != null ? deviceMetric.getActiveTime() : 0)
                             .sum();
 
-                    Integer totalActiveTime2 = url2.getDevices().stream()
-                            .mapToInt(DeviceMetric::getActiveTime)
+                    int totalActiveTime2 = url2.getDevices().stream()
+                            .mapToInt(deviceMetric -> deviceMetric.getActiveTime() != null ? deviceMetric.getActiveTime() : 0)
                             .sum();
 
-                    return totalActiveTime2.compareTo(totalActiveTime1);
+                    return Integer.compare(totalActiveTime2, totalActiveTime1);
                 })
                 .limit(100)
                 .collect(Collectors.toList());
@@ -117,6 +120,7 @@ public class KpiReportRetrievalService {
                                                   List<CalendarResponse> calendars,
                                                   List<PipelineResponse> pipelines,
                                                   List<ContactsWonResponse> contactsWon,
+                                                  List<SalesPersonConversationResponse> salesPersonConversation,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
@@ -136,6 +140,7 @@ public class KpiReportRetrievalService {
             .calendars(calendars)
             .pipelines(pipelines)
             .contactsWon(contactsWon)
+            .salesPersonConversations(salesPersonConversation)
             .monthlyClarityReport(monthlyClarityReport)
             .build();
     }

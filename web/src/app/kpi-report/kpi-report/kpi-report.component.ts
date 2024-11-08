@@ -6,8 +6,6 @@ import {LegendPosition} from "@swimlane/ngx-charts";
 import {animate, query, stagger, state, style, transition, trigger} from "@angular/animations";
 import {ActivatedRoute} from "@angular/router";
 import {APP_CONFIG, AppConfig} from "../../app.config";
-import {Pipeline} from "../../models/ghl/pipeline";
-import {PipelineStage} from "../../models/ghl/pipeline-stage";
 import {MonthlyAverage} from "../../models/monthly-average";
 import {LeadSource} from "../../models/ghl/lead-source";
 import {SharedUtil} from "../../util/shared-util";
