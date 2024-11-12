@@ -37,6 +37,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
@@ -72,22 +73,23 @@ public class KpiReportGeneratorService {
     public CompletableFuture<List<GenerateKpiReportResponse>> generateAllKpiReports(GenerateKpiReportsRequest request, boolean isCronJob) {
         List<GenerateKpiReportResponse> initialResponses = new ArrayList<>();
         List<String> uniqueLocationIds = new ArrayList<>(new HashSet<>(ghlLocations.getGhlLocationIds()));
+        var processedLocationIds = new ConcurrentHashMap<String, Boolean>();
 
-        uniqueLocationIds.forEach(locationId -> {
-            var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), initialResponses);
-            runAsyncReportGeneration(response, request.getMonth(), request.getYear());
-        });
-
-        CompletableFuture.runAsync(() -> {
-            CompletableFuture.allOf(
+        CompletableFuture<Void> reportGeneration = CompletableFuture.allOf(
                 uniqueLocationIds.stream()
-                    .map(locationId -> {
-                        var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), null);
-                        return runAsyncReportGeneration(response, request.getMonth(), request.getYear());
-                    })
-                    .toArray(CompletableFuture[]::new)
-            ).whenComplete((result, throwable) -> finalizeBatchReport(request.getMonth(), request.getYear(), isCronJob));
-        });
+                        .map(locationId -> {
+                            if (processedLocationIds.putIfAbsent(locationId, true) == null) {
+                                var response = prepareInitialResponse(locationId, request.getMonth(), request.getYear(), initialResponses);
+                                return runAsyncReportGeneration(response, request.getMonth(), request.getYear());
+                            } else {
+                                log.debug("Skipping already processed location ID: {}", locationId);
+                                return CompletableFuture.completedFuture(null);
+                            }
+                        })
+                        .toArray(CompletableFuture[]::new)
+        );
+
+        reportGeneration.whenComplete((result, throwable) -> finalizeBatchReport(request.getMonth(), request.getYear(), isCronJob));
 
         return CompletableFuture.completedFuture(initialResponses);
     }

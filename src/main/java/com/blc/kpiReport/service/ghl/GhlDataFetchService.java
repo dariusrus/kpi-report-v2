@@ -93,87 +93,113 @@ public class GhlDataFetchService {
     }
 
     private Map<JsonNode, List<JsonNode>> fetchConversations(String locationId, String accessToken, String startDate, String endDate) throws IOException {
-        log.info("Starting to fetch conversations for location ID: {}, startDate: {}, endDate: {}", locationId, startDate, endDate);
+        return retryTemplate.execute(context -> {
+            log.info("Attempt {} to fetch conversations for location ID: {}, startDate: {}, endDate: {}", context.getRetryCount() + 1, locationId, startDate, endDate);
 
-        long epochStartDate = LocalDate.parse(startDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
-        long epochEndDate = LocalDate.parse(endDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
-        log.debug("Converted startDate to epoch: {}, endDate to epoch: {}", epochStartDate, epochEndDate);
+            long epochStartDate = LocalDate.parse(startDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+            long epochEndDate = LocalDate.parse(endDate, DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+            log.debug("Converted startDate to epoch: {}, endDate to epoch: {}", epochStartDate, epochEndDate);
 
-        Map<JsonNode, List<JsonNode>> conversationsWithMessages = new HashMap<>();
-        long startAfterDate = epochStartDate;
-        boolean continueFetching = true;
+            Map<JsonNode, List<JsonNode>> conversationsWithMessages = new HashMap<>();
+            long startAfterDate = epochStartDate;
+            boolean continueFetching = true;
 
-        while (continueFetching) {
-            String url = String.format(CONVERSATIONS_URL_TEMPLATE, GHL_API_BASE_URL, locationId, startAfterDate);
-            log.debug("Constructed URL for fetching conversations: {}", url);
+            while (continueFetching) {
+                log.info("Fetching conversations starting after date: {} for location ID: {}", startAfterDate, locationId); // Added log
+                String url = String.format(CONVERSATIONS_URL_TEMPLATE, GHL_API_BASE_URL, locationId, startAfterDate);
+                log.debug("Constructed URL for fetching conversations: {}", url);
 
-            Request request = new Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .addHeader("Version", "2021-04-15")
-                    .addHeader("Accept", "application/json")
-                    .build();
+                Request request = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Authorization", "Bearer " + accessToken)
+                        .addHeader("Version", "2021-04-15")
+                        .addHeader("Accept", "application/json")
+                        .build();
 
-            log.debug("Sending request to fetch conversations with startAfterDate: {}", startAfterDate);
-
-            try (Response response = okHttpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    log.error("Error response received while fetching conversations: {}", response);
-                    throw new IOException("Error fetching conversations: " + response);
-                }
-
-                JsonNode responseJson = objectMapper.readTree(response.body().string());
-                JsonNode conversations = responseJson.path("conversations");
-                log.debug("Fetched {} conversations from response", conversations.size());
-
-                if (conversations.isEmpty()) {
-                    log.info("No more conversations to process, ending fetch loop.");
-                    break;
-                }
-
-                for (JsonNode conversation : conversations) {
-                    String type = conversation.path("type").asText();
-                    long dateUpdated = conversation.path("dateUpdated").asLong();
-                    log.debug("Processing conversation ID: {}, type: {}, dateUpdated: {}", conversation.path("id").asText(), type, dateUpdated);
-
-                    if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL")) &&
-                            dateUpdated >= epochStartDate && dateUpdated <= epochEndDate) {
-
-                        log.debug("Fetching messages for conversation ID: {}", conversation.path("id").asText());
-                        List<JsonNode> messages = fetchMessagesForConversation(conversation.path("id").asText(), accessToken, epochStartDate, epochEndDate);
-                        log.info("Fetched {} messages for conversation ID: {}", messages.size(), conversation.path("id").asText());
-                        conversationsWithMessages.put(conversation, messages);
+                try (Response response = okHttpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        log.error("Error response received while fetching conversations: {}", response);
+                        throw new IOException("Error fetching conversations: " + response);
                     }
 
-                    if (dateUpdated > epochEndDate) {
-                        log.info("Date updated exceeds end date, stopping fetch.");
-                        continueFetching = false;
+                    JsonNode responseJson = objectMapper.readTree(response.body().string());
+                    JsonNode conversations = responseJson.path("conversations");
+                    log.debug("Fetched {} conversations from response", conversations.size());
+
+                    if (conversations.isEmpty()) {
+                        log.info("No more conversations to process, ending fetch loop.");
                         break;
                     }
-                    startAfterDate = conversation.path("sort").get(0).asLong();
-                    log.debug("Updated startAfterDate for next request: {}", startAfterDate);
-                }
 
-                if (conversations.size() < 100) {
-                    log.info("Less than 100 conversations fetched, ending fetch loop.");
-                    continueFetching = false;
+                    for (JsonNode conversation : conversations) {
+                        String type = conversation.path("type").asText();
+                        long dateUpdated = conversation.path("dateUpdated").asLong();
+                        log.debug("Processing conversation ID: {}, type: {}, dateUpdated: {}", conversation.path("id").asText(), type, dateUpdated);
+
+                        if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL")) &&
+                                dateUpdated >= epochStartDate && dateUpdated <= epochEndDate) {
+
+                            List<JsonNode> messages;
+                            try {
+                                log.debug("Fetching messages for conversation ID: {}", conversation.path("id").asText());
+                                messages = fetchMessagesWithRetry(conversation.path("id").asText(), accessToken, epochStartDate, epochEndDate);
+                                log.debug("Fetched {} messages for conversation ID: {}", messages.size(), conversation.path("id").asText());
+                            } catch (Exception e) {
+                                log.error("Failed to fetch messages for conversation ID: {}, continuing with an empty list. Exception: {}", conversation.path("id").asText(), e.getMessage());
+                                messages = new ArrayList<>();
+                            }
+
+                            conversationsWithMessages.put(conversation, messages);
+                        }
+
+                        if (dateUpdated > epochEndDate) {
+                            log.info("Date updated exceeds end date, stopping fetch.");
+                            continueFetching = false;
+                            break;
+                        }
+                        startAfterDate = conversation.path("sort").get(0).asLong();
+                        log.debug("Updated startAfterDate for next request: {}", startAfterDate);
+                    }
+
+                    if (conversations.size() < 100) {
+                        log.info("Less than 100 conversations fetched, ending fetch loop.");
+                        continueFetching = false;
+                    }
+                } catch (IOException e) {
+                    log.error("Failed to fetch conversations for location ID: {}, with startAfterDate: {}. Exception: {}", locationId, startAfterDate, e.getMessage());
+                    throw e;
                 }
-            } catch (IOException e) {
-                log.error("Failed to fetch conversations for location ID: {}, with startAfterDate: {}. Exception: {}", locationId, startAfterDate, e.getMessage());
-                throw e;
             }
-        }
 
-        log.info("Successfully fetched and processed {} conversations with messages for location ID: {}", conversationsWithMessages.size(), locationId);
-        return conversationsWithMessages;
+            log.info("Successfully fetched and processed {} conversations with messages for location ID: {}", conversationsWithMessages.size(), locationId);
+            return conversationsWithMessages;
+        }, context -> {
+            log.error("All retry attempts to fetch conversations failed for location ID: {}", locationId);
+            return new HashMap<>();
+        });
+    }
+
+    private List<JsonNode> fetchMessagesWithRetry(String conversationId, String accessToken, long epochStartDate, long epochEndDate) throws IOException {
+        return retryTemplate.execute(context -> {
+            int attempt = context.getRetryCount() + 1;
+            if (attempt == 3) {
+                log.info("Attempt {} to fetch messages for conversation ID: {}", attempt, conversationId);
+            } else {
+                log.debug("Attempt {} to fetch messages for conversation ID: {}", attempt, conversationId);
+            }
+            return fetchMessagesForConversation(conversationId, accessToken, epochStartDate, epochEndDate);
+        }, context -> {
+            log.error("All retry attempts to fetch messages failed for conversation ID: {}", conversationId);
+            return new ArrayList<>();
+        });
     }
 
     private List<JsonNode> fetchMessagesForConversation(String conversationId, String accessToken, long epochStartDate, long epochEndDate) throws IOException {
         List<JsonNode> messages = new ArrayList<>();
         boolean hasNextPage = true;
         String lastMessageId = null;
-        int requestCount = 0;  // Counter for tracking the number of API calls
+        int requestCount = 0;
 
         while (hasNextPage) {
             String url = String.format("%s/conversations/%s/messages?limit=100%s",
@@ -187,7 +213,10 @@ public class GhlDataFetchService {
                     .build();
 
             try (Response response = okHttpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) throw new IOException("Error fetching messages for conversation ID: " + conversationId);
+                if (!response.isSuccessful()) {
+                    log.error("Error fetching messages for conversation ID: {}, response: {}", conversationId, response);
+                    throw new IOException("Error fetching messages for conversation ID: " + conversationId);
+                }
 
                 JsonNode responseJson = objectMapper.readTree(response.body().string());
                 JsonNode messagesContainer = responseJson.path("messages");

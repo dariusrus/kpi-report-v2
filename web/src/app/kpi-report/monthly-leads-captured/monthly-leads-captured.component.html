@@ -2,7 +2,7 @@
   <div class="report-title">Monthly Leads Captured</div>
   <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
   <div class="report-data flex-grow-1" *ngIf="isVisible['websiteLeads']">
-    <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable-sm'" @fadeIn>
+    <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable'" @fadeIn>
       <ng-template pTemplate="caption">
         <div class="flex flex-wrap justify-content-end gap-2">
         </div>

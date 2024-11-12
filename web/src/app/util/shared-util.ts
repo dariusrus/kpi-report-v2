@@ -40,6 +40,23 @@ export class SharedUtil {
     return initials.toUpperCase();
   }
 
+  static getInitialsWithPhone(name: string): string {
+    if (!name || name === '') return 'N/A';
+
+    // Check if the string starts with a parenthesis or any number 0-9
+    if (/^[\(\d]/.test(name)) {
+      return '<i class="pi pi-phone"></i>'; // Return phone icon
+    }
+
+    const ignoreWords = ["and", "or"];
+    let initials = name
+      .split(' ')
+      .filter(word => !ignoreWords.includes(word.toLowerCase()))
+      .map(n => n[0])
+      .join('');
+    return initials.toUpperCase();
+  }
+
   static getFirstLetter(name: string): string {
     if (!name || name.trim() === '') return 'N/A';
     const ignoreWords = ["and", "or"];
@@ -96,5 +113,9 @@ export class SharedUtil {
     const absoluteValue = Math.abs(value);
     const formattedValue = absoluteValue.toFixed(2);
     return `${formattedValue}%`;
+  }
+
+  static handleEmptyString(input: string | null | undefined): string {
+    return !input || input.trim().toLowerCase() === 'null' ? '-' : input;
   }
 }

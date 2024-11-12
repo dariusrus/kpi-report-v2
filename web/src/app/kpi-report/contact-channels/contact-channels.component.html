@@ -1,9 +1,9 @@
 <ng-container>
   <div class="report-title">
-    Contact Channels
+    Captured Lead Channels
   </div>
   <div class="report-subtitle">
-    {{ reportData.monthAndYear }}
+    (Last {{ monthCount }} months)
   </div>
   <div class="report-data flex-grow-1" *ngIf="isVisible['leads']">
     <ng-container>
@@ -13,7 +13,7 @@
         </div>
         <div class="main-dropdown">
           <div class="index-custom-tooltip" *ngIf="infoTooltip" [@dropIn]>
-            The graph shows the channels <span class="font-bold-info">(Attribution)</span> from which contacts originated and interacted with your website for the <span class="font-bold-info">first time</span>, helping to identify which channels are driving the most captured leads.
+            The graph shows the channels <span class="font-bold-info">(Attribution)</span> from which this month's captured leads originate and interacted with your website for the <span class="font-bold-info">first time</span>, helping to identify which channels are driving the most captured leads.
           </div>
           <p-floatLabel>
             <p-multiSelect

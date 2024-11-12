@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -51,7 +52,7 @@ public class GhlDataWriterService {
     }
 
     private List<LeadSource> saveLeadSources(List<LeadSource> leadSources) {
-        log.debug("Saving {} lead sources", leadSources.size());
+        log.info("Saving {} lead sources", leadSources.size());
 
         List<LeadSource> savedLeadSources = leadSourceService.saveAll(leadSources);
 
@@ -65,7 +66,7 @@ public class GhlDataWriterService {
     }
 
     private List<Calendar> saveCalendars(List<Calendar> calendars) {
-        log.debug("Saving {} calendars", calendars.size());
+        log.info("Saving {} calendars", calendars.size());
 
         List<Calendar> savedCalendars = calendarService.saveAll(calendars);
 
@@ -79,24 +80,43 @@ public class GhlDataWriterService {
     }
 
     private List<PipelineStage> savePipelineStages(List<PipelineStage> pipelineStages) {
-        log.debug("Saving {} pipeline stages", pipelineStages.size());
+        log.info("Saving {} pipeline stages", pipelineStages.size());
         return pipelineStageService.saveAll(pipelineStages);
     }
 
     private List<ContactWon> saveContactsWon(List<ContactWon> contactsWon) {
-        log.debug("Saving {} contacts won", contactsWon.size());
+        log.info("Saving {} contacts won", contactsWon.size());
         return contactWonService.saveAll(contactsWon);
     }
 
     private List<SalesPersonConversation> saveSalesPersonConversation(List<SalesPersonConversation> salesPersonConversations) {
-        log.debug("Saving {} sales person conversations", salesPersonConversations.size());
-        List<SalesPersonConversation> savedSalesPersonConversations = salesPersonConversationService.saveAll(salesPersonConversations);
-        savedSalesPersonConversations.forEach(salesPersonConversation -> {
-            if (salesPersonConversation.getConversationMessages() != null && !salesPersonConversation.getConversationMessages().isEmpty()) {
-                salesPersonConversation.getConversationMessages().forEach(conversationMessage -> conversationMessage.setSalesPersonConversation(salesPersonConversation));
-                conversationMessageService.saveAll(salesPersonConversation.getConversationMessages());
+        log.info("Saving {} sales person conversations", salesPersonConversations.size());
+        int batchSize = 500;
+        List<SalesPersonConversation> allSavedConversations = new ArrayList<>();
+
+        for (int i = 0; i < salesPersonConversations.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, salesPersonConversations.size());
+            List<SalesPersonConversation> batch = salesPersonConversations.subList(i, end);
+            log.info("Saving batch from index {} to {}", i, end - 1);
+
+            List<SalesPersonConversation> savedBatch = salesPersonConversationService.saveAll(batch);
+            allSavedConversations.addAll(savedBatch);
+
+            List<ConversationMessage> allMessagesInBatch = new ArrayList<>();
+            savedBatch.forEach(salesPersonConversation -> {
+                if (salesPersonConversation.getConversationMessages() != null && !salesPersonConversation.getConversationMessages().isEmpty()) {
+                    salesPersonConversation.getConversationMessages().forEach(conversationMessage -> conversationMessage.setSalesPersonConversation(salesPersonConversation));
+                    allMessagesInBatch.addAll(salesPersonConversation.getConversationMessages());
+                }
+            });
+
+            if (!allMessagesInBatch.isEmpty()) {
+                log.info("Saving {} messages for batch from index {} to {}", allMessagesInBatch.size(), i, end - 1);
+                conversationMessageService.saveAll(allMessagesInBatch);
             }
-        });
-        return savedSalesPersonConversations;
+
+            log.info("Batch from index {} to {} saved successfully", i, end - 1);
+        }
+        return allSavedConversations;
     }
 }
