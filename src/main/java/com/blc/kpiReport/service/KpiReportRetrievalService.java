@@ -16,11 +16,13 @@ import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.MonthlyAverage;
+import com.blc.kpiReport.schema.ghl.GhlUser;
 import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.ghl.SalesPersonConversation;
 import com.blc.kpiReport.schema.mc.DeviceMetric;
 import com.blc.kpiReport.schema.mc.MonthlyClarityReport;
 import com.blc.kpiReport.schema.mc.UrlMetric;
+import com.blc.kpiReport.service.ghl.models.GhlUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -41,6 +43,7 @@ import static com.blc.kpiReport.util.NumberUtil.roundToTwoDecimalPlaces;
 public class KpiReportRetrievalService {
 
     private final GhlLocationService ghlLocationService;
+    private final GhlUserService ghlUserService;
     private final KpiReportRepository repository;
     private final CalendarMapper calendarMapper;
     private final PipelineStageMapper pipelineStageMapper;
@@ -53,9 +56,11 @@ public class KpiReportRetrievalService {
     private final MonthlyClarityReportMapper monthlyClarityReportMapper;
     private final MonthlyAverageRepository monthlyAverageRepository;
     private final MonthlyAverageMapper monthlyAverageMapper;
+    private final GhlUserMapper ghlUserMapper;
 
     public KpiReportResponse getKpiReport(String ghlLocationId, int month, int year) {
         var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
+        var ghlUsers = ghlUserService.findByGhlLocationId(ghlLocation.getId());
         try {
             if (!ObjectUtils.isEmpty(ghlLocation)) {
                 var id = ghlLocation.getId();
@@ -81,6 +86,7 @@ public class KpiReportRetrievalService {
                         pipelineStageMapper.toResponseList(goHighLevelReport.getPipelineStages()),
                         contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
                         salesPersonConversationMapper.toResponseList(goHighLevelReport.getSalesPersonConversations()),
+                        ghlUserMapper.toResponseList(ghlUsers),
                         monthlyClarityResponse);
                 }
             }
@@ -121,6 +127,7 @@ public class KpiReportRetrievalService {
                                                   List<PipelineResponse> pipelines,
                                                   List<ContactsWonResponse> contactsWon,
                                                   List<SalesPersonConversationResponse> salesPersonConversation,
+                                                  List<GhlUserResponse> ghlUsers,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
@@ -142,6 +149,7 @@ public class KpiReportRetrievalService {
             .contactsWon(contactsWon)
             .salesPersonConversations(salesPersonConversation)
             .monthlyClarityReport(monthlyClarityReport)
+            .ghlUsers(ghlUsers)
             .build();
     }
 

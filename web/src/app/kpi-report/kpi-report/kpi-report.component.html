@@ -56,131 +56,106 @@
 <!--        >-->
 <!--          <div class="col-6">-->
 <!--            <div class="report-container">-->
-<!--              <ng-container>-->
-<!--                <div class="report-title">-->
-<!--                  Google Analytics-->
-<!--                </div>-->
-<!--                <div class="report-subtitle">-->
-<!--                  (Last {{ monthCount }} months)-->
-<!--                </div>-->
-<!--                <div class="report-data">-->
-<!--                  <ngx-charts-bar-horizontal-->
-<!--                    [view]="[1250, 400]"-->
-<!--                    [scheme]="'forest'"-->
-<!--                    [results]="single"-->
-<!--                    [gradient]="true"-->
-<!--                    [animations]="true"-->
-<!--                    [roundEdges]="false"-->
-<!--                    [showXAxisLabel]="true"-->
-<!--                    [showYAxisLabel]="true"-->
-<!--                    [xAxisLabel]="'Unique Site Visitors'"-->
-<!--                    [yAxisLabel]="'City'"-->
-<!--                    [xAxis]="true"-->
-<!--                    [yAxis]="true"-->
-<!--                  >-->
-<!--                  </ngx-charts-bar-horizontal>-->
-<!--                </div>-->
-<!--              </ng-container>-->
+<!--              <app-google-analytics-->
+<!--                [reportData]="reportData"-->
+<!--                [averageReportData]="averageReportData!"-->
+<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
+<!--                [averageReportDataPrevious]="averageReportDataPrevious"-->
+<!--                [displayComparisons]="displayComparisons"-->
+<!--                [monthCount]="monthCount"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-google-analytics>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-6">-->
+<!--            <div class="report-container">-->
+<!--              <app-opportunity-to-lead-->
+<!--                [reportData]="reportData"-->
+<!--                [averageReportData]="averageReportData!"-->
+<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
+<!--                [averageReportDataPrevious]="averageReportDataPrevious"-->
+<!--                [displayComparisons]="displayComparisons"-->
+<!--                [monthCount]="monthCount"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-opportunity-to-lead>-->
+<!--            </div>-->
+<!--          </div>-->
+
+<!--        </div>-->
+<!--        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"-->
+<!--             snInViewport-->
+<!--             (inViewportChange)="handleViewportChange($event, 'leads')"-->
+<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"-->
+<!--        >-->
+<!--          <div class="col-6 d-flex">-->
+<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
+<!--              <app-captured-leads-count-->
+<!--                [reportData]="reportData"-->
+<!--                [averageReportData]="averageReportData!"-->
+<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
+<!--                [displayComparisons]="displayComparisons"-->
+<!--                [monthCount]="monthCount"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-captured-leads-count>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-6 d-flex">-->
+<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
+<!--              <app-contact-channels-->
+<!--                [reportData]="reportData"-->
+<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
+<!--                [monthCount]="monthCount"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-contact-channels>-->
 <!--            </div>-->
 <!--          </div>-->
 <!--        </div>-->
-        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'analytics')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
-        >
-          <div class="col-6">
-            <div class="report-container">
-              <app-google-analytics
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [averageReportDataPrevious]="averageReportDataPrevious"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-google-analytics>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="report-container">
-              <app-opportunity-to-lead
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [averageReportDataPrevious]="averageReportDataPrevious"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-opportunity-to-lead>
-            </div>
-          </div>
+<!--        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"-->
+<!--             snInViewport-->
+<!--             (inViewportChange)="handleViewportChange($event, 'websiteLeads')"-->
+<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"-->
+<!--        >-->
+<!--          <div class="col-12 d-flex">-->
+<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
+<!--              <app-monthly-leads-captured-->
+<!--                [reportData]="reportData"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-monthly-leads-captured>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="row report-row align-items-stretch"-->
+<!--             snInViewport-->
+<!--             (inViewportChange)="handleViewportChange($event, 'appointments')"-->
+<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"-->
+<!--        >-->
+<!--          <div class="col-6 d-flex">-->
+<!--            <div class="report-container custom-dropdown-container">-->
+<!--              <app-appointments-->
+<!--                [reportData]="reportData"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-appointments>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-6 d-flex">-->
+<!--            <div class="report-container">-->
+<!--              <app-contacts-won-->
+<!--                [reportData]="reportData"-->
+<!--                [isVisible]="isVisible"-->
+<!--              ></app-contacts-won>-->
+<!--            </div>-->
+<!--          </div>-->
 
-        </div>
-        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+<!--        </div>-->
+        <div class="row report-row"
              snInViewport
-             (inViewportChange)="handleViewportChange($event, 'leads')"
+             (inViewportChange)="handleViewportChange($event, 'pipelines')"
              [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
         >
-          <div class="col-6 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-captured-leads-count
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-captured-leads-count>
-            </div>
-          </div>
-          <div class="col-6 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-contact-channels
-                [reportData]="reportData"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-contact-channels>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'websiteLeads')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-        >
-          <div class="col-12 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-monthly-leads-captured
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-monthly-leads-captured>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row align-items-stretch"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'appointments')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
-        >
-          <div class="col-6 d-flex">
-            <div class="report-container custom-dropdown-container">
-              <app-appointments
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-appointments>
-            </div>
-          </div>
-          <div class="col-6 d-flex">
-            <div class="report-container">
-              <app-contacts-won
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-contacts-won>
-            </div>
-          </div>
-
+          <app-sales-pipeline-report
+            [reportData]="reportData"
+            [reportDataPreviousMap]="reportDataPreviousMap">
+          </app-sales-pipeline-report>
         </div>
         <div class="row report-row"
              snInViewport

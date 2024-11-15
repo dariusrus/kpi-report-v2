@@ -22,4 +22,8 @@ public class LeadSourceService {
     public void deleteByGoHighLevelReportId(Long goHighLevelReportId) {
         repository.deleteByGoHighLevelReport_Id(goHighLevelReportId);
     }
+
+    public List<LeadSource> findAllByGoHighLevelReportId(Long goHighLevelReportId) {
+        return repository.findAllByGoHighLevelReport_Id(goHighLevelReportId);
+    }
 }

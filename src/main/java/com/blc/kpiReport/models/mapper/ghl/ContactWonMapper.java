@@ -12,8 +12,8 @@ public class ContactWonMapper {
 
     public ContactsWonResponse toResponse(ContactWon contactWon) {
         return ContactsWonResponse.builder()
-            .contactName(contactWon.getContactName())
-            .contactEmail(contactWon.getContactEmail())
+            .contactName(contactWon.getGhlContact().getName())
+            .contactEmail(contactWon.getGhlContact().getEmail())
             .contactSource(contactWon.getSource())
             .attributionSource(contactWon.getAttributionSource())
             .build();

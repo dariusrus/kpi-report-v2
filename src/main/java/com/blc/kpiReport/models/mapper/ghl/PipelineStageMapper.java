@@ -1,8 +1,10 @@
 package com.blc.kpiReport.models.mapper.ghl;
 
+import com.blc.kpiReport.models.response.ghl.ContactResponse;
 import com.blc.kpiReport.models.response.ghl.PipelineResponse;
 import com.blc.kpiReport.models.response.ghl.PipelineStageResponse;
 import com.blc.kpiReport.models.response.ghl.SalesPersonConversionResponse;
+import com.blc.kpiReport.schema.ghl.GhlContact;
 import com.blc.kpiReport.schema.ghl.PipelineStage;
 import com.blc.kpiReport.schema.ghl.SalesPersonConversion;
 import org.springframework.stereotype.Component;
@@ -51,10 +53,21 @@ public class PipelineStageMapper {
     private List<SalesPersonConversionResponse> mapToSalesPersonConversionResponseList(List<SalesPersonConversion> salesPersonConversions) {
         return salesPersonConversions.stream()
                 .map(conversion -> SalesPersonConversionResponse.builder()
-                        .salesPersonId(conversion.getSalesPersonId())
-                        .salesPersonName(conversion.getSalesPersonName())
+                        .salesPersonId(conversion.getGhlUser() != null ? conversion.getGhlUser().getUserId() : "")
+                        .salesPersonName(conversion.getGhlUser() != null ? conversion.getGhlUser().getName() : "")
+                        .photoUrl(conversion.getGhlUser() != null ? conversion.getGhlUser().getPhotoUrl() : "")
                         .count(conversion.getCount())
                         .monetaryValue(conversion.getMonetaryValue())
+                        .convertedContacts(mapToContactResponseList(conversion.getConvertedGhlContacts()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<ContactResponse> mapToContactResponseList(List<GhlContact> contacts) {
+        return contacts.stream()
+                .map(contact -> ContactResponse.builder()
+                        .contactId(contact.getGhlId())
+                        .contactName(contact.getName())
                         .build())
                 .collect(Collectors.toList());
     }

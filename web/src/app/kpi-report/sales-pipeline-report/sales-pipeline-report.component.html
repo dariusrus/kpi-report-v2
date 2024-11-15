@@ -1,1 +1,157 @@
-<p>sales-pipeline-report works!</p>
+<div>
+  <h2>Sales Pipeline Report</h2>
+  <div class="row mb-4">
+    <div class="col-12 mt-3 d-flex">
+      <div style="max-width: 49%; margin-right: 12px">
+        <p-floatLabel>
+          <p-multiSelect
+            [options]="salesPersons"
+            [(ngModel)]="selectedSalesPersons"
+            placeholder="Select Salespersons"
+            optionLabel="name"
+            display="chip"
+            [style]="{ 'max-width': '100%', 'min-height': '57px', 'border-radius': '15px' }"
+            (onChange)="onParameterChange()"
+            id="float-label">
+
+            <ng-template let-value pTemplate="selectedItems">
+              <div class="selected-pill-container" *ngFor="let option of value">
+                <p-avatar
+                  [image]="option.cachedImage || option.imageUrl"
+                  shape="circle"
+                  class="selected-pill-avatar"></p-avatar>
+                <div class="pill-text">{{ option.name }}</div>
+              </div>
+              <div *ngIf="!value || value.length === 0">Select Salespersons</div>
+            </ng-template>
+
+            <ng-template let-ghlUser pTemplate="item">
+              <div class="item-container">
+                <p-avatar
+                  [image]="ghlUser.cachedImage || ghlUser.imageUrl"
+                  shape="circle"
+                />
+                {{ ghlUser.name }}
+              </div>
+            </ng-template>
+
+            <ng-template let-ghlUser pTemplate="footer">
+              <div class="footer-container">
+                <div *ngIf="selectedSalesPersons.length === salesPersons.length">
+                  <b>All Salespersons Selected</b>
+                </div>
+                <div *ngIf="selectedSalesPersons.length !== salesPersons.length">
+                  <b>{{ selectedSalesPersons ? selectedSalesPersons.length : 0 }}</b>
+                  Salesperson{{ selectedSalesPersons.length !== 1 ? 's' : '' }} selected.
+                </div>
+              </div>
+            </ng-template>
+          </p-multiSelect>
+          <label for="float-label">Select Salesperson</label>
+        </p-floatLabel>
+      </div>
+      <div style="max-width: 49%">
+        <p-floatLabel>
+          <p-dropdown
+            [options]="reportData.pipelines"
+            [(ngModel)]="selectedPipeline"
+            optionLabel="pipelineName"
+            placeholder="Select a Pipeline"
+            (onChange)="onPipelineChange($event)"
+            [style]="{ 'max-width': '100%', 'min-height': '57px', 'border-radius': '15px', 'padding':'12px' }"
+            id="float-label-sales-person"
+          />
+          <label for="float-label-sales-person">Select Pipeline</label>
+        </p-floatLabel>
+      </div>
+    </div>
+  </div>
+  <div class="row report-row">
+    <div class="col-6">
+      <div class="report-container">
+        <ng-container>
+          <div class="report-title">
+            Stage Conversion Count
+          </div>
+          <div class="report-subtitle">
+            {{ reportData.monthAndYear }}
+          </div>
+          <div class="report-data">
+            <div class="performance-index-container">
+              <div class="performance-index-items">
+                <ng-container>
+                  <div class="performance-index-item-wrapper">
+                    <div class="performance-index-item">
+                      <div class="performance-index-value conversion-count">
+                        {{ totalConversions }}
+                      </div>
+                      <div class="performance-index-description">
+                        Stage Conversions
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+            <ng-container>
+              <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                                    [view]="pieChartView"
+                                    [scheme]="scheme"
+                                    [results]="data"
+                                    [gradient]="true"
+                                    [maxLabelLength]="15"
+                                    [trimLabels]="true"
+                                    [doughnut]="true"
+                                    [labels]="true"
+              >
+              </ngx-charts-pie-chart>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="report-container">
+        <ng-container>
+          <div class="report-title">
+            Salesperson Follow-Up Count
+          </div>
+          <div class="report-subtitle">
+            {{ reportData.monthAndYear }}
+          </div>
+          <div class="report-data">
+            <div class="performance-index-container">
+              <div class="performance-index-items">
+                <ng-container>
+                  <div class="performance-index-item-wrapper">
+                    <div class="performance-index-item">
+                      <div class="performance-index-value conversion-count">
+                        {{ totalConversions }}
+                      </div>
+                      <div class="performance-index-description">
+                        Stage Conversions
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+            <ng-container>
+              <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                                    [view]="pieChartView"
+                                    [scheme]="scheme"
+                                    [results]="data"
+                                    [gradient]="true"
+                                    [maxLabelLength]="15"
+                                    [trimLabels]="true"
+                                    [doughnut]="true"
+                                    [labels]="true"
+              >
+              </ngx-charts-pie-chart>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

@@ -47,6 +47,10 @@ public class ContactWon extends DateAudit implements Serializable {
     @Column(name = "attribution_source", length = 200)
     private String attributionSource;
 
+    @OneToOne
+    @JoinColumn(name = "ghl_contact_id")
+    private GhlContact ghlContact;
+
     @ManyToOne
     @JoinColumn(name = "go_high_level_report_id", nullable = false)
     @JsonBackReference

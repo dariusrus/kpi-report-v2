@@ -1,23 +1,24 @@
 package com.blc.kpiReport.schema.ghl;
 
+import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Entity
-@Table(name = "sales_person_conversion")
+@Table(name = "ghl_user")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-public class SalesPersonConversion extends DateAudit implements Serializable {
+public class GhlUser extends DateAudit implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,22 +29,21 @@ public class SalesPersonConversion extends DateAudit implements Serializable {
     private Long id;
 
     @NotNull
-    @Column(name = "count")
-    private int count;
+    @Size(max = 500)
+    @Column(name = "user_id", length = 500)
+    private String userId;
 
     @NotNull
-    @Column(name = "monetary_value")
-    private Double monetaryValue;
+    @Size(max = 500)
+    @Column(name = "name", length = 500)
+    private String name;
+
+    @Size(max = 1000)
+    @Column(name = "photo_url", length = 1000)
+    private String photoUrl;
 
     @ManyToOne
-    @JoinColumn(name = "ghl_user_id")
-    private GhlUser ghlUser;
-
-    @OneToMany(mappedBy = "salesPersonConversion", fetch = FetchType.EAGER)
-    private List<GhlContact> convertedGhlContacts;
-
-    @ManyToOne
-    @JoinColumn(name = "pipeline_stage_id", nullable = false)
+    @JoinColumn(name = "ghl_location_id", nullable = false)
     @JsonBackReference
-    private PipelineStage pipelineStage;
+    private GhlLocation ghlLocation;
 }

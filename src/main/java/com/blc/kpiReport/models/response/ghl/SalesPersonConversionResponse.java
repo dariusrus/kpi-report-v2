@@ -12,7 +12,9 @@ import java.util.List;
 public class SalesPersonConversionResponse {
     private String salesPersonId;
     private String salesPersonName;
+    private String photoUrl;
     private int count;
+    private List<ContactResponse> convertedContacts;
     private double monetaryValue;
 }
 

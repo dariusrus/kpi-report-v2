@@ -34,8 +34,9 @@ import { MonthlyLeadsCapturedComponent } from './monthly-leads-captured/monthly-
 import { AppointmentsComponent } from './appointments/appointments.component';
 import { ContactsWonComponent } from './contacts-won/contacts-won.component';
 import { PipelineStagesComponent } from './pipeline-stages/pipeline-stages.component';
-import { ContactChannelsComponent } from "./contact-channels/contact-channels.component";
+import { ContactChannelsComponent } from "./ghlContact-channels/ghlContact-channels.component";
 import { SalesPersonConversationsComponent } from "./sales-person-conversations/sales-person-conversations.component";
+import { SalesPipelineReportComponent } from "./sales-pipeline-report/sales-pipeline-report.component";
 import { ButtonModule} from "primeng/button";
 import {SelectButtonModule} from "primeng/selectbutton";
 import {MultiSelectModule} from "primeng/multiselect";
@@ -44,7 +45,7 @@ import {TimelineModule} from "primeng/timeline";
 import {CardModule} from "primeng/card";
 
 @NgModule({
-  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent, SalesPipelineReportComponent],
   imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, PieChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule, TimelineModule, CardModule],
   providers: [KpiReportService],
 })

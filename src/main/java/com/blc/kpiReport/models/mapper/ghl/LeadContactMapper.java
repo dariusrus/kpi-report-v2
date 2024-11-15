@@ -1,6 +1,7 @@
 package com.blc.kpiReport.models.mapper.ghl;
 
 import com.blc.kpiReport.models.response.ghl.LeadContactResponse;
+import com.blc.kpiReport.schema.ghl.GhlUser;
 import com.blc.kpiReport.schema.ghl.LeadContact;
 import org.springframework.stereotype.Component;
 
@@ -15,17 +16,19 @@ public class LeadContactMapper {
         if (leadContact == null) {
             return null;
         }
+        GhlUser ghlUser = leadContact.getGhlUser();
+
         return LeadContactResponse.builder()
-            .contactName(formatString(leadContact.getContactName()))
-            .contactSource(formatString(leadContact.getContactSource()))
-            .createdBySource(formatString(leadContact.getCreatedBySource()))
-            .attributionSource(leadContact.getAttributionSource())
-            .attributionMedium(formatString(leadContact.getAttributionMedium()))
-            .dateAdded(leadContact.getDateAdded())
-            .ownerName(leadContact.getOwnerName())
-            .ownerPhotoUrl(leadContact.getOwnerPhotoUrl())
-            .status(leadContact.getStatus())
-            .build();
+                .contactName(leadContact.getGhlContact().getName())
+                .contactSource(formatString(leadContact.getContactSource()))
+                .createdBySource(formatString(leadContact.getCreatedBySource()))
+                .attributionSource(leadContact.getAttributionSource())
+                .attributionMedium(formatString(leadContact.getAttributionMedium()))
+                .dateAdded(leadContact.getDateAdded())
+                .ownerName(ghlUser != null ? ghlUser.getName() : "")
+                .ownerPhotoUrl(ghlUser != null ? ghlUser.getPhotoUrl() : "")
+                .status(leadContact.getStatus())
+                .build();
     }
 
     public List<LeadContactResponse> toResponseList(List<LeadContact> leadContacts) {

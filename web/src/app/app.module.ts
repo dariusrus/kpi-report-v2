@@ -15,8 +15,7 @@ import { SalesPipelineReportComponent } from './kpi-report/sales-pipeline-report
 
 @NgModule({
   declarations: [
-    AppComponent,
-    SalesPipelineReportComponent,
+    AppComponent
   ],
   imports: [
     BrowserModule,

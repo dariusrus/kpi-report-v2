@@ -2,6 +2,7 @@ package com.blc.kpiReport.service.ghl.models;
 
 import com.blc.kpiReport.schema.ghl.PipelineStage;
 import com.blc.kpiReport.repository.ghl.PipelineStageRepository;
+import com.blc.kpiReport.schema.ghl.SalesPersonConversation;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,5 +22,9 @@ public class PipelineStageService {
 
     public void deleteByGoHighLevelReportId(Long goHighLevelReportId) {
         repository.deleteByGoHighLevelReport_Id(goHighLevelReportId);
+    }
+
+    public List<PipelineStage> findAllByGoHighLevelReportId(Long goHighLevelReportId) {
+        return repository.findAllByGoHighLevelReport_Id(goHighLevelReportId);
     }
 }

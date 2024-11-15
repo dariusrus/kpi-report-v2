@@ -28,7 +28,7 @@
           <td>{{ leadSource.source }}</td>
           <td class="align-center">
             <p-tag class="primary-tag" *ngIf="leadSource.leadType === 'Website Lead'" icon="pi pi-home" severity="secondary" value="{{ leadSource.leadType.toUpperCase() }}" />
-            <p-tag class="secondary-tag" *ngIf="leadSource.leadType === 'Manual User Input'" icon="pi pi-user-edit" value="{{ leadSource.leadType.toUpperCase() }}" />
+            <p-tag class="secondary-tag" *ngIf="leadSource.leadType === 'Manual User Input'" icon="pi pi-ghlUser-edit" value="{{ leadSource.leadType.toUpperCase() }}" />
           </td>
           <td [class.zero-value]="leadSource.totalLeads === 0" class="align-right">{{ leadSource.totalLeads }}</td>
           <td [class.zero-value]="leadSource.totalValues === 0" class="align-right">{{ leadSource.totalValues | currency : 'USD' }}</td>
@@ -56,20 +56,20 @@
                     <th pSortableColumn="ownerName">Owner</th>
                   </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-contact>
+                <ng-template pTemplate="body" let-ghlContact>
                   <tr>
                     <td class="align-center">
-                      <div [ngStyle]="{'background-color': SharedUtil.getRandomColor(contact.contactName)}"
+                      <div [ngStyle]="{'background-color': SharedUtil.getRandomColor(ghlContact.contactName)}"
                            class="avatar-icon">
-                        {{ SharedUtil.getInitials(contact.contactName) }}
+                        {{ SharedUtil.getInitials(ghlContact.contactName) }}
                       </div>
                     </td>
-                    <td class="align-left">{{ contact.contactName }}</td>
-                    <td>{{ contact.contactSource }}</td>
-<!--                    <td>{{ contact.createdBySource }}</td>-->
+                    <td class="align-left">{{ ghlContact.contactName }}</td>
+                    <td>{{ ghlContact.contactSource }}</td>
+<!--                    <td>{{ ghlContact.createdBySource }}</td>-->
                     <td>
-                      <ng-container *ngIf="contact.attributionSource; else noAttribution">
-                        <ng-container *ngFor="let source of contact.attributionSource.split(',')">
+                      <ng-container *ngIf="ghlContact.attributionSource; else noAttribution">
+                        <ng-container *ngFor="let source of ghlContact.attributionSource.split(',')">
                           <p-chip class="me-1">
                             <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ source }}</span>
                           </p-chip>
@@ -79,20 +79,20 @@
                         -
                       </ng-template>
                     </td>
-<!--                    <td>{{ contact.attributionMedium || '-' }}</td>-->
-                    <td>{{ contact.dateAdded }}</td>
+<!--                    <td>{{ ghlContact.attributionMedium || '-' }}</td>-->
+                    <td>{{ ghlContact.dateAdded }}</td>
                     <td>
-                      <p-tag [value]="contact.status" [severity]="getStatusSeverity(contact.status)" />
+                      <p-tag [value]="ghlContact.status" [severity]="getStatusSeverity(ghlContact.status)" />
                     </td>
                     <td>
-                      <span *ngIf="contact.ownerName && contact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
-                        image="{{ contact.ownerPhotoUrl }}"
+                      <span *ngIf="ghlContact.ownerName && ghlContact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                        image="{{ ghlContact.ownerPhotoUrl }}"
                         [style]="{ 'margin-right': '12px'}"
-                        shape="circle"/> {{ contact.ownerName }}</span>
-                      <span *ngIf="contact.ownerName && !contact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
-                        label="{{ SharedUtil.getFirstLetter(contact.ownerName) }}" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
-                        shape="circle"/> {{ contact.ownerName }}</span>
-                      <span *ngIf="!contact.ownerName" class="d-flex align-items-center"><p-avatar
+                        shape="circle"/> {{ ghlContact.ownerName }}</span>
+                      <span *ngIf="ghlContact.ownerName && !ghlContact.ownerPhotoUrl" class="d-flex align-items-center"><p-avatar
+                        label="{{ SharedUtil.getFirstLetter(ghlContact.ownerName) }}" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
+                        shape="circle"/> {{ ghlContact.ownerName }}</span>
+                      <span *ngIf="!ghlContact.ownerName" class="d-flex align-items-center"><p-avatar
                         label="U" [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
                         shape="circle"/> Unassigned</span>
                     </td>

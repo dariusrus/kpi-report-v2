@@ -7,9 +7,9 @@ import {LegendPosition} from "@swimlane/ngx-charts";
 import {CityAnalytics} from "../../models/ga/city-analytics";
 
 @Component({
-  selector: 'app-contact-channels',
-  templateUrl: './contact-channels.component.html',
-  styleUrl: './contact-channels.component.css',
+  selector: 'app-ghlContact-channels',
+  templateUrl: './ghlContact-channels.component.html',
+  styleUrl: './ghlContact-channels.component.css',
   animations: [dropInAnimation]
 })
 export class ContactChannelsComponent implements OnInit {
@@ -86,9 +86,9 @@ export class ContactChannelsComponent implements OnInit {
       if (previousReport.websiteLead?.leadSource) {
         const previousMonth = SharedUtil.formatMonthAndYear(previousReport.monthAndYear);
         previousReport.websiteLead.leadSource.forEach(source => {
-          source.leadContacts?.forEach(contact => {
-            if (!contact.attributionSource) return;
-            const firstAttribution = contact.attributionSource.split(',')[0].trim();
+          source.leadContacts?.forEach(ghlContact => {
+            if (!ghlContact.attributionSource) return;
+            const firstAttribution = ghlContact.attributionSource.split(',')[0].trim();
             if (!isValidAttribution(firstAttribution)) return;
 
             if (!attributionData[firstAttribution]) {
@@ -110,9 +110,9 @@ export class ContactChannelsComponent implements OnInit {
     });
 
     currentData.websiteLead?.leadSource.forEach(source => {
-      source.leadContacts?.forEach(contact => {
-        if (!contact.attributionSource) return;
-        const firstAttribution = contact.attributionSource.split(',')[0].trim();
+      source.leadContacts?.forEach(ghlContact => {
+        if (!ghlContact.attributionSource) return;
+        const firstAttribution = ghlContact.attributionSource.split(',')[0].trim();
         const currentMonth = SharedUtil.formatMonthAndYear(currentData.monthAndYear);
         if (!isValidAttribution(firstAttribution)) return;
 

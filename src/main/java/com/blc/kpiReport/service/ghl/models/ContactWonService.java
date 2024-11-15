@@ -2,6 +2,7 @@ package com.blc.kpiReport.service.ghl.models;
 
 import com.blc.kpiReport.schema.ghl.ContactWon;
 import com.blc.kpiReport.repository.ghl.ContactWonRepository;
+import com.blc.kpiReport.schema.ghl.LeadSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,5 +22,9 @@ public class ContactWonService {
 
     public void deleteByGoHighLevelReportId(Long goHighLevelReportId) {
         repository.deleteByGoHighLevelReport_Id(goHighLevelReportId);
+    }
+
+    public List<ContactWon> findAllByGoHighLevelReportId(Long goHighLevelReportId) {
+        return repository.findAllByGoHighLevelReport_Id(goHighLevelReportId);
     }
 }

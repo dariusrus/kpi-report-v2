@@ -5,6 +5,7 @@ import com.blc.kpiReport.models.response.ghl.SalesPersonConversationResponse;
 import com.blc.kpiReport.schema.ghl.ConversationMessage;
 import com.blc.kpiReport.schema.ghl.SalesPersonConversation;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,13 +25,13 @@ public class SalesPersonConversationMapper {
                 .collect(Collectors.toList());
 
         return SalesPersonConversationResponse.builder()
-                .salesPersonId(conversation.getSalesPersonId())
-                .salesPersonName(conversation.getSalesPersonName())
-                .ownerPhotoUrl(conversation.getOwnerPhotoUrl())
-                .contactId(conversation.getContactId())
-                .contactName(conversation.getContactName())
-                .contactEmail(conversation.getContactEmail())
-                .contactPhone(conversation.getContact_phone())
+                .salesPersonId(ObjectUtils.isEmpty(conversation.getGhlUser()) ? "" : conversation.getGhlUser().getUserId())
+                .salesPersonName(ObjectUtils.isEmpty(conversation.getGhlUser()) ? "" : conversation.getGhlUser().getName())
+                .ownerPhotoUrl(ObjectUtils.isEmpty(conversation.getGhlUser()) ? "" : conversation.getGhlUser().getPhotoUrl())
+                .contactId(conversation.getGhlContact().getGhlId())
+                .contactName(conversation.getGhlContact().getName())
+                .contactEmail(conversation.getGhlContact().getEmail())
+                .contactPhone(conversation.getGhlContact().getPhone())
                 .lastManualMessageDate(conversation.getLastManualMessageDate())
                 .lastMessageType(conversation.getLastMessageType())
                 .conversationMessages(messageResponses)

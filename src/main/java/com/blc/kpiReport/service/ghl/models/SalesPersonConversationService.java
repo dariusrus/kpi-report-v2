@@ -24,4 +24,8 @@ public class SalesPersonConversationService {
     public void deleteByGoHighLevelReportId(Long goHighLevelReportId) {
         repository.deleteByGoHighLevelReport_Id(goHighLevelReportId);
     }
+
+    public List<SalesPersonConversation> findAllByGoHighLevelReportId(Long goHighLevelReportId) {
+        return repository.findAllByGoHighLevelReport_Id(goHighLevelReportId);
+    }
 }

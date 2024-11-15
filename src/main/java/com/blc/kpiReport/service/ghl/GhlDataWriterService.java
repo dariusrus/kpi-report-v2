@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -22,12 +23,46 @@ public class GhlDataWriterService {
     private final AppointmentService appointmentService;
     private final PipelineStageService pipelineStageService;
     private final ContactWonService contactWonService;
+    private final SalesPersonConversionService salesPersonConversionService;
     private final SalesPersonConversationService salesPersonConversationService;
     private final ConversationMessageService conversationMessageService;
+    private final GhlContactService ghlContactService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteGhlApiData(GoHighLevelReport goHighLevelReport) {
         var id = goHighLevelReport.getId();
+
+        List<GhlContact> contactsToDelete = new ArrayList<>();
+
+        contactsToDelete.addAll(leadSourceService.findAllByGoHighLevelReportId(id).stream()
+                .flatMap(leadSource -> leadSource.getLeadContacts().stream())
+                .map(LeadContact::getGhlContact)
+                .filter(contact -> contact != null)
+                .collect(Collectors.toList()));
+
+        contactsToDelete.addAll(contactWonService.findAllByGoHighLevelReportId(id).stream()
+                .map(ContactWon::getGhlContact)
+                .filter(contact -> contact != null)
+                .collect(Collectors.toList()));
+
+        contactsToDelete.addAll(salesPersonConversationService.findAllByGoHighLevelReportId(id).stream()
+                .map(SalesPersonConversation::getGhlContact)
+                .filter(contact -> contact != null)
+                .collect(Collectors.toList()));
+
+        contactsToDelete.addAll(pipelineStageService.findAllByGoHighLevelReportId(id).stream()
+                .flatMap(pipelineStage -> pipelineStage.getSalesPersonConversions().stream())
+                .flatMap(conversion -> conversion.getConvertedGhlContacts().stream())
+                .filter(contact -> contact != null)
+                .collect(Collectors.toList()));
+
+        contactsToDelete = contactsToDelete.stream().distinct().collect(Collectors.toList());
+
+        if (!contactsToDelete.isEmpty()) {
+            log.info("Deleting {} GHL contacts associated with GoHighLevelReport ID: {}", contactsToDelete.size(), id);
+            ghlContactService.deleteAll(contactsToDelete);
+        }
+
         leadSourceService.deleteByGoHighLevelReportId(id);
         calendarService.deleteByGoHighLevelReportId(id);
         pipelineStageService.deleteByGoHighLevelReportId(id);
@@ -36,8 +71,43 @@ public class GhlDataWriterService {
         log.info("Successfully deleted data for GoHighLevelReport with ID: {}", id);
     }
 
+    private void saveGhlContacts(GhlReportData ghlReportData) {
+        List<GhlContact> contacts = new ArrayList<>();
+
+        ghlReportData.getContactsWon().forEach(contactWon -> {
+            if (contactWon.getGhlContact() != null) {
+                contacts.add(contactWon.getGhlContact());
+            }
+        });
+
+        ghlReportData.getLeadSources().forEach(leadSource -> {
+            leadSource.getLeadContacts().forEach(leadContact -> {
+                if (leadContact.getGhlContact() != null) {
+                    contacts.add(leadContact.getGhlContact());
+                }
+            });
+        });
+
+        ghlReportData.getSalesPersonConversations().forEach(conversation -> {
+            if (conversation.getGhlContact() != null) {
+                contacts.add(conversation.getGhlContact());
+            }
+        });
+
+        List<GhlContact> uniqueContacts = contacts.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (!uniqueContacts.isEmpty()) {
+            log.info("Saving {} unique GHL contacts", uniqueContacts.size());
+            ghlContactService.saveAll(uniqueContacts);
+        }
+    }
+
     public GhlReportData saveGhlData(GhlReportData ghlReportData) {
         log.info("Saving GHL report data...");
+
+        saveGhlContacts(ghlReportData);
 
         GhlReportData savedData = GhlReportData.builder()
             .leadSources(saveLeadSources(ghlReportData.getLeadSources()))
@@ -81,7 +151,27 @@ public class GhlDataWriterService {
 
     private List<PipelineStage> savePipelineStages(List<PipelineStage> pipelineStages) {
         log.info("Saving {} pipeline stages", pipelineStages.size());
-        return pipelineStageService.saveAll(pipelineStages);
+
+        List<PipelineStage> savedPipelineStages = pipelineStageService.saveAll(pipelineStages);
+
+        for (PipelineStage pipelineStage : savedPipelineStages) {
+            List<SalesPersonConversion> salesPersonConversions = pipelineStage.getSalesPersonConversions();
+            if (salesPersonConversions != null && !salesPersonConversions.isEmpty()) {
+                for (SalesPersonConversion conversion : salesPersonConversions) {
+                    if (conversion.getConvertedGhlContacts() != null && !conversion.getConvertedGhlContacts().isEmpty()) {
+                        for (GhlContact contact : conversion.getConvertedGhlContacts()) {
+                            contact.setSalesPersonConversion(conversion);
+                        }
+
+                        log.info("Saving {} GHL contacts for SalesPersonConversion ID: {}",
+                                conversion.getConvertedGhlContacts().size(), conversion.getId());
+                        ghlContactService.saveAll(conversion.getConvertedGhlContacts());
+                    }
+                }
+                salesPersonConversionService.saveAll(salesPersonConversions);
+            }
+        }
+        return savedPipelineStages;
     }
 
     private List<ContactWon> saveContactsWon(List<ContactWon> contactsWon) {

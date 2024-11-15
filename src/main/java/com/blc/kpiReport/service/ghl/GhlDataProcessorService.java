@@ -5,7 +5,10 @@ import com.blc.kpiReport.models.pojo.GhlReportData;
 import com.blc.kpiReport.models.pojo.PipelineStageInfo;
 import com.blc.kpiReport.schema.ghl.Calendar;
 import com.blc.kpiReport.schema.ghl.*;
+import com.blc.kpiReport.service.ghl.models.GhlContactService;
+import com.blc.kpiReport.service.ghl.models.GhlUserService;
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class GhlDataProcessorService {
 
     public static final String[] websiteLeadSource = new String[] {
@@ -35,19 +39,53 @@ public class GhlDataProcessorService {
     public static final String WEBSITE_LEAD = "Website Lead";
     public static final String MANUAL_USER_INPUT = "Manual User Input";
     public static final String UNSPECIFIED = "Unspecified";
+    public static final Set<String> allowedMessageTypes = Set.of("TYPE_CALL", "TYPE_SMS", "TYPE_EMAIL", "TYPE_LIVE_CHAT");
+
+    private final GhlContactService ghlContactService;
+    private final GhlUserService ghlUserService;
 
     public GhlReportData processGhlData(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
         log.info("Processing GHL data for report: {}", goHighLevelReport.getId());
+
+        Map<String, GhlUser> ghlUsers = preProcessGhlUsers(ghlApiData, goHighLevelReport);
+
         GhlReportData reportData = GhlReportData.builder()
-            .leadSources(processLeadSources(ghlApiData, goHighLevelReport))
+            .leadSources(processLeadSources(ghlApiData, goHighLevelReport, ghlUsers))
             .calendars(processAppointments(ghlApiData, goHighLevelReport))
-            .pipelineStages(processPipelineStages(ghlApiData, goHighLevelReport))
+            .pipelineStages(processPipelineStages(ghlApiData, goHighLevelReport, ghlUsers))
             .contactsWon(processContactsWon(ghlApiData, goHighLevelReport))
-            .salesPersonConversations(processSalesPersonConversations(ghlApiData, goHighLevelReport))
+            .salesPersonConversations(processSalesPersonConversations(ghlApiData, goHighLevelReport, ghlUsers))
             .build();
 
         log.info("GHL data processing completed successfully for report: {}", goHighLevelReport.getId());
         return reportData;
+    }
+
+    private Map<String, GhlUser> preProcessGhlUsers(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+        log.debug("Preprocessing sales persons for report: {}", goHighLevelReport.getId());
+        Map<String, JsonNode> ownerMap = ghlApiData.getOwnerMap();
+        Map<String, GhlUser> ghlUserMap = new HashMap<>();
+
+        for (Map.Entry<String, JsonNode> entry : ownerMap.entrySet()) {
+            String userId = entry.getKey();
+            JsonNode ownerNode = entry.getValue();
+            String name = ownerNode.path("name").asText("Unknown");
+            String photoUrl = ownerNode.path("profilePhoto").asText("");
+
+            GhlUser ghlUser = ghlUserService.findByUserId(userId)
+                    .orElse(GhlUser.builder()
+                            .userId(userId)
+                            .ghlLocation(goHighLevelReport.getKpiReport().getGhlLocation())
+                            .build());
+
+            ghlUser.setName(name);
+            ghlUser.setPhotoUrl(photoUrl);
+            ghlUser = ghlUserService.saveOrUpdate(ghlUser);
+            ghlUserMap.put(userId, ghlUser);
+        }
+
+        log.debug("Preprocessed {} sales persons for report: {}", ghlUserMap.size(), goHighLevelReport.getId());
+        return ghlUserMap;
     }
 
     private String formatString(String input) {
@@ -64,11 +102,10 @@ public class GhlDataProcessorService {
         }
     }
 
-    private List<LeadSource> processLeadSources(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+    private List<LeadSource> processLeadSources(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport, Map<String, GhlUser> ghlUserMap) {
         log.debug("Processing lead sources for report: {}", goHighLevelReport.getId());
         Map<String, LeadSource> leadSourceMap = new HashMap<>();
         var contactMap = ghlApiData.getCreatedAtContactMap();
-        var ownerMap = ghlApiData.getOwnerMap();
 
         for (JsonNode opportunity : ghlApiData.getCreatedAtOpportunityList()) {
             log.trace("Processing opportunity: {}", opportunity);
@@ -126,20 +163,29 @@ public class GhlDataProcessorService {
 
             leadSourceMap.put(source, leadSource);
 
-            var ownerNode = ownerMap.get(opportunity.path("assignedTo").asText());
+            String contactId = contactNode.path("id").asText();
+            String contactName = contactNode.path("firstName").asText() + " " + contactNode.path("lastName").asText();
+            String contactEmail = contactNode.path("email").asText();
+            String contactPhone = contactNode.path("phone").asText();
+
+            GhlContact ghlContact = ghlContactService.saveOrUpdate(GhlContact.builder()
+                    .ghlId(contactId)
+                    .name(contactName)
+                    .email(contactEmail)
+                    .phone(contactPhone)
+                    .build());
 
             var leadContact = LeadContact.builder()
-                .contactName(opportunity.path("contact").path("name").asText())
+                .ghlContact(ghlContact)
+                .contactName(ghlContact.getName())
                 .contactSource(contactNode.path("source").asText())
                 .createdBySource(contactNode.path("createdBy").path("source").asText())
                 .attributionSource(attributionSource)
                 .attributionMedium(attributionMedium)
                 .dateAdded(contactNode.path("dateAdded").asText().substring(0, 10))
-                .ownerName(ownerNode != null ? ownerNode.path("name").asText() : "")
-                .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
+                .ghlUser(ghlUserMap.get(opportunity.path("assignedTo").asText()))
                 .status(opportunity.path("status").asText().toUpperCase())
                 .build();
-
             leadSource.getLeadContacts().add(leadContact);
             leadContact.setLeadSource(leadSource);
         }
@@ -230,19 +276,17 @@ public class GhlDataProcessorService {
         leadSource.setLeadType(MANUAL_USER_INPUT);
     }
 
-    public List<SalesPersonConversation> processSalesPersonConversations(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+    public List<SalesPersonConversation> processSalesPersonConversations(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport,
+                                                                         Map<String, GhlUser> ghlUserMap) {
         List<SalesPersonConversation> salesPersonConversations = new ArrayList<>();
 
         Map<JsonNode, List<JsonNode>> conversationsMap = ghlApiData.getConversationsMap();
-        Map<String, JsonNode> ownerMap = ghlApiData.getOwnerMap();
 
         for (Map.Entry<JsonNode, List<JsonNode>> entry : conversationsMap.entrySet()) {
             JsonNode conversationNode = entry.getKey();
             List<JsonNode> messages = entry.getValue();
 
             String salesPersonId = conversationNode.path("assignedTo").asText();
-            JsonNode ownerNode = ownerMap.get(salesPersonId);
-            String salesPersonName = ownerNode != null ? ownerNode.path("name").asText() : "Unknown";
 
             String contactId = conversationNode.path("contactId").asText();
             String contactName = conversationNode.path("contactName").asText();
@@ -253,16 +297,17 @@ public class GhlDataProcessorService {
                     ? Instant.ofEpochMilli(conversationNode.path("lastManualMessageDate").asLong()) : null;
             String lastMessageType = conversationNode.path("lastMessageType").asText();
 
+            GhlContact ghlContact = ghlContactService.saveOrUpdate(GhlContact.builder()
+                    .ghlId(contactId)
+                    .name(contactName)
+                    .email(contactEmail)
+                    .phone(contactPhone)
+                    .build());
             SalesPersonConversation salesPersonConversation = SalesPersonConversation.builder()
-                    .salesPersonId(salesPersonId)
-                    .salesPersonName(salesPersonName)
-                    .contactId(contactId)
-                    .contactName(contactName)
-                    .contactEmail(contactEmail)
-                    .contact_phone(contactPhone)
+                    .ghlContact(ghlContact)
                     .lastManualMessageDate(lastManualMessageDate)
                     .lastMessageType(lastMessageType)
-                    .ownerPhotoUrl(ownerNode != null ? ownerNode.path("profilePhoto").asText() : "")
+                    .ghlUser(ghlUserMap.get(salesPersonId))
                     .goHighLevelReport(goHighLevelReport)
                     .build();
 
@@ -273,11 +318,16 @@ public class GhlDataProcessorService {
                 String direction = messageNode.path("direction").asText();
                 String status = messageNode.path("status").asText();
                 String body = messageNode.path("body").asText();
+                String source = messageNode.path("source").asText();
                 Instant dateAdded = Instant.parse(messageNode.path("dateAdded").asText());
 
-                if ("TYPE_CALL".equals(messageType) || "TYPE_SMS".equals(messageType) ||
-                        "TYPE_EMAIL".equals(messageType) || "TYPE_LIVE_CHAT".equals(messageType)) {
+                if ("TYPE_CALL".equals(messageType) && messageNode.has("meta") &&
+                        messageNode.path("meta").has("call") &&
+                        messageNode.path("meta").path("call").path("duration").isNull()) {
+                    continue;
+                }
 
+                if (allowedMessageTypes.contains(messageType) && !"workflow".equals(source)) {
                     int callDuration = 0;
                     if ("TYPE_CALL".equals(messageType) && messageNode.has("meta") &&
                             messageNode.path("meta").has("call")) {
@@ -315,14 +365,12 @@ public class GhlDataProcessorService {
             JsonNode calendarJsonNode = entry.getKey();
             List<JsonNode> appointmentJsonNodes = entry.getValue();
 
-            // Create Calendar object
             Calendar calendar = Calendar.builder()
                 .calendarGhlId(calendarJsonNode.get("id").asText())
                 .calendarName(calendarJsonNode.get("name").asText())
                 .goHighLevelReport(goHighLevelReport)
                 .build();
 
-            // Process appointments within the current calendar
             Map<String, Integer> statusCountMap = new HashMap<>();
 
             for (JsonNode appointmentNode : appointmentJsonNodes) {
@@ -348,7 +396,6 @@ public class GhlDataProcessorService {
             }
             appointments.sort(Comparator.comparing(Appointment::getStatus));
 
-            // Assign the appointments to the calendar
             calendar.setAppointments(appointments);
             calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
             calendars.add(calendar);
@@ -360,11 +407,11 @@ public class GhlDataProcessorService {
         return calendars;
     }
 
-    private List<PipelineStage> processPipelineStages(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
+    private List<PipelineStage> processPipelineStages(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport,
+                                                      Map<String, GhlUser> ghlUserMap) {
         log.debug("Processing pipeline stages for report: {}", goHighLevelReport.getId());
         Map<String, PipelineStageInfo> pipelineStageMap = new HashMap<>();
         Map<String, Map<String, SalesPersonConversion>> salesPersonConversionMap = new HashMap<>();
-        var ownerMap = ghlApiData.getOwnerMap();
 
         for (JsonNode pipelineNode : ghlApiData.getPipelineJson().path("pipelines")) {
             String pipelineName = pipelineNode.path("name").asText();
@@ -393,20 +440,36 @@ public class GhlDataProcessorService {
             stageMonetaryValueMap.put(stageId, stageMonetaryValueMap.getOrDefault(stageId, 0.0) + monetaryValue);
             pipelineTotalCountMap.put(pipelineName, pipelineTotalCountMap.getOrDefault(pipelineName, 0) + 1);
 
-            String salesPersonId = opportunity.path("assignedTo").asText();
-            var ownerNode = ownerMap.get(salesPersonId);
-            String salesPersonName = ownerNode != null ? ownerNode.path("name").asText() : "Unknown";
+            GhlUser ghlUser = ghlUserMap.get(opportunity.path("assignedTo").asText());
+            if (ghlUser == null) {
+                continue;
+            }
+
+            JsonNode contactNode = opportunity.path("contact");
+            if (contactNode.isMissingNode()) {
+                log.warn("Contact information is missing for opportunity: {}", opportunity);
+                continue;
+            }
+
+            GhlContact ghlContact = GhlContact.builder()
+                    .ghlId(contactNode.path("id").asText())
+                    .name(contactNode.path("name").asText())
+                    .email(contactNode.path("email").asText(null))
+                    .phone(contactNode.path("phone").asText(null))
+                    .build();
 
             Map<String, SalesPersonConversion> stageSalesMap = salesPersonConversionMap.get(stageId);
-            SalesPersonConversion conversion = stageSalesMap.getOrDefault(salesPersonId, SalesPersonConversion.builder()
-                    .salesPersonId(salesPersonId)
-                    .salesPersonName(salesPersonName)
+            SalesPersonConversion conversion = stageSalesMap.getOrDefault(ghlUser.getUserId(), SalesPersonConversion.builder()
                     .count(0)
                     .monetaryValue(0.0)
+                    .ghlUser(ghlUser)
+                    .convertedGhlContacts(new ArrayList<>())
                     .build());
+
+            conversion.getConvertedGhlContacts().add(ghlContact);
             conversion.setCount(conversion.getCount() + 1);
             conversion.setMonetaryValue(conversion.getMonetaryValue() + monetaryValue);
-            stageSalesMap.put(salesPersonId, conversion);
+            stageSalesMap.put(ghlUser.getUserId(), conversion);
         }
 
         List<PipelineStage> pipelineStages = new ArrayList<>();
@@ -438,9 +501,8 @@ public class GhlDataProcessorService {
                     .build();
 
             for (SalesPersonConversion conversion : salesPersonConversions) {
-                conversion.setPipelineStage(pipelineStage);  // Ensure each conversion references its parent stage
+                conversion.setPipelineStage(pipelineStage);
             }
-
             pipelineStages.add(pipelineStage);
         }
 
@@ -464,13 +526,24 @@ public class GhlDataProcessorService {
                 var opportunityContactNode = opportunity.path("contact");
                 var contactNode = contactMap.get(opportunity.path("contact").path("id").asText());
 
-                var contactName = opportunityContactNode.path("name").asText();
                 var source = contactNode.path("source").asText();
                 var attributionSource = getAttributionSources(opportunity);
 
+                String contactId = contactNode.path("id").asText();
+                String contactName = contactNode.path("firstName").asText() + " " + contactNode.path("lastName").asText();
+                String contactEmail = contactNode.path("email").asText();
+                String contactPhone = contactNode.path("phone").asText();
+
+                GhlContact ghlContact = ghlContactService.saveOrUpdate(GhlContact.builder()
+                        .ghlId(contactId)
+                        .name(contactName)
+                        .email(contactEmail)
+                        .phone(contactPhone)
+                        .build());
+
                 if (!processedContactNames.contains(contactName)) {
                     ContactWon contactWon = ContactWon.builder()
-                        .contactName(contactName)
+                        .ghlContact(ghlContact)
                         .source(source)
                         .attributionSource(attributionSource)
                         .goHighLevelReport(goHighLevelReport)

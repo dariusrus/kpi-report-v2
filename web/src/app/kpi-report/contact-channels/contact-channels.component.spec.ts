@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ContactChannelsComponent } from './contact-channels.component';
+import { ContactChannelsComponent } from './ghlContact-channels.component';
 
 describe('LeadValuationComponent', () => {
   let component: ContactChannelsComponent;
