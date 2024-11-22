@@ -170,26 +170,14 @@ export class SalesPersonConversationsComponent implements OnInit {
       case 'SMS':
         return '#49D025';
       case 'E-mail':
-        return '#259ED0';
-      case 'Call':
         return '#AD25D0';
+      case 'Call':
+        return '#259ED0';
       case 'Live Chat':
         return '#CDCC32';
       default:
         return 'pi pi-info-circle';
     }
-  }
-
-  titleCase(input: string): string {
-    if (!input) return '';
-
-    return input
-      .split(' ')
-      .map(word => {
-        // Ignore words that start with a digit
-        return /^[0-9]/.test(word) ? word : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      })
-      .join(' ');
   }
 
   getDirectionIcon(direction: string): string {

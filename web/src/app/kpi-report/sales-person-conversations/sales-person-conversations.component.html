@@ -131,7 +131,7 @@
                 [innerHTML]="SharedUtil.getInitialsWithPhone(conversation.contactName)"
               ></div>
             </td>
-            <td>{{ titleCase(conversation.contactName) }}</td>
+            <td>{{ SharedUtil.titleCase(conversation.contactName) }}</td>
             <td>{{ SharedUtil.handleEmptyString(conversation.contactEmail) }}</td>
 <!--            <td>{{ conversation.contactPhone }}</td>-->
             <td class="align-center">
@@ -178,7 +178,7 @@
                         {{ formatDuration(event.callDuration) }}
                       </div>
                       <div *ngIf="!event.direction && event.messageType === 'E-mail'" class="message-card-email">
-                        <span style="font-style: italic">Email sent to {{ titleCase(conversation.contactName) }}</span>
+                        <span style="font-style: italic">Email sent to {{ SharedUtil.titleCase(conversation.contactName) }}</span>
                       </div>
                       <div class="message-card-body">
                         {{ event.messageBody }}

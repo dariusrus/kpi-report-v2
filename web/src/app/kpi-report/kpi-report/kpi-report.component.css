@@ -557,6 +557,11 @@
   font-weight: 500;
 }
 
+.pipeline-td {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
 
 .dropdown-row {
   display: flex;
@@ -568,7 +573,7 @@
 
 .performance-index-td {
   display: flex;
-  justify-content: flex-end
+  justify-content: flex-start;
 }
 
 .performance-index-td > .pi {
@@ -587,6 +592,7 @@
 .conversion-rate {
   display: flex;
   align-items: center;
+  margin: 0;
 }
 
 .conversion-chip {
@@ -602,6 +608,19 @@
   color: #ff4d4f;
 }
 
+.sales-person-tr > td {
+  background-color: #f8f8f8;
+  transform: translateY(-1px);
+}
+
+.sales-person-td {
+  justify-content: start;
+}
+
+.contact-avatar {
+  width: 12px;
+}
+
 /* info tooltips */
 .pi-question-circle {
   color: dimgray;
@@ -612,3 +631,59 @@
 .font-bold-info {
   font-weight: 500;
 }
+
+/* sales pipeline report */
+
+.performance-index-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+.conversion-count {
+  position: relative; /* Enables absolute positioning for the index chip */
+  font-size: 2.5em; /* Main number size */
+  font-weight: bold;
+}
+
+.main-number {
+  display: inline-block;
+}
+
+.index-chip {
+  position: absolute; /* Absolute positioning to control placement */
+  top: 50%; /* Vertically center relative to the main number */
+  left: 100%; /* Start position relative to the main number */
+  margin-left: 12px; /* Distance between the main number and the chip */
+  transform: translateY(-50%); /* Ensure proper vertical alignment */
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-weight: 400;
+  font-size: 0.4em;
+}
+
+.index-chip.increase {
+  background-color: #e6f8e9;
+  color: #33b354;
+}
+
+.index-chip.decrease {
+  background-color: #f8e6e6;
+  color: #ff4d4f;
+}
+
+.pi-arrow-up {
+  color: #33b354;
+}
+
+.pi-arrow-down {
+  color: #ff4d4f;
+}
+
+.followup-label {
+  font-size: 1em;
+  color: #555;
+}
+

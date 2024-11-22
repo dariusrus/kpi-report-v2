@@ -7,9 +7,9 @@ import {LegendPosition} from "@swimlane/ngx-charts";
 import {CityAnalytics} from "../../models/ga/city-analytics";
 
 @Component({
-  selector: 'app-ghlContact-channels',
-  templateUrl: './ghlContact-channels.component.html',
-  styleUrl: './ghlContact-channels.component.css',
+  selector: 'app-contact-channels',
+  templateUrl: './contact-channels.component.html',
+  styleUrl: './contact-channels.component.css',
   animations: [dropInAnimation]
 })
 export class ContactChannelsComponent implements OnInit {
