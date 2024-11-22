@@ -9,6 +9,7 @@ import com.blc.kpiReport.schema.ghl.PipelineStage;
 import com.blc.kpiReport.schema.ghl.SalesPersonConversion;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,7 +69,10 @@ public class PipelineStageMapper {
                 .map(contact -> ContactResponse.builder()
                         .contactId(contact.getGhlId())
                         .contactName(contact.getName())
+                        .contactEmail(contact.getEmail())
+                        .contactPhone(contact.getPhone())
                         .build())
+                .sorted(Comparator.comparing(ContactResponse::getContactName))
                 .collect(Collectors.toList());
     }
 }

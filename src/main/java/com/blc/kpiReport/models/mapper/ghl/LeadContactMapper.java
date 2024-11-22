@@ -19,7 +19,7 @@ public class LeadContactMapper {
         GhlUser ghlUser = leadContact.getGhlUser();
 
         return LeadContactResponse.builder()
-                .contactName(leadContact.getGhlContact().getName())
+                .contactName(ghlUser != null ? leadContact.getGhlContact().getName() : "")
                 .contactSource(formatString(leadContact.getContactSource()))
                 .createdBySource(formatString(leadContact.getCreatedBySource()))
                 .attributionSource(leadContact.getAttributionSource())

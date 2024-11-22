@@ -12,11 +12,11 @@ public class ContactWonMapper {
 
     public ContactsWonResponse toResponse(ContactWon contactWon) {
         return ContactsWonResponse.builder()
-            .contactName(contactWon.getGhlContact().getName())
-            .contactEmail(contactWon.getGhlContact().getEmail())
-            .contactSource(contactWon.getSource())
-            .attributionSource(contactWon.getAttributionSource())
-            .build();
+                .contactName(contactWon.getGhlContact() != null && contactWon.getGhlContact().getName() != null ? contactWon.getGhlContact().getName() : "")
+                .contactEmail(contactWon.getGhlContact() != null && contactWon.getGhlContact().getEmail() != null ? contactWon.getGhlContact().getEmail() : "")
+                .contactSource(contactWon.getSource() != null ? contactWon.getSource() : "")
+                .attributionSource(contactWon.getAttributionSource() != null ? contactWon.getAttributionSource() : "")
+                .build();
     }
 
     public List<ContactsWonResponse> toResponseList(List<ContactWon> contactsWon) {

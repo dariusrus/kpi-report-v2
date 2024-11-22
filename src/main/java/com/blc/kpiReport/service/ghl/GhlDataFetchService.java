@@ -134,11 +134,10 @@ public class GhlDataFetchService {
 
                     for (JsonNode conversation : conversations) {
                         String type = conversation.path("type").asText();
-                        long dateUpdated = conversation.path("dateUpdated").asLong();
-                        log.debug("Processing conversation ID: {}, type: {}, dateUpdated: {}", conversation.path("id").asText(), type, dateUpdated);
+//                        long dateUpdated = conversation.path("dateUpdated").asLong();
+                        log.debug("Processing conversation ID: {}, type: {}", conversation.path("id").asText(), type);
 
-                        if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL")) &&
-                                dateUpdated >= epochStartDate && dateUpdated <= epochEndDate) {
+                        if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL"))) {
 
                             List<JsonNode> messages;
                             try {
@@ -153,12 +152,17 @@ public class GhlDataFetchService {
                             conversationsWithMessages.put(conversation, messages);
                         }
 
-                        if (dateUpdated > epochEndDate) {
+//                        if (dateUpdated > epochEndDate) {
+//                            log.info("Date updated exceeds end date, stopping fetch.");
+//                            continueFetching = false;
+//                            break;
+//                        }
+                        startAfterDate = conversation.path("sort").get(0).asLong();
+                        if (startAfterDate > epochEndDate) {
                             log.info("Date updated exceeds end date, stopping fetch.");
                             continueFetching = false;
                             break;
                         }
-                        startAfterDate = conversation.path("sort").get(0).asLong();
                         log.debug("Updated startAfterDate for next request: {}", startAfterDate);
                     }
 
@@ -242,7 +246,7 @@ public class GhlDataFetchService {
                 hasNextPage = messagesContainer.path("nextPage").asBoolean();
                 lastMessageId = messagesContainer.path("lastMessageId").asText(null);
             } catch (IOException e) {
-                log.error("Failed to fetch messages for conversation ID: {}", conversationId);
+                log.error("Failed to fetch messages for conversation ID: {}. Exception: {}, Message: {}", conversationId, e.getClass().getSimpleName(), e.getMessage());
                 throw e;
             }
 

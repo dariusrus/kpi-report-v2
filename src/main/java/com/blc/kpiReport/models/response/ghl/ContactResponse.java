@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class ContactResponse {
     private String contactId;
     private String contactName;
+    private String contactEmail;
+    private String contactPhone;
 }
