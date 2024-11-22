@@ -202,3 +202,72 @@ app-kpi-report .message-card-date {
   color: #999;
 }
 
+/* General styles for disabled appearance */
+app-kpi-report p-button.dynamic-button > button {
+  pointer-events: none; /* Disable interaction */
+  margin-right: 10px; /* Add spacing between buttons */
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+app-kpi-report p-button.dynamic-button.disabled > button {
+  background-color: #BBBBBBFF !important;
+  border-color: #BBBBBBFF !important;
+ }
+
+/* SMS Button */
+app-kpi-report p-button.dynamic-button.sms-button > button {
+  background-color: #40A96C;
+  border-color: #40A96C;
+  color: white;
+}
+
+/* Email Button */
+app-kpi-report p-button.dynamic-button.email-button > button {
+  background-color: #A9407C;
+  border-color: #A9407C;
+  color: white;
+}
+
+/* Call Button */
+app-kpi-report p-button.dynamic-button.call-button > button {
+  background-color: #4047A9;
+  border-color: #4047A9;
+  color: white;
+}
+
+/* Live Chat Button */
+app-kpi-report p-button.dynamic-button.live-chat-button > button {
+  background-color: #A9A140;
+  border-color: #A9A140;
+  color: white;
+}
+
+/* SMS Button */
+app-kpi-report p-button.dynamic-button.contact.sms-button > button {
+  background-color: #55AD7AFF;
+  border-color: #55AD7AFF;
+  color: white;
+}
+
+/* Email Button */
+app-kpi-report p-button.dynamic-button.contact.email-button > button {
+  background-color: #AB5282FF;
+  border-color: #AB5282FF;
+  color: white;
+}
+
+/* Call Button */
+app-kpi-report p-button.dynamic-button.contact.call-button > button {
+  background-color: #555AADFF;
+  border-color: #555AADFF;
+  color: white;
+}
+
+/* Live Chat Button */
+app-kpi-report p-button.dynamic-button.contact.live-chat-button > button {
+  background-color: #ADA653FF;
+  border-color: #ADA653FF;
+  color: white;
+}
+

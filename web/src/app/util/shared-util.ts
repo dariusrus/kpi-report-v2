@@ -118,4 +118,16 @@ export class SharedUtil {
   static handleEmptyString(input: string | null | undefined): string {
     return !input || input.trim().toLowerCase() === 'null' ? '-' : input;
   }
+
+  static titleCase(input: string): string {
+    if (!input) return '';
+
+    return input
+      .split(' ')
+      .map(word => {
+        // Ignore words that start with a digit
+        return /^[0-9]/.test(word) ? word : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  }
 }

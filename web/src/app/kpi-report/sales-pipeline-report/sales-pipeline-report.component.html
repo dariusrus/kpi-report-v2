@@ -78,20 +78,19 @@
           </div>
           <div class="report-data">
             <div class="performance-index-container">
-              <div class="performance-index-items">
-                <ng-container>
-                  <div class="performance-index-item-wrapper">
-                    <div class="performance-index-item">
-                      <div class="performance-index-value conversion-count">
-                        {{ totalConversions }}
-                      </div>
-                      <div class="performance-index-description">
-                        Stage Conversions
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
+              <div class="conversion-count">
+                <span class="main-number">{{ totalConversions }}</span>
+                <p-chip *ngIf="stageConversionIndex !== 0"
+                        [styleClass]="'index-chip ' + (stageConversionIndex > 0 ? 'increase' : 'decrease')">
+                <span class="conversion-rate" style="display: flex; align-items: center;">
+                  <i class="pi" style="font-size: 0.8em; margin-right: 4px;"
+                     [class.pi-arrow-up]="stageConversionIndex > 0"
+                     [class.pi-arrow-down]="stageConversionIndex < 0"></i>
+                  <span>{{ SharedUtil.formatToPercentage(stageConversionIndex) }}</span>
+                </span>
+                </p-chip>
               </div>
+              <div class="followup-label">Stage Conversions</div>
             </div>
             <ng-container>
               <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
@@ -121,26 +120,25 @@
           </div>
           <div class="report-data">
             <div class="performance-index-container">
-              <div class="performance-index-items">
-                <ng-container>
-                  <div class="performance-index-item-wrapper">
-                    <div class="performance-index-item">
-                      <div class="performance-index-value conversion-count">
-                        {{ totalConversions }}
-                      </div>
-                      <div class="performance-index-description">
-                        Stage Conversions
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
+              <div class="conversion-count">
+                <span class="main-number">{{ totalFollowups }}</span>
+                <p-chip *ngIf="followUpIndex !== 0"
+                        [styleClass]="'index-chip ' + (followUpIndex > 0 ? 'increase' : 'decrease')">
+                <span class="conversion-rate" style="display: flex; align-items: center;">
+                  <i class="pi" style="font-size: 0.8em; margin-right: 4px;"
+                     [class.pi-arrow-up]="followUpIndex > 0"
+                     [class.pi-arrow-down]="followUpIndex < 0"></i>
+                  <span>{{ SharedUtil.formatToPercentage(followUpIndex) }}</span>
+                </span>
+                </p-chip>
               </div>
+              <div class="followup-label">Follow-ups</div>
             </div>
             <ng-container>
               <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
                                     [view]="pieChartView"
                                     [scheme]="scheme"
-                                    [results]="data"
+                                    [results]="followupData"
                                     [gradient]="true"
                                     [maxLabelLength]="15"
                                     [trimLabels]="true"
@@ -151,6 +149,224 @@
             </ng-container>
           </div>
         </ng-container>
+      </div>
+    </div>
+  </div>
+  <div class="row report-row">
+    <div class="col-12">
+      <div class="report-container">
+        <div class="report-title">
+          Pipeline Stage Conversions
+        </div>
+        <div class="report-subtitle">
+          {{ reportData.monthAndYear }}
+        </div>
+        <div class="row">
+          <div class="col-12 report-data conversions">
+            <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.9em'}"
+                     dataKey="stageName"
+                     rowExpandMode="single"
+                     [responsiveLayout]="'scroll'" @fadeIn>
+              <ng-template pTemplate="body" let-stage let-expanded="expanded">
+                <tr>
+                  <td *ngIf="getSalesPersonDataForStage(stage).count > 0" style="width: 15px">
+                    <p-button
+                      type="button"
+                      pRipple
+                      [pRowToggler]="stage"
+                      [text]="true"
+                      [rounded]="true"
+                      [plain]="true"
+                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                    />
+                  </td>
+                  <td *ngIf="getSalesPersonDataForStage(stage).count === 0" style="width: 15px"></td>
+                  <td class="align-left" style="width: 50%">{{ stage.stageName }}</td>
+                  <td [class.zero-value]="getSalesPersonDataForStage(stage).count === 0"
+                      [class.font-bold]="getSalesPersonDataForStage(stage).count > 0"
+                      class="align-center pipeline-td" style="width: 10%">
+                    {{ getSalesPersonDataForStage(stage).count }}
+                  </td>
+                  <td class="align-left" style="width: 13%">
+                    <span class="performance-index-td">
+                      <p-chip *ngIf="getSalesPersonDataForStage(stage).performanceIndex !== 0" [styleClass]="'pl-0 pr-3 conversion-chip ' +
+                                (getSalesPersonDataForStage(stage).performanceIndex > 0 ? 'increase' :
+                                getSalesPersonDataForStage(stage).performanceIndex < 0 ? 'decrease' : '')">
+                          <span class="conversion-rate"
+                                [class.increase]="getSalesPersonDataForStage(stage).performanceIndex < 0"
+                                [class.decrease]="getSalesPersonDataForStage(stage).performanceIndex < 0"
+                                style="font-size: 0.9em; padding-top: 4px; padding-bottom: 4px; display: flex;">
+                            <i class="pi" style="font-size: 0.6em; margin-right: 4px;"
+                               [class.pi-arrow-down]="getSalesPersonDataForStage(stage).performanceIndex < 0"
+                               [class.pi-arrow-up]="getSalesPersonDataForStage(stage).performanceIndex > 0"
+                            ></i>
+                            <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(stage).performanceIndex) }}</span>
+                          </span>
+                      </p-chip>
+                    </span>
+                  </td>
+                  <td [class.zero-value]="getSalesPersonDataForStage(stage).monetaryValue === 0"
+                      class="align-right" style="width: 27%">
+                    {{ getSalesPersonDataForStage(stage).monetaryValue | currency }}
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="rowexpansion" let-stage>
+                <tr>
+                  <td colspan="5">
+                    <div class="p-3">
+                      <p-table
+                        [value]="getFilteredContacts(stage)"
+                        groupRowsBy="salesPerson.salesPersonId"
+                        rowGroupMode="subheader"
+                        dataKey="contactId"
+                        [scrollable]="true"
+                        scrollHeight="400px"
+                        [tableStyle]="{'font-size': '0.9em'}"
+                      >
+                        <ng-template pTemplate="header">
+                          <tr class="custom-th">
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th [style.width]="'54%'">Follow-ups</th>
+                          </tr>
+                        </ng-template>
+
+                        <!-- Subheader for Salesperson -->
+                        <ng-template pTemplate="groupheader" let-contact>
+                          <tr pRowGroupHeader class="sales-person-tr">
+                            <td>
+                              <p-avatar
+                                [image]="getCachedImage(contact.salesPerson.salesPersonId)"
+                                shape="circle"
+                              ></p-avatar>
+                            </td>
+                            <td class="sales-person-td">
+                              <span class="font-bold ml-2">{{ contact.salesPerson.salesPersonName }}</span>
+                            </td>
+                            <td></td>
+                            <td>
+                              <p-button
+                                label="SMS"
+                                icon="pi pi-mobile"
+                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button sms-button"
+                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms === 0"
+                              ></p-button>
+
+                              <p-button
+                                label="Emails"
+                                icon="pi pi-envelope"
+                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button email-button"
+                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails === 0"
+                              ></p-button>
+
+                              <p-button
+                                label="Calls"
+                                icon="pi pi-phone"
+                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button call-button"
+                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls === 0"
+                              ></p-button>
+
+                              <p-button
+                                label="Live Chat"
+                                icon="pi pi-comments"
+                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button live-chat-button"
+                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages === 0"
+                              ></p-button>
+                            </td>
+                          </tr>
+                        </ng-template>
+
+                        <!-- Contact Rows -->
+                        <ng-template pTemplate="body" let-contact>
+                          <tr>
+                            <td class="align-center contact-avatar">
+                              <div
+                                [ngStyle]="{'background-color': SharedUtil.getRandomColor(contact.contactName)}"
+                                class="avatar-icon"
+                              >
+                                {{ SharedUtil.getInitials(contact.contactName) }}
+                              </div>
+                            </td>
+                            <td class="align-left">{{ SharedUtil.titleCase(contact.contactName) }}</td>
+                            <td class="align-left">{{ SharedUtil.handleEmptyString(contact.contactEmail) }}</td>
+                            <td class="align-left" [style.width]="'54%'">
+                              <!-- SMS Button -->
+                              <p-button
+                                *ngIf="contact.totalSms > 0"
+                                label="SMS"
+                                icon="pi pi-mobile"
+                                badge="{{ contact.totalSms }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button contact sms-button"
+                              ></p-button>
+
+                              <p-button
+                                *ngIf="contact.totalEmails > 0"
+                                label="Emails"
+                                icon="pi pi-envelope"
+                                badge="{{ contact.totalEmails }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button contact email-button"
+                              ></p-button>
+
+                              <p-button
+                                *ngIf="contact.totalCalls > 0"
+                                label="Calls"
+                                icon="pi pi-phone"
+                                badge="{{ contact.totalCalls }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button contact call-button"
+                              ></p-button>
+
+                              <p-button
+                                *ngIf="contact.totalLiveChatMessages > 0"
+                                label="Live Chat"
+                                icon="pi pi-comments"
+                                badge="{{ contact.totalLiveChatMessages }}"
+                                badgeClass="p-badge-primary"
+                                class="dynamic-button contact live-chat-button"
+                              ></p-button>
+                            </td>
+                          </tr>
+                        </ng-template>
+
+                        <!-- Empty Message -->
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td colspan="2">No contacts available for this stage.</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="footer">
+                <tr class="custom-tr">
+                  <td></td>
+                  <td class="align-center font-bold">TOTAL</td>
+                  <td class="align-center font-bold" style="width: 10%">
+                    {{ getTotalCounts(selectedPipeline!.pipelineStages) }}
+                  </td>
+                  <td></td>
+                  <td class="align-right font-bold" style="width: 30%">
+                    {{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
       </div>
     </div>
   </div>

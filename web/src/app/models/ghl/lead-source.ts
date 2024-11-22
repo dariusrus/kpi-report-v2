@@ -1,4 +1,4 @@
-import {LeadContact} from "./lead-ghlContact";
+import {LeadContact} from "./lead-contact";
 
 export interface LeadSource {
   source: string;
