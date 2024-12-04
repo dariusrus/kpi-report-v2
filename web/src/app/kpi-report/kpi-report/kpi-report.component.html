@@ -145,7 +145,6 @@
 <!--              ></app-contacts-won>-->
 <!--            </div>-->
 <!--          </div>-->
-
 <!--        </div>-->
         <div class="row report-row"
              snInViewport
@@ -156,36 +155,6 @@
             [reportData]="reportData"
             [reportDataPreviousMap]="reportDataPreviousMap">
           </app-sales-pipeline-report>
-        </div>
-        <div class="row report-row"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'pipelines')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-        >
-          <div class="col-12">
-            <div class="report-container">
-              <app-pipeline-stages
-                [reportData]="reportData"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [isVisible]="isVisible"
-              ></app-pipeline-stages>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'conversations')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
-        >
-          <div class="col-12">
-            <div class="report-container">
-              <app-sales-person-conversations
-                [reportData]="reportData"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [isVisible]="isVisible"
-              ></app-sales-person-conversations>
-            </div>
-          </div>
         </div>
       </ng-container>
       <ng-container *ngIf="reportData.monthlyClarityReport && reportData.monthlyClarityReport.deviceClarityAggregate.length > 0">

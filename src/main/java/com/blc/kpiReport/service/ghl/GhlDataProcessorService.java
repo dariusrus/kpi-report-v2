@@ -57,8 +57,88 @@ public class GhlDataProcessorService {
             .salesPersonConversations(processSalesPersonConversations(ghlApiData, goHighLevelReport, ghlUsers))
             .build();
 
+        // TODO:
+        reportData.setFollowUpConversions(processFollowUpConversions(goHighLevelReport,
+                reportData.getPipelineStages(),
+                reportData.getSalesPersonConversations()));
+
         log.info("GHL data processing completed successfully for report: {}", goHighLevelReport.getId());
         return reportData;
+    }
+
+    private List<FollowUpConversion> processFollowUpConversions(GoHighLevelReport goHighLevelReport,
+                                                                List<PipelineStage> pipelineStages,
+                                                                List<SalesPersonConversation> salesPersonConversations) {
+        Map<GhlUser, FollowUpConversion> followUpConversionMap = new HashMap<>();
+
+        for (SalesPersonConversation conversation : salesPersonConversations) {
+            GhlUser ghlUser = conversation.getGhlUser();
+            if (ghlUser == null) continue;
+            FollowUpConversion followUpConversion = followUpConversionMap.computeIfAbsent(ghlUser, user -> FollowUpConversion.builder()
+                    .ghlUser(user)
+                    .totalSms(0)
+                    .totalEmails(0)
+                    .totalCalls(0)
+                    .totalLiveChatMessages(0)
+                    .totalFollowups(0)
+                    .totalConversions(0)
+                    .build()
+            );
+            for (ConversationMessage message : conversation.getConversationMessages()) {
+                switch (message.getMessageType()) {
+                    case "TYPE_SMS":
+                        followUpConversion.setTotalSms(followUpConversion.getTotalSms() + 1);
+                        break;
+                    case "TYPE_EMAIL":
+                        followUpConversion.setTotalEmails(followUpConversion.getTotalEmails() + 1);
+                        break;
+                    case "TYPE_CALL":
+                        followUpConversion.setTotalCalls(followUpConversion.getTotalCalls() + 1);
+                        break;
+                    case "TYPE_LIVE_CHAT":
+                        followUpConversion.setTotalLiveChatMessages(followUpConversion.getTotalLiveChatMessages() + 1);
+                        break;
+                }
+            }
+            followUpConversion.setTotalFollowups(
+                    followUpConversion.getTotalSms() +
+                            followUpConversion.getTotalEmails() +
+                            followUpConversion.getTotalCalls() +
+                            followUpConversion.getTotalLiveChatMessages()
+            );
+        }
+
+        for (PipelineStage pipelineStage : pipelineStages) {
+            for (SalesPersonConversion conversion : pipelineStage.getSalesPersonConversions()) {
+                GhlUser ghlUser = conversion.getGhlUser();
+                if (ghlUser == null) continue;
+                FollowUpConversion followUpConversion = followUpConversionMap.computeIfAbsent(ghlUser, user -> FollowUpConversion.builder()
+                        .ghlUser(user)
+                        .totalSms(0)
+                        .totalEmails(0)
+                        .totalCalls(0)
+                        .totalLiveChatMessages(0)
+                        .totalFollowups(0)
+                        .totalConversions(0)
+                        .build()
+                );
+                followUpConversion.setTotalConversions(
+                        followUpConversion.getTotalConversions() + conversion.getConvertedGhlContacts().size()
+                );
+            }
+        }
+
+        for (FollowUpConversion followUpConversion : followUpConversionMap.values()) {
+            followUpConversion.setGoHighLevelReport(goHighLevelReport);
+            int totalConversions = followUpConversion.getTotalConversions();
+            int totalFollowups = followUpConversion.getTotalFollowups();
+            if (totalConversions > 0) {
+                followUpConversion.setFollowUpPerConversion((double) totalFollowups / totalConversions);
+            } else {
+                followUpConversion.setFollowUpPerConversion(0.0); // Handle division by zero
+            }
+        }
+        return new ArrayList<>(followUpConversionMap.values());
     }
 
     private Map<String, GhlUser> preProcessGhlUsers(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport) {
@@ -292,6 +372,10 @@ public class GhlDataProcessorService {
             String contactName = conversationNode.path("contactName").asText();
             String contactEmail = conversationNode.path("email").asText();
             String contactPhone = conversationNode.path("phone").asText();
+
+            if (contactEmail == null || contactEmail.isEmpty() || "null".equalsIgnoreCase(contactEmail)) {
+                continue;
+            }
 
             Instant lastManualMessageDate = conversationNode.has("lastManualMessageDate")
                     ? Instant.ofEpochMilli(conversationNode.path("lastManualMessageDate").asLong()) : null;

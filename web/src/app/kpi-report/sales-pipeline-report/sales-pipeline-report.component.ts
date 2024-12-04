@@ -46,6 +46,18 @@ export class SalesPipelineReportComponent implements OnInit {
   stageConversionIndex: number = 0;
   followUpIndex: number = 0;
 
+  isScrolled = false;
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    const pipelineRow = document.querySelector('.sales-pipeline-row') as HTMLElement;
+    if (pipelineRow) {
+      const rect = pipelineRow.getBoundingClientRect();
+      this.isScrolled = rect.top == 70;
+      console.log(rect.top);
+    }
+  }
+
   ngOnInit() {
     if (this.reportData?.pipelines?.length) {
       this.initializeSalesPersons();
@@ -432,6 +444,97 @@ export class SalesPipelineReportComponent implements OnInit {
     const salesPerson = this.salesPersons.find(sp => sp.id === salesPersonId);
     return salesPerson?.cachedImage || salesPerson?.imageUrl || 'default-avatar-url';
   }
+
+  populateEvents(conversation: SalesPersonConversation) {
+    conversation.events = conversation.conversationMessages.map(message => ({
+      status: this.toTitleCase(message.status || ''),
+      dateAdded: message.dateAdded,
+      direction: message.direction,
+      messageType: this.getFriendlyMessageType(message.messageType),
+      messageBody: message.messageBody || '',
+      callDuration: message.callDuration,
+    }));
+  }
+
+  getFriendlyMessageType(messageType: string): string {
+    switch (messageType) {
+      case 'TYPE_SMS':
+        return 'SMS';
+      case 'TYPE_EMAIL':
+        return 'E-mail';
+      case 'TYPE_CALL':
+        return 'Call';
+      case 'TYPE_LIVE_CHAT':
+        return 'Live Chat';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  getMessageIcon(messageType: string): string {
+    switch (messageType) {
+      case 'SMS':
+        return 'pi pi-mobile';
+      case 'E-mail':
+        return 'pi pi-envelope';
+      case 'Call':
+        return 'pi pi-phone';
+      case 'Live Chat':
+        return 'pi pi-comments';
+      default:
+        return 'pi pi-info-circle';
+    }
+  }
+
+  getMessageColor(messageType: string): string {
+    switch (messageType) {
+      case 'SMS':
+        return '#49D025';
+      case 'E-mail':
+        return '#AD25D0';
+      case 'Call':
+        return '#259ED0';
+      case 'Live Chat':
+        return '#CDCC32';
+      default:
+        return 'pi pi-info-circle';
+    }
+  }
+
+  getDirectionIcon(direction: string): string {
+    return direction === 'inbound' ? 'pi-arrow-circle-down' : 'pi-arrow-circle-up';
+  }
+
+  getFormattedMessageType(messageType: string): string {
+    return messageType
+      .replace(/^type_/i, '') // Remove "type_" prefix if present
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
+  }
+
+  get sortedConversations() {
+    return this.filteredConversations.sort((a, b) => a.salesPersonName.localeCompare(b.salesPersonName));
+  }
+
+  toTitleCase(text: string): string {
+    if (!text) return text;
+    return text.replace(/\w\S*/g, (word) =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    );
+  }
+
+  formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    const hoursDisplay = hours > 0 ? `${hours}h ` : '';
+    const minutesDisplay = minutes > 0 ? `${minutes}m ` : '';
+    const secondsDisplay = secs > 0 ? `${secs}s` : '';
+
+    return `${hoursDisplay}${minutesDisplay}${secondsDisplay}`.trim();
+  }
+
   protected readonly LegendPosition = LegendPosition;
   protected readonly SharedUtil = SharedUtil;
 }

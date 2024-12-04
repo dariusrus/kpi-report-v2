@@ -3,7 +3,7 @@
   margin-bottom: 36px;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 9000;
   transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
 }
 
@@ -51,7 +51,7 @@
 .sticky {
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 9000;
 }
 .title {
   flex: 1;

@@ -134,11 +134,9 @@ public class GhlDataFetchService {
 
                     for (JsonNode conversation : conversations) {
                         String type = conversation.path("type").asText();
-//                        long dateUpdated = conversation.path("dateUpdated").asLong();
                         log.debug("Processing conversation ID: {}, type: {}", conversation.path("id").asText(), type);
 
                         if ((type.equals("TYPE_PHONE") || type.equals("TYPE_EMAIL"))) {
-
                             List<JsonNode> messages;
                             try {
                                 log.debug("Fetching messages for conversation ID: {}", conversation.path("id").asText());
@@ -148,15 +146,9 @@ public class GhlDataFetchService {
                                 log.error("Failed to fetch messages for conversation ID: {}, continuing with an empty list. Exception: {}", conversation.path("id").asText(), e.getMessage());
                                 messages = new ArrayList<>();
                             }
-
                             conversationsWithMessages.put(conversation, messages);
                         }
 
-//                        if (dateUpdated > epochEndDate) {
-//                            log.info("Date updated exceeds end date, stopping fetch.");
-//                            continueFetching = false;
-//                            break;
-//                        }
                         startAfterDate = conversation.path("sort").get(0).asLong();
                         if (startAfterDate > epochEndDate) {
                             log.info("Date updated exceeds end date, stopping fetch.");

@@ -26,6 +26,7 @@ public class GhlDataWriterService {
     private final SalesPersonConversionService salesPersonConversionService;
     private final SalesPersonConversationService salesPersonConversationService;
     private final ConversationMessageService conversationMessageService;
+    private final FollowUpConversionService followUpConversionService;
     private final GhlContactService ghlContactService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -68,6 +69,8 @@ public class GhlDataWriterService {
         pipelineStageService.deleteByGoHighLevelReportId(id);
         contactWonService.deleteByGoHighLevelReportId(id);
         salesPersonConversationService.deleteByGoHighLevelReportId(id);
+        followUpConversionService.deleteByGoHighLevelReportId(id);
+
         log.info("Successfully deleted data for GoHighLevelReport with ID: {}", id);
     }
 
@@ -115,6 +118,7 @@ public class GhlDataWriterService {
             .pipelineStages(savePipelineStages(ghlReportData.getPipelineStages()))
             .contactsWon(saveContactsWon(ghlReportData.getContactsWon()))
             .salesPersonConversations(saveSalesPersonConversation(ghlReportData.getSalesPersonConversations()))
+            .followUpConversions(saveFollowUpConversions(ghlReportData.getFollowUpConversions()))
             .build();
 
         log.info("GHL report data saved successfully");
@@ -208,5 +212,10 @@ public class GhlDataWriterService {
             log.info("Batch from index {} to {} saved successfully", i, end - 1);
         }
         return allSavedConversations;
+    }
+
+    private List<FollowUpConversion> saveFollowUpConversions(List<FollowUpConversion> followUpConversions) {
+        log.info("Saving {} follow up conversions", followUpConversions.size());
+        return followUpConversionService.saveAll(followUpConversions);
     }
 }

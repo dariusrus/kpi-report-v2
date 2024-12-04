@@ -1,193 +1,194 @@
-<div>
+<div class="sales-pipeline-container">
   <h2>Sales Pipeline Report</h2>
-  <div class="row mb-4">
-    <div class="col-12 mt-3 d-flex">
-      <div style="max-width: 49%; margin-right: 12px">
-        <p-floatLabel>
-          <p-multiSelect
-            [options]="salesPersons"
-            [(ngModel)]="selectedSalesPersons"
-            placeholder="Select Salespersons"
-            optionLabel="name"
-            display="chip"
-            [style]="{ 'max-width': '100%', 'min-height': '57px', 'border-radius': '15px' }"
-            (onChange)="onParameterChange()"
-            id="float-label">
+  <div [class.scrolled]="isScrolled"
+       class="row sales-pipeline-row scrolled">
+    <div class="col-12 sales-pipeline-col">
+    <div style="max-width: 70%; margin-right: 12px">
+      <p-floatLabel>
+        <p-multiSelect
+          [options]="salesPersons"
+          [(ngModel)]="selectedSalesPersons"
+          placeholder="Select Sales Persons"
+          optionLabel="name"
+          display="chip"
+          [style]="{ 'max-width': '100%', 'min-height': '57px'}"
+          (onChange)="onParameterChange()"
+          id="float-label-sticky">
 
-            <ng-template let-value pTemplate="selectedItems">
-              <div class="selected-pill-container" *ngFor="let option of value">
-                <p-avatar
-                  [image]="option.cachedImage || option.imageUrl"
-                  shape="circle"
-                  class="selected-pill-avatar"></p-avatar>
-                <div class="pill-text">{{ option.name }}</div>
-              </div>
-              <div *ngIf="!value || value.length === 0">Select Salespersons</div>
-            </ng-template>
+          <ng-template let-value pTemplate="selectedItems">
+            <div class="selected-pill-container" *ngFor="let option of value">
+              <p-avatar
+                [image]="option.cachedImage || option.imageUrl"
+                shape="circle"
+                class="selected-pill-avatar"></p-avatar>
+              <div class="pill-text">{{ option.name }}</div>
+            </div>
+            <div *ngIf="!value || value.length === 0">Select Sales Persons</div>
+          </ng-template>
 
-            <ng-template let-ghlUser pTemplate="item">
-              <div class="item-container">
-                <p-avatar
-                  [image]="ghlUser.cachedImage || ghlUser.imageUrl"
-                  shape="circle"
-                />
-                {{ ghlUser.name }}
-              </div>
-            </ng-template>
+          <ng-template let-ghlUser pTemplate="item">
+            <div class="item-container">
+              <p-avatar
+                [image]="ghlUser.cachedImage || ghlUser.imageUrl"
+                shape="circle"
+              />
+              {{ ghlUser.name }}
+            </div>
+          </ng-template>
 
-            <ng-template let-ghlUser pTemplate="footer">
-              <div class="footer-container">
-                <div *ngIf="selectedSalesPersons.length === salesPersons.length">
-                  <b>All Salespersons Selected</b>
-                </div>
-                <div *ngIf="selectedSalesPersons.length !== salesPersons.length">
-                  <b>{{ selectedSalesPersons ? selectedSalesPersons.length : 0 }}</b>
-                  Salesperson{{ selectedSalesPersons.length !== 1 ? 's' : '' }} selected.
-                </div>
+          <ng-template let-ghlUser pTemplate="footer">
+            <div class="footer-container">
+              <div *ngIf="selectedSalesPersons.length === salesPersons.length">
+                <b>All Sales Persons Selected</b>
               </div>
-            </ng-template>
-          </p-multiSelect>
-          <label for="float-label">Select Salesperson</label>
-        </p-floatLabel>
-      </div>
-      <div style="max-width: 49%">
-        <p-floatLabel>
-          <p-dropdown
-            [options]="reportData.pipelines"
-            [(ngModel)]="selectedPipeline"
-            optionLabel="pipelineName"
-            placeholder="Select a Pipeline"
-            (onChange)="onPipelineChange($event)"
-            [style]="{ 'max-width': '100%', 'min-height': '57px', 'border-radius': '15px', 'padding':'12px' }"
-            id="float-label-sales-person"
-          />
-          <label for="float-label-sales-person">Select Pipeline</label>
-        </p-floatLabel>
-      </div>
+              <div *ngIf="selectedSalesPersons.length !== salesPersons.length">
+                <b>{{ selectedSalesPersons ? selectedSalesPersons.length : 0 }}</b>
+                Sales Person{{ selectedSalesPersons.length !== 1 ? 's' : '' }} selected.
+              </div>
+            </div>
+          </ng-template>
+        </p-multiSelect>
+        <label for="float-label-sticky">Select Sales Person</label>
+      </p-floatLabel>
+    </div>
+    <div style="max-width: 30%">
+      <p-floatLabel>
+        <p-dropdown
+          [options]="reportData.pipelines"
+          [(ngModel)]="selectedPipeline"
+          optionLabel="pipelineName"
+          placeholder="Select a Pipeline"
+          (onChange)="onPipelineChange($event)"
+          [style]="{ 'max-width': '100%', 'min-height': '57px', 'padding':'12px' }"
+          id="float-label-sales-person-sticky"
+        />
+        <label for="float-label-sales-person-sticky">Select Pipeline</label>
+      </p-floatLabel>
     </div>
   </div>
-  <div class="row report-row">
-    <div class="col-6">
-      <div class="report-container">
-        <ng-container>
-          <div class="report-title">
-            Stage Conversion Count
-          </div>
-          <div class="report-subtitle">
-            {{ reportData.monthAndYear }}
-          </div>
-          <div class="report-data">
-            <div class="performance-index-container">
-              <div class="conversion-count">
-                <span class="main-number">{{ totalConversions }}</span>
-                <p-chip *ngIf="stageConversionIndex !== 0"
-                        [styleClass]="'index-chip ' + (stageConversionIndex > 0 ? 'increase' : 'decrease')">
+  </div>
+  <div class="row mb-4">
+    <div class="row report-row">
+      <div class="col-6">
+        <div class="report-container">
+          <ng-container>
+            <div class="report-title">
+              Stage Conversion Count
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="report-data">
+              <div class="performance-index-container">
+                <div class="conversion-count">
+                  <span class="main-number">{{ totalConversions }}</span>
+                  <p-chip *ngIf="stageConversionIndex !== 0"
+                          [styleClass]="'index-chip ' + (stageConversionIndex > 0 ? 'increase' : 'decrease')">
                 <span class="conversion-rate" style="display: flex; align-items: center;">
                   <i class="pi" style="font-size: 0.8em; margin-right: 4px;"
                      [class.pi-arrow-up]="stageConversionIndex > 0"
                      [class.pi-arrow-down]="stageConversionIndex < 0"></i>
                   <span>{{ SharedUtil.formatToPercentage(stageConversionIndex) }}</span>
                 </span>
-                </p-chip>
+                  </p-chip>
+                </div>
+                <div class="followup-label">Stage Conversions</div>
               </div>
-              <div class="followup-label">Stage Conversions</div>
+              <ng-container>
+                <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                                      [view]="pieChartView"
+                                      [scheme]="scheme"
+                                      [results]="data"
+                                      [gradient]="true"
+                                      [maxLabelLength]="15"
+                                      [trimLabels]="true"
+                                      [doughnut]="true"
+                                      [labels]="true"
+                >
+                </ngx-charts-pie-chart>
+              </ng-container>
             </div>
-            <ng-container>
-              <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
-                                    [view]="pieChartView"
-                                    [scheme]="scheme"
-                                    [results]="data"
-                                    [gradient]="true"
-                                    [maxLabelLength]="15"
-                                    [trimLabels]="true"
-                                    [doughnut]="true"
-                                    [labels]="true"
-              >
-              </ngx-charts-pie-chart>
-            </ng-container>
-          </div>
-        </ng-container>
+          </ng-container>
+        </div>
       </div>
-    </div>
-    <div class="col-6">
-      <div class="report-container">
-        <ng-container>
-          <div class="report-title">
-            Salesperson Follow-Up Count
-          </div>
-          <div class="report-subtitle">
-            {{ reportData.monthAndYear }}
-          </div>
-          <div class="report-data">
-            <div class="performance-index-container">
-              <div class="conversion-count">
-                <span class="main-number">{{ totalFollowups }}</span>
-                <p-chip *ngIf="followUpIndex !== 0"
-                        [styleClass]="'index-chip ' + (followUpIndex > 0 ? 'increase' : 'decrease')">
+      <div class="col-6">
+        <div class="report-container">
+          <ng-container>
+            <div class="report-title">
+              Salesperson Follow-Up Count
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="report-data">
+              <div class="performance-index-container">
+                <div class="conversion-count">
+                  <span class="main-number">{{ totalFollowups }}</span>
+                  <p-chip *ngIf="followUpIndex !== 0"
+                          [styleClass]="'index-chip ' + (followUpIndex > 0 ? 'increase' : 'decrease')">
                 <span class="conversion-rate" style="display: flex; align-items: center;">
                   <i class="pi" style="font-size: 0.8em; margin-right: 4px;"
                      [class.pi-arrow-up]="followUpIndex > 0"
                      [class.pi-arrow-down]="followUpIndex < 0"></i>
                   <span>{{ SharedUtil.formatToPercentage(followUpIndex) }}</span>
                 </span>
-                </p-chip>
+                  </p-chip>
+                </div>
+                <div class="followup-label">Follow-ups</div>
               </div>
-              <div class="followup-label">Follow-ups</div>
+              <ng-container>
+                <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                                      [view]="pieChartView"
+                                      [scheme]="scheme"
+                                      [results]="followupData"
+                                      [gradient]="true"
+                                      [maxLabelLength]="15"
+                                      [trimLabels]="true"
+                                      [doughnut]="true"
+                                      [labels]="true"
+                >
+                </ngx-charts-pie-chart>
+              </ng-container>
             </div>
-            <ng-container>
-              <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
-                                    [view]="pieChartView"
-                                    [scheme]="scheme"
-                                    [results]="followupData"
-                                    [gradient]="true"
-                                    [maxLabelLength]="15"
-                                    [trimLabels]="true"
-                                    [doughnut]="true"
-                                    [labels]="true"
-              >
-              </ngx-charts-pie-chart>
-            </ng-container>
-          </div>
-        </ng-container>
+          </ng-container>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="row report-row">
-    <div class="col-12">
-      <div class="report-container">
-        <div class="report-title">
-          Pipeline Stage Conversions
-        </div>
-        <div class="report-subtitle">
-          {{ reportData.monthAndYear }}
-        </div>
-        <div class="row">
-          <div class="col-12 report-data conversions">
-            <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.9em'}"
-                     dataKey="stageName"
-                     rowExpandMode="single"
-                     [responsiveLayout]="'scroll'" @fadeIn>
-              <ng-template pTemplate="body" let-stage let-expanded="expanded">
-                <tr>
-                  <td *ngIf="getSalesPersonDataForStage(stage).count > 0" style="width: 15px">
-                    <p-button
-                      type="button"
-                      pRipple
-                      [pRowToggler]="stage"
-                      [text]="true"
-                      [rounded]="true"
-                      [plain]="true"
-                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                    />
-                  </td>
-                  <td *ngIf="getSalesPersonDataForStage(stage).count === 0" style="width: 15px"></td>
-                  <td class="align-left" style="width: 50%">{{ stage.stageName }}</td>
-                  <td [class.zero-value]="getSalesPersonDataForStage(stage).count === 0"
-                      [class.font-bold]="getSalesPersonDataForStage(stage).count > 0"
-                      class="align-center pipeline-td" style="width: 10%">
-                    {{ getSalesPersonDataForStage(stage).count }}
-                  </td>
-                  <td class="align-left" style="width: 13%">
+    <div class="row report-row">
+      <div class="col-12">
+        <div class="report-container">
+          <div class="report-title">
+            Pipeline Stage Conversions
+          </div>
+          <div class="report-subtitle">
+            {{ reportData.monthAndYear }}
+          </div>
+          <div class="row">
+            <div class="col-12 report-data conversions">
+              <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.9em'}"
+                       dataKey="stageName"
+                       rowExpandMode="single"
+                       [responsiveLayout]="'scroll'" @fadeIn>
+                <ng-template pTemplate="body" let-stage let-expanded="expanded">
+                  <tr>
+                    <td *ngIf="getSalesPersonDataForStage(stage).count > 0" style="width: 15px">
+                      <p-button
+                        type="button"
+                        [pRowToggler]="stage"
+                        [text]="true"
+                        [rounded]="true"
+                        [plain]="true"
+                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                      />
+                    </td>
+                    <td *ngIf="getSalesPersonDataForStage(stage).count === 0" style="width: 15px"></td>
+                    <td class="align-left" style="width: 50%">{{ stage.stageName }}</td>
+                    <td [class.zero-value]="getSalesPersonDataForStage(stage).count === 0"
+                        [class.font-bold]="getSalesPersonDataForStage(stage).count > 0"
+                        class="align-center pipeline-td" style="width: 10%">
+                      {{ getSalesPersonDataForStage(stage).count }}
+                    </td>
+                    <td class="align-left" style="width: 13%">
                     <span class="performance-index-td">
                       <p-chip *ngIf="getSalesPersonDataForStage(stage).performanceIndex !== 0" [styleClass]="'pl-0 pr-3 conversion-chip ' +
                                 (getSalesPersonDataForStage(stage).performanceIndex > 0 ? 'increase' :
@@ -204,168 +205,398 @@
                           </span>
                       </p-chip>
                     </span>
-                  </td>
-                  <td [class.zero-value]="getSalesPersonDataForStage(stage).monetaryValue === 0"
-                      class="align-right" style="width: 27%">
-                    {{ getSalesPersonDataForStage(stage).monetaryValue | currency }}
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="rowexpansion" let-stage>
-                <tr>
-                  <td colspan="5">
-                    <div class="p-3">
-                      <p-table
-                        [value]="getFilteredContacts(stage)"
-                        groupRowsBy="salesPerson.salesPersonId"
-                        rowGroupMode="subheader"
-                        dataKey="contactId"
-                        [scrollable]="true"
-                        scrollHeight="400px"
-                        [tableStyle]="{'font-size': '0.9em'}"
-                      >
-                        <ng-template pTemplate="header">
-                          <tr class="custom-th">
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th [style.width]="'54%'">Follow-ups</th>
-                          </tr>
-                        </ng-template>
+                    </td>
+                    <td [class.zero-value]="getSalesPersonDataForStage(stage).monetaryValue === 0"
+                        class="align-right" style="width: 27%">
+                      {{ getSalesPersonDataForStage(stage).monetaryValue | currency }}
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="rowexpansion" let-stage>
+                  <tr>
+                    <td colspan="5">
+                      <div class="p-3">
+                        <p-table
+                          [value]="getFilteredContacts(stage)"
+                          groupRowsBy="salesPerson.salesPersonId"
+                          rowGroupMode="subheader"
+                          dataKey="contactId"
+                          [scrollable]="true"
+                          scrollHeight="400px"
+                          [tableStyle]="{'font-size': '0.9em'}"
+                        >
+                          <ng-template pTemplate="header">
+                            <tr class="custom-th">
+                              <th></th>
+                              <th></th>
+                              <th></th>
+                              <th [style.width]="'54%'">Follow-ups</th>
+                            </tr>
+                          </ng-template>
 
-                        <!-- Subheader for Salesperson -->
-                        <ng-template pTemplate="groupheader" let-contact>
-                          <tr pRowGroupHeader class="sales-person-tr">
-                            <td>
-                              <p-avatar
-                                [image]="getCachedImage(contact.salesPerson.salesPersonId)"
-                                shape="circle"
-                              ></p-avatar>
-                            </td>
-                            <td class="sales-person-td">
-                              <span class="font-bold ml-2">{{ contact.salesPerson.salesPersonName }}</span>
-                            </td>
-                            <td></td>
-                            <td>
-                              <p-button
-                                label="SMS"
-                                icon="pi pi-mobile"
-                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button sms-button"
-                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms === 0"
-                              ></p-button>
+                          <!-- Subheader for Salesperson -->
+                          <ng-template pTemplate="groupheader" let-contact>
+                            <tr pRowGroupHeader class="sales-person-tr">
+                              <td>
+                                <p-avatar
+                                  [image]="getCachedImage(contact.salesPerson.salesPersonId)"
+                                  shape="circle"
+                                ></p-avatar>
+                              </td>
+                              <td class="sales-person-td">
+                                <span class="font-bold ml-2">{{ contact.salesPerson.salesPersonName }}</span>
+                              </td>
+                              <td></td>
+                              <td>
+                                <p-button
+                                  label="SMS"
+                                  icon="pi pi-mobile"
+                                  badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button sms-button"
+                                  [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalSms === 0"
+                                ></p-button>
 
-                              <p-button
-                                label="Emails"
-                                icon="pi pi-envelope"
-                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button email-button"
-                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails === 0"
-                              ></p-button>
+                                <p-button
+                                  label="Emails"
+                                  icon="pi pi-envelope"
+                                  badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button email-button"
+                                  [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails === 0"
+                                ></p-button>
 
-                              <p-button
-                                label="Calls"
-                                icon="pi pi-phone"
-                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button call-button"
-                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls === 0"
-                              ></p-button>
+                                <p-button
+                                  label="Calls"
+                                  icon="pi pi-phone"
+                                  badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button call-button"
+                                  [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls === 0"
+                                ></p-button>
 
-                              <p-button
-                                label="Live Chat"
-                                icon="pi pi-comments"
-                                badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button live-chat-button"
-                                [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages === 0"
-                              ></p-button>
-                            </td>
-                          </tr>
-                        </ng-template>
+                                <p-button
+                                  label="Live Chat"
+                                  icon="pi pi-comments"
+                                  badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button live-chat-button"
+                                  [class.disabled]="getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages === 0"
+                                ></p-button>
+                              </td>
+                            </tr>
+                          </ng-template>
 
-                        <!-- Contact Rows -->
-                        <ng-template pTemplate="body" let-contact>
-                          <tr>
-                            <td class="align-center contact-avatar">
-                              <div
-                                [ngStyle]="{'background-color': SharedUtil.getRandomColor(contact.contactName)}"
-                                class="avatar-icon"
-                              >
-                                {{ SharedUtil.getInitials(contact.contactName) }}
-                              </div>
-                            </td>
-                            <td class="align-left">{{ SharedUtil.titleCase(contact.contactName) }}</td>
-                            <td class="align-left">{{ SharedUtil.handleEmptyString(contact.contactEmail) }}</td>
-                            <td class="align-left" [style.width]="'54%'">
-                              <!-- SMS Button -->
-                              <p-button
-                                *ngIf="contact.totalSms > 0"
-                                label="SMS"
-                                icon="pi pi-mobile"
-                                badge="{{ contact.totalSms }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button contact sms-button"
-                              ></p-button>
+                          <!-- Contact Rows -->
+                          <ng-template pTemplate="body" let-contact>
+                            <tr>
+                              <td class="align-center contact-avatar">
+                                <div
+                                  [ngStyle]="{'background-color': SharedUtil.getRandomColor(contact.contactName)}"
+                                  class="avatar-icon"
+                                >
+                                  {{ SharedUtil.getInitials(contact.contactName) }}
+                                </div>
+                              </td>
+                              <td class="align-left">{{ SharedUtil.titleCase(contact.contactName) }}</td>
+                              <td class="align-left">{{ SharedUtil.handleEmptyString(contact.contactEmail) }}</td>
+                              <td class="align-left" [style.width]="'54%'">
+                                <!-- SMS Button -->
+                                <p-button
+                                  *ngIf="contact.totalSms > 0"
+                                  label="SMS"
+                                  icon="pi pi-mobile"
+                                  badge="{{ contact.totalSms }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button contact sms-button"
+                                ></p-button>
 
-                              <p-button
-                                *ngIf="contact.totalEmails > 0"
-                                label="Emails"
-                                icon="pi pi-envelope"
-                                badge="{{ contact.totalEmails }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button contact email-button"
-                              ></p-button>
+                                <p-button
+                                  *ngIf="contact.totalEmails > 0"
+                                  label="Emails"
+                                  icon="pi pi-envelope"
+                                  badge="{{ contact.totalEmails }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button contact email-button"
+                                ></p-button>
 
-                              <p-button
-                                *ngIf="contact.totalCalls > 0"
-                                label="Calls"
-                                icon="pi pi-phone"
-                                badge="{{ contact.totalCalls }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button contact call-button"
-                              ></p-button>
+                                <p-button
+                                  *ngIf="contact.totalCalls > 0"
+                                  label="Calls"
+                                  icon="pi pi-phone"
+                                  badge="{{ contact.totalCalls }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button contact call-button"
+                                ></p-button>
 
-                              <p-button
-                                *ngIf="contact.totalLiveChatMessages > 0"
-                                label="Live Chat"
-                                icon="pi pi-comments"
-                                badge="{{ contact.totalLiveChatMessages }}"
-                                badgeClass="p-badge-primary"
-                                class="dynamic-button contact live-chat-button"
-                              ></p-button>
-                            </td>
-                          </tr>
-                        </ng-template>
+                                <p-button
+                                  *ngIf="contact.totalLiveChatMessages > 0"
+                                  label="Live Chat"
+                                  icon="pi pi-comments"
+                                  badge="{{ contact.totalLiveChatMessages }}"
+                                  badgeClass="p-badge-primary"
+                                  class="dynamic-button contact live-chat-button"
+                                ></p-button>
+                              </td>
+                            </tr>
+                          </ng-template>
 
-                        <!-- Empty Message -->
-                        <ng-template pTemplate="emptymessage">
-                          <tr>
-                            <td colspan="2">No contacts available for this stage.</td>
-                          </tr>
-                        </ng-template>
-                      </p-table>
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="footer">
-                <tr class="custom-tr">
-                  <td></td>
-                  <td class="align-center font-bold">TOTAL</td>
-                  <td class="align-center font-bold" style="width: 10%">
-                    {{ getTotalCounts(selectedPipeline!.pipelineStages) }}
-                  </td>
-                  <td></td>
-                  <td class="align-right font-bold" style="width: 30%">
-                    {{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
+                          <!-- Empty Message -->
+                          <ng-template pTemplate="emptymessage">
+                            <tr>
+                              <td colspan="2">No contacts available for this stage.</td>
+                            </tr>
+                          </ng-template>
+                        </p-table>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="footer">
+                  <tr class="custom-tr">
+                    <td></td>
+                    <td class="align-center font-bold">TOTAL</td>
+                    <td class="align-center font-bold" style="width: 10%">
+                      {{ getTotalCounts(selectedPipeline!.pipelineStages) }}
+                    </td>
+                    <td></td>
+                    <td class="align-right font-bold" style="width: 30%">
+                      {{ getTotalMonetaryValue(selectedPipeline!.pipelineStages) | currency }}
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="row report-row">
+      <div class="col-12">
+        <div class="report-container">
+          <ng-container>
+            <div class="report-title">
+              Sales Person Follow-ups
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="row">
+              <div class="col-12 report-data">
+                <!--              <div class="dropdown-row">-->
+                <!--                <div class="custom-dropdown">-->
+                <!--                  <p-floatLabel>-->
+                <!--                    <p-multiSelect-->
+                <!--                      [options]="salesPersons"-->
+                <!--                      [(ngModel)]="selectedSalesPersons"-->
+                <!--                      optionLabel="name"-->
+                <!--                      placeholder="Select Sales Person"-->
+                <!--                      display="chip"-->
+                <!--                      (onChange)="filterConversations()"-->
+                <!--                      id="sales-person-multiselect"-->
+                <!--                    ></p-multiSelect>-->
+                <!--                    <label for="sales-person-multiselect">Select Sales Person</label>-->
+                <!--                  </p-floatLabel>-->
+                <!--                </div>-->
+                <!--              </div>-->
+
+                <div class="row conversation-number-card-container">
+                  <div class="col-3">
+                    <div class="conversation-number-card">
+                      <div class="conversation-number">
+                        {{ totalSmsCount }}
+                      </div>
+                      <div class="conversation-number-label">
+                        Total SMS
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <div class="conversation-number-card">
+                      <div class="conversation-number">
+                        {{ totalEmailCount }}
+                      </div>
+                      <div class="conversation-number-label">
+                        Total Emails
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <div class="conversation-number-card">
+                      <div class="conversation-number">
+                        {{ totalCallCount }}
+                      </div>
+                      <div class="conversation-number-label">
+                        Total Calls
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <div class="conversation-number-card">
+                      <div class="conversation-number">
+                        {{ totalLiveChatCount }}
+                      </div>
+                      <div class="conversation-number-label">
+                        Total Live Chat Messages
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p-table
+                  #dt2
+                  rowExpandMode="single"
+                  [value]="sortedConversations"
+                  dataKey="contactId"
+                  [rows]="10"
+                  [rowsPerPageOptions]="[10, 25, 50, 100]"
+                  [paginator]="true"
+                  [tableStyle]="{ 'font-size': '0.8em' }"
+                  [styleClass]="'p-datatable-sm'"
+                  [globalFilterFields]="['contactName', 'contactEmail', 'contactPhone', 'salesPersonName']"
+                >
+                  <ng-template pTemplate="header">
+                    <tr class="custom-tr">
+                      <th colspan="3">
+                        <p-columnFilter
+                          type="text"
+                          field="contactName"
+                          placeholder="Contact Name/Number"
+                          ariaLabel="Filter Contact Name"
+                        ></p-columnFilter>
+                      </th>
+                      <th>
+                        <p-columnFilter
+                          type="text"
+                          field="contactEmail"
+                          placeholder="Contact Email"
+                          ariaLabel="Filter Contact Email"
+                        ></p-columnFilter>
+                      </th>
+                      <!--            <th>-->
+                      <!--              <p-columnFilter-->
+                      <!--                type="text"-->
+                      <!--                field="contactPhone"-->
+                      <!--                placeholder="Phone"-->
+                      <!--                ariaLabel="Filter Contact Phone"-->
+                      <!--              ></p-columnFilter>-->
+                      <!--            </th>-->
+                      <th class="align-center" style="width: 200px;">Last Message Type</th>
+                      <th class="align-center" style="width: 120px;">Message Count</th>
+                      <th style="width: 175px;">Sales Person</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-conversation let-expanded="expanded">
+                    <tr>
+                      <td>
+                        <p-button
+                          type="button"
+                          pRipple
+                          [pRowToggler]="conversation"
+                          [text]="true"
+                          [rounded]="true"
+                          [plain]="true"
+                          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                          (click)="populateEvents(conversation)"
+                        />
+                      </td>
+                      <td class="align-center">
+                        <div
+                          [ngStyle]="{ 'background-color': SharedUtil.getRandomColor(conversation.contactName) }"
+                          class="avatar-icon"
+                          [innerHTML]="SharedUtil.getInitialsWithPhone(conversation.contactName)"
+                        ></div>
+                      </td>
+                      <td>{{ SharedUtil.titleCase(conversation.contactName) }}</td>
+                      <td>{{ SharedUtil.handleEmptyString(conversation.contactEmail) }}</td>
+                      <!--            <td>{{ conversation.contactPhone }}</td>-->
+                      <td class="align-center">
+                        <p-chip class="me-1">
+          <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">
+            {{ getFormattedMessageType(conversation.lastMessageType) }}
+          </span>
+                        </p-chip>
+                      </td>
+                      <td class="align-center">{{ conversation.conversationMessages.length }}</td>
+                      <td>
+        <span *ngIf="conversation.salesPersonName && conversation.ownerPhotoUrl" class="d-flex align-items-center">
+          <p-avatar
+            image="{{ conversation.ownerPhotoUrl }}"
+            [style]="{ 'margin-right': '12px' }"
+            shape="circle"
+          />
+          {{ conversation.salesPersonName }}
+        </span>
+                        <span *ngIf="conversation.salesPersonName && !conversation.ownerPhotoUrl"
+                              class="d-flex align-items-center">
+          <p-avatar
+            label="{{ SharedUtil.getFirstLetter(conversation.salesPersonName) }}"
+            [style]="{ 'margin-right': '12px', 'background-color': '#ece9fc', color: '#2a1261' }"
+            shape="circle"
+          />
+                          {{ conversation.salesPersonName }}
+        </span>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="rowexpansion" let-conversation>
+                    <tr>
+                      <td colspan="12">
+                        <div class="p-3">
+                          <p-timeline [value]="conversation.events" align="left" [styleClass]="'custom-timeline'">
+                            <ng-template pTemplate="marker" let-event>
+              <span class="timeline-icon" [style.background-color]="getMessageColor(event.messageType)">
+                <i class="pi" [ngClass]="getMessageIcon(event.messageType)"></i>
+              </span>
+                            </ng-template>
+                            <ng-template pTemplate="content" let-event>
+                              <div
+                                *ngIf="event.direction === 'outbound' || (!event.direction && event.messageType === 'E-mail')"
+                                class="message-card outbound">
+                                <div class="message-card-duration">
+                                  {{ formatDuration(event.callDuration) }}
+                                </div>
+                                <div *ngIf="!event.direction && event.messageType === 'E-mail'"
+                                     class="message-card-email">
+                                  <span
+                                    style="font-style: italic">Email sent to {{ SharedUtil.titleCase(conversation.contactName) }}</span>
+                                </div>
+                                <div class="message-card-body">
+                                  {{ event.messageBody }}
+                                </div>
+                                <div class="message-card-date">
+                                  {{ event.dateAdded | date: 'short' }}
+                                </div>
+                                <div class="message-card-status">
+                                  {{ event.status || 'Sent' }}
+                                </div>
+                              </div>
+                            </ng-template>
+                            <ng-template pTemplate="opposite" let-event>
+                              <div *ngIf="event.direction === 'inbound'" class="message-card inbound">
+                                <div class="message-card-duration">
+                                  {{ formatDuration(event.callDuration) }}
+                                </div>
+                                <div class="message-card-body">
+                                  {{ event.messageBody }}
+                                </div>
+                                <div class="message-card-date">
+                                  {{ event.dateAdded | date: 'short' }}
+                                </div>
+                                <div class="message-card-status">
+                                  {{ event.status }}
+                                </div>
+                              </div>
+                            </ng-template>
+                          </p-timeline>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>

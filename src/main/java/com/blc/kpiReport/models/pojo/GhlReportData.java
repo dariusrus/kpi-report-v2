@@ -16,5 +16,6 @@ public class GhlReportData {
     private List<PipelineStage> pipelineStages;
     private List<ContactWon> contactsWon;
     private List<SalesPersonConversation> salesPersonConversations;
+    private List<FollowUpConversion> followUpConversions;
 }
 

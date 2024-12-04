@@ -57,6 +57,7 @@ public class KpiReportRetrievalService {
     private final MonthlyAverageRepository monthlyAverageRepository;
     private final MonthlyAverageMapper monthlyAverageMapper;
     private final GhlUserMapper ghlUserMapper;
+    private final FollowUpConversionMapper followUpConversionMapper;
 
     public KpiReportResponse getKpiReport(String ghlLocationId, int month, int year) {
         var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
@@ -87,6 +88,7 @@ public class KpiReportRetrievalService {
                         contactWonMapper.toResponseList(goHighLevelReport.getContactsWon()),
                         salesPersonConversationMapper.toResponseList(goHighLevelReport.getSalesPersonConversations()),
                         ghlUserMapper.toResponseList(ghlUsers),
+                        followUpConversionMapper.toResponseList(goHighLevelReport.getFollowUpConversions()),
                         monthlyClarityResponse);
                 }
             }
@@ -128,6 +130,7 @@ public class KpiReportRetrievalService {
                                                   List<ContactsWonResponse> contactsWon,
                                                   List<SalesPersonConversationResponse> salesPersonConversation,
                                                   List<GhlUserResponse> ghlUsers,
+                                                  List<FollowUpConversionResponse> followUpConversions,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
@@ -150,6 +153,7 @@ public class KpiReportRetrievalService {
             .salesPersonConversations(salesPersonConversation)
             .monthlyClarityReport(monthlyClarityReport)
             .ghlUsers(ghlUsers)
+            .followUpConversions(followUpConversions)
             .build();
     }
 

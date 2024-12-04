@@ -271,3 +271,29 @@ app-kpi-report p-button.dynamic-button.contact.live-chat-button > button {
   color: white;
 }
 
+/** Sales Pipeline **/
+.sales-pipeline-container {
+  position: relative !important;
+}
+
+.sales-pipeline-row {
+  position: sticky;
+  top: 70px;
+  padding-top: 32px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  z-index: 1000;
+  transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.sales-pipeline-row.scrolled {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.sales-pipeline-col {
+  display: flex;
+}
+
