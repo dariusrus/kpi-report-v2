@@ -75,8 +75,8 @@ public class KpiReportGeneratorController {
         }
     )
     @PostMapping(path="/monthly/average", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> generateAverageOpportunityToLead(@RequestBody GenerateKpiReportsRequest request) {
-        generatorService.calculateAverageOpportunityToLead(request);
+    public ResponseEntity<Void> generateIndustryAverages(@RequestBody GenerateKpiReportsRequest request) {
+        generatorService.calculateIndustryAverages(request);
         return ResponseEntity.ok().build();
     }
 

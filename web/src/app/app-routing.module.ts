@@ -4,8 +4,8 @@ import {KpiReportComponent} from "./kpi-report/kpi-report/kpi-report.component";
 
 const routes: Routes = [
   { path: 'kpi-report/:id', component: KpiReportComponent },
-  { path: '', redirectTo: '/kpi-report/lWZrtj8byFZrUI9Cg2eX', pathMatch: 'full' },  // Default route with a default ID
-  { path: '**', redirectTo: '/kpi-report/lWZrtj8byFZrUI9Cg2eX' }  // Wildcard route to catch undefined paths
+  { path: '', redirectTo: '/kpi-report/lWZrtj8byFZrUI9Cg2eX', pathMatch: 'full' },
+  { path: '**', redirectTo: '/kpi-report/lWZrtj8byFZrUI9Cg2eX' }
 ];
 
 @NgModule({

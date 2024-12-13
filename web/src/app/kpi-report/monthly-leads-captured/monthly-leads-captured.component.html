@@ -48,9 +48,7 @@
                     <th></th>
                     <th pSortableColumn="contactName">Contact Name</th>
                     <th pSortableColumn="contactSource">Contact Source</th>
-<!--                    <th pSortableColumn="createdBySource">Created By Source</th>-->
                     <th pSortableColumn="attributionSource">Session Channel(s)</th>
-<!--                    <th pSortableColumn="attributionMedium">Medium(s)</th>-->
                     <th pSortableColumn="dateAdded">Date Added</th>
                     <th pSortableColumn="status">Status</th>
                     <th pSortableColumn="ownerName">Owner</th>
@@ -66,7 +64,6 @@
                     </td>
                     <td class="align-left">{{ ghlContact.contactName }}</td>
                     <td>{{ ghlContact.contactSource }}</td>
-<!--                    <td>{{ ghlContact.createdBySource }}</td>-->
                     <td>
                       <ng-container *ngIf="ghlContact.attributionSource; else noAttribution">
                         <ng-container *ngFor="let source of ghlContact.attributionSource.split(',')">
@@ -79,7 +76,6 @@
                         -
                       </ng-template>
                     </td>
-<!--                    <td>{{ ghlContact.attributionMedium || '-' }}</td>-->
                     <td>{{ ghlContact.dateAdded }}</td>
                     <td>
                       <p-tag [value]="ghlContact.status" [severity]="getStatusSeverity(ghlContact.status)" />

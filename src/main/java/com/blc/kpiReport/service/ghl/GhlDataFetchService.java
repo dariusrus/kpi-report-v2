@@ -55,14 +55,11 @@ public class GhlDataFetchService {
         try {
             var opportunityList = fetchOpportunities(locationId, accessToken, startDate, endDate);
 
-            // filter for this month only
             var createdAtOpportunityList = filterCreatedAt(opportunityList, startDate, endDate);
             var createdAtContactMap = fetchContactsAndMap(createdAtOpportunityList, accessToken);
 
-            // filter status changes this month
             var lastStageChangeOpportunityList = filterLastStageChange(opportunityList, startDate, endDate);
 
-            // filter contacts where won status lands on this month
             var contactsWonOpportunityList = filterContactsWon(opportunityList, startDate, endDate);
             var contactsWonContactMap = fetchContactsAndMap(contactsWonOpportunityList, accessToken);
 

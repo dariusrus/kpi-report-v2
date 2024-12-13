@@ -3,14 +3,10 @@ package com.blc.kpiReport.schema.ghl;
 import com.blc.kpiReport.schema.shared.DateAudit;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
 
 @Entity
 @Table(name = "follow_up_conversion")
@@ -29,26 +25,47 @@ public class FollowUpConversion extends DateAudit implements Serializable {
     @JsonIgnore
     private Long id;
 
-    @Column(name = "total_sms")
-    private int totalSms;
+    @Column(name = "sms")
+    private Integer sms;
 
-    @Column(name = "total_emails")
-    private int totalEmails;
+    @Column(name = "emails")
+    private Integer emails;
 
-    @Column(name = "total_calls")
-    private int totalCalls;
+    @Column(name = "calls")
+    private Integer calls;
 
-    @Column(name = "total_live_chat_messages")
-    private int totalLiveChatMessages;
+    @Column(name = "live_chat_messages")
+    private Integer liveChatMessages;
 
-    @Column(name = "total_followups")
-    private int totalFollowups;
+    @Column(name = "follow_ups")
+    private Integer followUps;
 
-    @Column(name = "total_conversions")
-    private int totalConversions;
+    @Column(name = "conversions")
+    private Integer conversions;
 
     @Column(name = "follow_up_per_conversion")
-    private double followUpPerConversion;
+    private Double followUpPerConversion;
+
+    @Column(name = "total_sms")
+    private Integer totalSms;
+
+    @Column(name = "total_emails")
+    private Integer totalEmails;
+
+    @Column(name = "total_calls")
+    private Integer totalCalls;
+
+    @Column(name = "total_live_chat_messages")
+    private Integer totalLiveChatMessages;
+
+    @Column(name = "total_follow_ups")
+    private Integer totalFollowUps;
+
+    @Column(name = "total_conversions")
+    private Integer totalConversions;
+
+    @Column(name = "total_follow_up_per_conversion")
+    private Double totalFollowUpPerConversion;
 
     @ManyToOne
     @JoinColumn(name = "ghl_user_id")

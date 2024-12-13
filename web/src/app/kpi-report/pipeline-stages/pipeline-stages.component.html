@@ -62,11 +62,6 @@
                       <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>
                     </span>
                 </p-chip>
-<!--                <i class="pi"-->
-<!--                   [class.pi-arrow-down]="getSalesPersonDataForStage(pipelineStage).performanceIndex < 0"-->
-<!--                   [class.pi-arrow-up]="getSalesPersonDataForStage(pipelineStage).performanceIndex > 0"-->
-<!--                ></i>-->
-<!--                <span>{{ SharedUtil.formatToPercentage(getSalesPersonDataForStage(pipelineStage).performanceIndex) }}</span>-->
               </span>
             </td>
             <td [class.zero-value]="getSalesPersonDataForStage(pipelineStage).monetaryValue === 0"

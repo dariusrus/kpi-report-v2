@@ -97,14 +97,6 @@
                 ariaLabel="Filter Contact Email"
               ></p-columnFilter>
             </th>
-<!--            <th>-->
-<!--              <p-columnFilter-->
-<!--                type="text"-->
-<!--                field="contactPhone"-->
-<!--                placeholder="Phone"-->
-<!--                ariaLabel="Filter Contact Phone"-->
-<!--              ></p-columnFilter>-->
-<!--            </th>-->
             <th class="align-center" style="width: 200px;">Last Message Type</th>
             <th class="align-center" style="width: 120px;">Message Count</th>
             <th style="width: 175px;">Sales Person</th>
@@ -133,7 +125,6 @@
             </td>
             <td>{{ SharedUtil.titleCase(conversation.contactName) }}</td>
             <td>{{ SharedUtil.handleEmptyString(conversation.contactEmail) }}</td>
-<!--            <td>{{ conversation.contactPhone }}</td>-->
             <td class="align-center">
               <p-chip class="me-1">
           <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">

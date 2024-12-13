@@ -43,9 +43,8 @@ export class SharedUtil {
   static getInitialsWithPhone(name: string): string {
     if (!name || name === '') return 'N/A';
 
-    // Check if the string starts with a parenthesis or any number 0-9
     if (/^[\(\d]/.test(name)) {
-      return '<i class="pi pi-phone"></i>'; // Return phone icon
+      return '<i class="pi pi-phone"></i>';
     }
 
     const ignoreWords = ["and", "or"];
@@ -125,7 +124,6 @@ export class SharedUtil {
     return input
       .split(' ')
       .map(word => {
-        // Ignore words that start with a digit
         return /^[0-9]/.test(word) ? word : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');

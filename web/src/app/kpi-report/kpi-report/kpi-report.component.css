@@ -129,8 +129,12 @@
 }
 
 .report-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   font-size: 1.2em;
   font-weight: 600;
+  gap: 8px;
 }
 
 .report-subtitle {
@@ -687,3 +691,24 @@
   color: #555;
 }
 
+.timeline-container {
+  width: 80%;
+  padding: 24px;
+}
+
+.timeline-count {
+  font-size: 2em;
+  font-weight: 500;
+}
+
+.timeline-month {
+  font-size: 0.8em;
+  color: grey;
+  text-align: center;
+}
+
+.chevron-column {
+  padding: 0 !important;
+  width: 40px;
+  text-align: center;
+}

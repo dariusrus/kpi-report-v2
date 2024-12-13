@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { KpiReport } from '../models/kpi-report';
-import { MonthlyAverage } from '../models/monthly-average'; // Adjust the import path as needed
+import { MonthlyAverage } from '../models/monthly-average';
 import { environment } from '../../environments/environment';
 
 @Injectable({

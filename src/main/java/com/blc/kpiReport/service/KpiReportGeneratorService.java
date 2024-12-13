@@ -13,7 +13,10 @@ import com.blc.kpiReport.models.response.GenerateKpiReportResponse;
 import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
 import com.blc.kpiReport.repository.mc.MonthlyClarityReportRepository;
-import com.blc.kpiReport.schema.*;
+import com.blc.kpiReport.schema.GhlLocation;
+import com.blc.kpiReport.schema.KpiReport;
+import com.blc.kpiReport.schema.MonthlyAverage;
+import com.blc.kpiReport.schema.ghl.FollowUpConversion;
 import com.blc.kpiReport.schema.ghl.LeadSource;
 import com.blc.kpiReport.schema.mc.*;
 import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
@@ -382,7 +385,6 @@ public class KpiReportGeneratorService {
         if (reportResponses.stream().anyMatch(r -> r.getStatus() == ReportStatus.ONGOING || r.getStatus() == ReportStatus.PENDING)) {
             totalTimeElapsed = "N/A";
         } else {
-            // Sum the elapsed time from successful reports
             long totalDurationMillis = reportResponses.stream()
                 .filter(r -> r.getStatus() == ReportStatus.SUCCESS)
                 .mapToLong(r -> {
@@ -479,7 +481,6 @@ public class KpiReportGeneratorService {
         int year = requestDate.getYear();
         var kpiReport = getOrCreateKpiReport(ghlLocation, month, year);
 
-        // Update KpiReport status and timing before fetching metrics
         kpiReport.setLastStartTime(Instant.now());
         setStatus(kpiReport, ReportStatus.ONGOING);
 
@@ -513,9 +514,7 @@ public class KpiReportGeneratorService {
         kpiReport.setLastStartTime(Instant.now());
         setStatus(kpiReport, ReportStatus.ONGOING);
         try {
-            // Fetch metrics for the previous day
             var dailyMetric = microsoftClarityApiService.fetchMetricsForPreviousDay(ghlLocation, kpiReport, day);
-            // for some reason, the program execute the code below
             log.info("Fetched metrics for day {}: {}", day, dailyMetric);
             setStatus(kpiReport, ReportStatus.SUCCESS);
         } catch (IOException | MicrosoftClarityApiException e) {
@@ -538,7 +537,7 @@ public class KpiReportGeneratorService {
     }
 
     @Transactional
-    public void calculateAverageOpportunityToLead(GenerateKpiReportsRequest request) {
+    public void calculateIndustryAverages(GenerateKpiReportsRequest request) {
         List<KpiReport> reports = repository.findByMonthAndYear(request.getMonth(), request.getYear());
 
         if (reports.isEmpty()) {
@@ -546,57 +545,30 @@ public class KpiReportGeneratorService {
             return;
         }
 
-        Map<ClientType, Double> totalUniqueSiteVisitorsMap = new HashMap<>();
-        Map<ClientType, Integer> totalLeadSourcesMap = new HashMap<>();
-        Map<ClientType, Double> sumOpportunityToLeadMap = new HashMap<>();
-        Map<ClientType, Integer> reportCountMap = new HashMap<>();
-        Map<ClientType, Integer> validOpportunityToLeadCountMap = new HashMap<>();
+        Map<ClientType, Integer> reportCountMap = initializeMapWithDefault(ClientType.values(), 0);
 
-        for (ClientType clientType : ClientType.values()) {
-            totalUniqueSiteVisitorsMap.put(clientType, 0.0);
-            totalLeadSourcesMap.put(clientType, 0);
-            sumOpportunityToLeadMap.put(clientType, 0.0);
-            reportCountMap.put(clientType, 0);
-            validOpportunityToLeadCountMap.put(clientType, 0);
-        }
+        Map<ClientType, Double> totalUniqueSiteVisitorsMap = initializeMapWithDefault(ClientType.values(), 0.0);
+        Map<ClientType, Integer> totalLeadSourcesMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Double> sumOpportunityToLeadMap = initializeMapWithDefault(ClientType.values(), 0.0);
+        Map<ClientType, Integer> validOpportunityToLeadCountMap = initializeMapWithDefault(ClientType.values(), 0);
+
+
+        Map<ClientType, Integer> followUpsMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> conversionsMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> totalFollowUpsMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> totalConversionsMap = initializeMapWithDefault(ClientType.values(), 0);
 
         for (KpiReport report : reports) {
             ClientType clientType = report.getGhlLocation().getClientType();
-
             if (clientType == null) {
                 continue;
             }
-
             reportCountMap.put(clientType, reportCountMap.get(clientType) + 1);
 
-            if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0) {
-                totalUniqueSiteVisitorsMap.put(clientType,
-                    totalUniqueSiteVisitorsMap.get(clientType) + report.getGoogleAnalyticsMetric().getUniqueSiteVisitors());
-            }
-
-            if (report.getGoHighLevelReport() != null) {
-                List<LeadSource> leadSources = report.getGoHighLevelReport().getLeadSources();
-                for (LeadSource leadSource : leadSources) {
-                    if (leadSource.getTotalLeads() > 0) {
-                        totalLeadSourcesMap.put(clientType,
-                            totalLeadSourcesMap.get(clientType) + leadSource.getTotalLeads());
-                    }
-                }
-            }
-
-            if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0 &&
-                report.getGoHighLevelReport() != null && !report.getGoHighLevelReport().getLeadSources().isEmpty()) {
-
-                double uniqueVisitors = report.getGoogleAnalyticsMetric().getUniqueSiteVisitors();
-                double totalLeads = report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum();
-
-                if (totalLeads > 0 && uniqueVisitors > 0) {
-                    double opportunityToLead = (totalLeads / uniqueVisitors) * 100;
-                    sumOpportunityToLeadMap.put(clientType,
-                        sumOpportunityToLeadMap.get(clientType) + opportunityToLead);
-                    validOpportunityToLeadCountMap.put(clientType, validOpportunityToLeadCountMap.get(clientType) + 1);
-                }
-            }
+            populateUniqueSiteVisitors(report, totalUniqueSiteVisitorsMap, clientType);
+            populateLeadSources(report, totalLeadSourcesMap, clientType);
+            populateOpportunityToLead(report, sumOpportunityToLeadMap, clientType, validOpportunityToLeadCountMap);
+            populateFollowUpConversionMaps(report, followUpsMap, conversionsMap, totalFollowUpsMap, totalConversionsMap, clientType);
         }
 
         for (ClientType clientType : ClientType.values()) {
@@ -610,12 +582,22 @@ public class KpiReportGeneratorService {
             double weightedAverageOpportunityToLead = 0;
             double nonWeightedAverageOpportunityToLead = 0;
 
-            if (totalUniqueSiteVisitorsMap.get(clientType) > 0) {
-                weightedAverageOpportunityToLead = (totalLeadSourcesMap.get(clientType) / totalUniqueSiteVisitorsMap.get(clientType)) * 100;
-            }
+            weightedAverageOpportunityToLead = calculateWeightedAverageO2L(clientType, totalUniqueSiteVisitorsMap, weightedAverageOpportunityToLead, totalLeadSourcesMap);
+            nonWeightedAverageOpportunityToLead = calculateNonWeightedAverageO2L(clientType, validOpportunityToLeadCountMap, nonWeightedAverageOpportunityToLead, sumOpportunityToLeadMap);
 
-            if (validOpportunityToLeadCountMap.get(clientType) > 0) {
-                nonWeightedAverageOpportunityToLead = sumOpportunityToLeadMap.get(clientType) / validOpportunityToLeadCountMap.get(clientType);
+
+            int averageFollowUps = followUpsMap.get(clientType) / reportCountMap.get(clientType);
+            int averageConversions = conversionsMap.get(clientType) / reportCountMap.get(clientType);
+            int averageTotalFollowUps = totalFollowUpsMap.get(clientType) / reportCountMap.get(clientType);
+            int averageTotalConversions = totalConversionsMap.get(clientType) / reportCountMap.get(clientType);
+
+            double averageFollowUpPerConversion = 0;
+            double averageTotalFollowUpPerConversion = 0;
+            if (averageConversions > 0) {
+                averageFollowUpPerConversion = (double) followUpsMap.get(clientType) / conversionsMap.get(clientType);
+            }
+            if (averageTotalConversions > 0) {
+                averageTotalFollowUpPerConversion = (double) totalFollowUpsMap.get(clientType) / totalConversionsMap.get(clientType);
             }
 
             log.info("ClientType: {}", clientType);
@@ -623,9 +605,15 @@ public class KpiReportGeneratorService {
             log.info("Average Total Leads: {}", averageTotalLeads);
             log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
             log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
+            log.info("Average Follow-Ups: {}", averageFollowUps);
+            log.info("Average Conversions: {}", averageConversions);
+            log.info("Average Follow-Up Per Conversion: {}", averageFollowUpPerConversion);
+            log.info("Average Total Follow-Ups: {}", averageTotalFollowUps);
+            log.info("Average Total Conversions: {}", averageTotalConversions);
+            log.info("Average Total Follow-Up Per Conversion: {}", averageTotalFollowUpPerConversion);
 
             MonthlyAverage monthlyAverage = monthlyAverageRepository.findByMonthAndYearAndClientType(request.getMonth(), request.getYear(), clientType)
-                .orElse(new MonthlyAverage());
+                    .orElse(new MonthlyAverage());
 
             monthlyAverage.setMonth(request.getMonth());
             monthlyAverage.setYear(request.getYear());
@@ -634,6 +622,12 @@ public class KpiReportGeneratorService {
             monthlyAverage.setAverageTotalLeads((int) averageTotalLeads);
             monthlyAverage.setAverageOpportunityToLead(nonWeightedAverageOpportunityToLead);
             monthlyAverage.setWeightedAverageOpportunityToLead(weightedAverageOpportunityToLead);
+            monthlyAverage.setAverageFollowUps(averageFollowUps);
+            monthlyAverage.setAverageConversions(averageConversions);
+            monthlyAverage.setAverageFollowUpPerConversion(averageFollowUpPerConversion);
+            monthlyAverage.setAverageTotalFollowUps(averageTotalFollowUps);
+            monthlyAverage.setAverageTotalConversions(averageTotalConversions);
+            monthlyAverage.setAverageTotalFollowUpPerConversion(averageTotalFollowUpPerConversion);
 
             monthlyAverageRepository.save(monthlyAverage);
         }
@@ -651,16 +645,92 @@ public class KpiReportGeneratorService {
 
         CompletableFuture.runAsync(() -> {
             CompletableFuture.allOf(
-                uniqueLocationIds.stream()
-                    .map(locationId -> {
-                        var response = prepareInitialResponse(locationId, getCurrentMonth(), getCurrentYear(), null);
-                        return runAsyncDailyReportGeneration(response, getCurrentMonth(), getCurrentYear(), getCurrentDay());
-                    })
-                    .toArray(CompletableFuture[]::new)
+                    uniqueLocationIds.stream()
+                            .map(locationId -> {
+                                var response = prepareInitialResponse(locationId, getCurrentMonth(), getCurrentYear(), null);
+                                return runAsyncDailyReportGeneration(response, getCurrentMonth(), getCurrentYear(), getCurrentDay());
+                            })
+                            .toArray(CompletableFuture[]::new)
             ).whenComplete((result, throwable) -> finalizeBatchReportDaily(getCurrentDay(), getCurrentMonth(), getCurrentYear(), isCronJob));
         });
 
         return CompletableFuture.completedFuture(initialResponses);
+    }
+
+    private double calculateNonWeightedAverageO2L(ClientType clientType, Map<ClientType, Integer> validOpportunityToLeadCountMap, double nonWeightedAverageOpportunityToLead, Map<ClientType, Double> sumOpportunityToLeadMap) {
+        if (validOpportunityToLeadCountMap.get(clientType) > 0) {
+            nonWeightedAverageOpportunityToLead = sumOpportunityToLeadMap.get(clientType) / validOpportunityToLeadCountMap.get(clientType);
+        }
+        return nonWeightedAverageOpportunityToLead;
+    }
+
+    private double calculateWeightedAverageO2L(ClientType clientType, Map<ClientType, Double> totalUniqueSiteVisitorsMap, double weightedAverageOpportunityToLead, Map<ClientType, Integer> totalLeadSourcesMap) {
+        if (totalUniqueSiteVisitorsMap.get(clientType) > 0) {
+            weightedAverageOpportunityToLead = (totalLeadSourcesMap.get(clientType) / totalUniqueSiteVisitorsMap.get(clientType)) * 100;
+        }
+        return weightedAverageOpportunityToLead;
+    }
+
+    private void populateOpportunityToLead(KpiReport report,
+                                           Map<ClientType, Double> sumOpportunityToLeadMap,
+                                           ClientType clientType,
+                                           Map<ClientType, Integer> validOpportunityToLeadCountMap) {
+        if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0 &&
+            report.getGoHighLevelReport() != null && !report.getGoHighLevelReport().getLeadSources().isEmpty()) {
+
+            double uniqueVisitors = report.getGoogleAnalyticsMetric().getUniqueSiteVisitors();
+            double totalLeads = report.getGoHighLevelReport().getLeadSources().stream().mapToInt(LeadSource::getTotalLeads).sum();
+
+            if (totalLeads > 0 && uniqueVisitors > 0) {
+                double opportunityToLead = (totalLeads / uniqueVisitors) * 100;
+                sumOpportunityToLeadMap.put(clientType,
+                    sumOpportunityToLeadMap.get(clientType) + opportunityToLead);
+                validOpportunityToLeadCountMap.put(clientType, validOpportunityToLeadCountMap.get(clientType) + 1);
+            }
+        }
+    }
+
+    private void populateLeadSources(KpiReport report,
+                                     Map<ClientType, Integer> totalLeadSourcesMap,
+                                     ClientType clientType) {
+        if (report.getGoHighLevelReport() != null) {
+            List<LeadSource> leadSources = report.getGoHighLevelReport().getLeadSources();
+            for (LeadSource leadSource : leadSources) {
+                if (leadSource.getTotalLeads() > 0) {
+                    totalLeadSourcesMap.put(clientType,
+                        totalLeadSourcesMap.get(clientType) + leadSource.getTotalLeads());
+                }
+            }
+        }
+    }
+
+    private void populateUniqueSiteVisitors(KpiReport report,
+                                            Map<ClientType, Double> totalUniqueSiteVisitorsMap,
+                                            ClientType clientType) {
+        if (report.getGoogleAnalyticsMetric() != null && report.getGoogleAnalyticsMetric().getUniqueSiteVisitors() > 0) {
+            totalUniqueSiteVisitorsMap.put(clientType,
+                totalUniqueSiteVisitorsMap.get(clientType) + report.getGoogleAnalyticsMetric().getUniqueSiteVisitors());
+        }
+    }
+
+    private void populateFollowUpConversionMaps(
+            KpiReport report,
+            Map<ClientType, Integer> followUpsMap,
+            Map<ClientType, Integer> conversionsMap,
+            Map<ClientType, Integer> totalFollowUpsMap,
+            Map<ClientType, Integer> totalConversionsMap,
+            ClientType clientType
+    ) {
+        if (report.getGoHighLevelReport() != null) {
+            List<FollowUpConversion> followUpConversions = report.getGoHighLevelReport().getFollowUpConversions();
+
+            for (FollowUpConversion conversion : followUpConversions) {
+                followUpsMap.put(clientType, followUpsMap.get(clientType) + conversion.getFollowUps());
+                conversionsMap.put(clientType, conversionsMap.get(clientType) + conversion.getConversions());
+                totalFollowUpsMap.put(clientType, totalFollowUpsMap.get(clientType) + conversion.getTotalFollowUps());
+                totalConversionsMap.put(clientType, totalConversionsMap.get(clientType) + conversion.getTotalConversions());
+            }
+        }
     }
 
     private int getCurrentDay() {
@@ -673,5 +743,10 @@ public class KpiReportGeneratorService {
 
     private int getCurrentYear() {
         return ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()).getYear();
+    }
+
+    private <T, V> Map<T, V> initializeMapWithDefault(T[] keys, V defaultValue) {
+        return Arrays.stream(keys)
+                .collect(Collectors.toMap(key -> key, key -> defaultValue));
     }
 }

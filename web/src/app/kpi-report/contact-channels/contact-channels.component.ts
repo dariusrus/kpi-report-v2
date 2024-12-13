@@ -58,11 +58,11 @@ export class ContactChannelsComponent implements OnInit {
 
   updateChartView() {
     if (window.innerWidth >= 1400) {
-      this.view = [550, 485];
+      this.view = [500, 485];
     } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
-      this.view = [450, 485];
+      this.view = [400, 485];
     } else {
-      this.view = [350, 485];
+      this.view = [300, 485];
     }
   }
 
@@ -82,56 +82,82 @@ export class ContactChannelsComponent implements OnInit {
     const attributionData: { [key: string]: { [month: string]: number } } = {};
     const isValidAttribution = (attribution: string) => attribution && attribution !== '-' && attribution.trim() !== '';
 
+    const normalizeAttribution = (attribution: string): string => {
+      if (attribution === 'Organic Search' || attribution === 'Direct traffic') {
+        return 'Organic Search & Direct Traffic';
+      }
+      return attribution;
+    };
+
+    // Process previous data
     previousData.forEach(([previousReport, previousAverage]: [KpiReport, MonthlyAverage]) => {
       if (previousReport.websiteLead?.leadSource) {
         const previousMonth = SharedUtil.formatMonthAndYear(previousReport.monthAndYear);
         previousReport.websiteLead.leadSource.forEach(source => {
           source.leadContacts?.forEach(ghlContact => {
             if (!ghlContact.attributionSource) return;
-            const firstAttribution = ghlContact.attributionSource.split(',')[0].trim();
-            if (!isValidAttribution(firstAttribution)) return;
 
-            if (!attributionData[firstAttribution]) {
-              attributionData[firstAttribution] = {};
+            const toDisplayAttribution = ghlContact.attributionSource
+                .split(',')
+                .map(source => source.trim())
+                .find(source => source === 'Organic Search' || source === 'Direct Traffic')
+              || ghlContact.attributionSource.split(',')[0].trim();
+
+            if (!isValidAttribution(toDisplayAttribution)) return;
+
+            const normalizedAttribution = normalizeAttribution(toDisplayAttribution);
+
+            if (!attributionData[normalizedAttribution]) {
+              attributionData[normalizedAttribution] = {};
             }
 
-            if (attributionData[firstAttribution][previousMonth]) {
-              attributionData[firstAttribution][previousMonth]++;
+            if (attributionData[normalizedAttribution][previousMonth]) {
+              attributionData[normalizedAttribution][previousMonth]++;
             } else {
-              attributionData[firstAttribution][previousMonth] = 1;
+              attributionData[normalizedAttribution][previousMonth] = 1;
             }
 
-            if (!this.attributionSources.includes(firstAttribution)) {
-              this.attributionSources.push(firstAttribution);
+            if (!this.attributionSources.includes(normalizedAttribution)) {
+              this.attributionSources.push(normalizedAttribution);
             }
           });
         });
       }
     });
 
+    // Process current data
     currentData.websiteLead?.leadSource.forEach(source => {
       source.leadContacts?.forEach(ghlContact => {
         if (!ghlContact.attributionSource) return;
-        const firstAttribution = ghlContact.attributionSource.split(',')[0].trim();
+
+        const toDisplayAttribution = ghlContact.attributionSource
+            .split(',')
+            .map(source => source.trim())
+            .find(source => source === 'Organic Search' || source === 'Direct Traffic')
+          || ghlContact.attributionSource.split(',')[0].trim();
+
+        if (!isValidAttribution(toDisplayAttribution)) return;
+
+        const normalizedAttribution = normalizeAttribution(toDisplayAttribution);
         const currentMonth = SharedUtil.formatMonthAndYear(currentData.monthAndYear);
-        if (!isValidAttribution(firstAttribution)) return;
 
-        if (!attributionData[firstAttribution]) {
-          attributionData[firstAttribution] = {};
+        if (!attributionData[normalizedAttribution]) {
+          attributionData[normalizedAttribution] = {};
         }
 
-        if (attributionData[firstAttribution][currentMonth]) {
-          attributionData[firstAttribution][currentMonth]++;
+        if (attributionData[normalizedAttribution][currentMonth]) {
+          attributionData[normalizedAttribution][currentMonth]++;
         } else {
-          attributionData[firstAttribution][currentMonth] = 1;
+          attributionData[normalizedAttribution][currentMonth] = 1;
         }
 
-        if (!this.attributionSources.includes(firstAttribution)) {
-          this.attributionSources.push(firstAttribution);
+        if (!this.attributionSources.includes(normalizedAttribution)) {
+          this.attributionSources.push(normalizedAttribution);
         }
       });
     });
 
+    // Filter and prepare data for chart
     if (selectedAttributions.length > 0) {
       this.selectedSources = this.attributionSources.filter(source => selectedAttributions.includes(source));
       this.data = this.selectedSources.map(attributionSource => ({

@@ -217,29 +217,29 @@ app-kpi-report p-button.dynamic-button.disabled > button {
 
 /* SMS Button */
 app-kpi-report p-button.dynamic-button.sms-button > button {
-  background-color: #40A96C;
-  border-color: #40A96C;
+  background-color: #55AD7AFF;
+  border-color: #55AD7AFF;
   color: white;
 }
 
 /* Email Button */
 app-kpi-report p-button.dynamic-button.email-button > button {
-  background-color: #A9407C;
-  border-color: #A9407C;
+  background-color: #7c51a9;
+  border-color: #6852ab;
   color: white;
 }
 
 /* Call Button */
 app-kpi-report p-button.dynamic-button.call-button > button {
-  background-color: #4047A9;
-  border-color: #4047A9;
+  background-color: #555AADFF;
+  border-color: #555AADFF;
   color: white;
 }
 
 /* Live Chat Button */
 app-kpi-report p-button.dynamic-button.live-chat-button > button {
-  background-color: #A9A140;
-  border-color: #A9A140;
+  background-color: #53ada3;
+  border-color: #53aaad;
   color: white;
 }
 
@@ -252,8 +252,8 @@ app-kpi-report p-button.dynamic-button.contact.sms-button > button {
 
 /* Email Button */
 app-kpi-report p-button.dynamic-button.contact.email-button > button {
-  background-color: #AB5282FF;
-  border-color: #AB5282FF;
+  background-color: #7c51a9;
+  border-color: #6852ab;
   color: white;
 }
 
@@ -266,8 +266,8 @@ app-kpi-report p-button.dynamic-button.contact.call-button > button {
 
 /* Live Chat Button */
 app-kpi-report p-button.dynamic-button.contact.live-chat-button > button {
-  background-color: #ADA653FF;
-  border-color: #ADA653FF;
+  background-color: #53ada3;
+  border-color: #53aaad;
   color: white;
 }
 
@@ -295,5 +295,49 @@ app-kpi-report p-button.dynamic-button.contact.live-chat-button > button {
 
 .sales-pipeline-col {
   display: flex;
+}
+
+.report-tooltip-container {
+  position: relative;
+  margin-top: -4px;
+}
+
+.report-info-tooltip {
+  position: absolute;
+  top: 135%;
+  left: 35%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-weight: 200;
+  padding: 16px;
+  font-size: 0.9rem !important;
+  border-radius: 4px;
+  width: 250px;
+  text-align: center;
+  z-index: 999;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.report-info-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.75) transparent;
+}
+
+.report-info-tooltip > .font-bold {
+  color: white !important;
+  font-weight: 500;
+}
+
+app-contact-channels ngx-charts-area-chart .chart-legend .legend-labels {
+  width: auto !important;
+  max-width: 180px !important;
 }
 

@@ -186,9 +186,9 @@ export class SalesPersonConversationsComponent implements OnInit {
 
   getFormattedMessageType(messageType: string): string {
     return messageType
-      .replace(/^type_/i, '') // Remove "type_" prefix if present
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
+      .replace(/^type_/i, '')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
   }
 
   get sortedConversations() {

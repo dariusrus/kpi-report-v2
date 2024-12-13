@@ -28,27 +28,45 @@ public class MonthlyAverage extends DateAudit implements Serializable {
 
     @NotNull
     @Column(name = "month", nullable = false)
-    private int month;
+    private Integer month;
 
     @NotNull
     @Column(name = "year", nullable = false)
-    private int year;
+    private Integer year;
 
     @NotNull
     @Column(name = "average_uniqueSiteVisitors")
-    private int averageUniqueSiteVisitors;
+    private Integer averageUniqueSiteVisitors;
 
     @NotNull
     @Column(name = "average_total_leads", nullable = false)
-    private int averageTotalLeads;
+    private Integer averageTotalLeads;
 
     @NotNull
     @Column(name = "average_opportunity_to_lead", nullable = false)
-    private double averageOpportunityToLead;
+    private Double averageOpportunityToLead;
 
     @NotNull
     @Column(name = "weighted_average_opportunity_to_lead", nullable = false)
-    private double weightedAverageOpportunityToLead;
+    private Double weightedAverageOpportunityToLead;
+
+    @Column(name = "average_follow_ups")
+    private Integer averageFollowUps;
+
+    @Column(name = "average_conversions")
+    private Integer averageConversions;
+
+    @Column(name = "average_follow_up_per_conversion")
+    private Double averageFollowUpPerConversion;
+
+    @Column(name = "average_total_follow_ups")
+    private Integer averageTotalFollowUps;
+
+    @Column(name = "average_total_conversions")
+    private Integer averageTotalConversions;
+
+    @Column(name = "average_total_follow_up_per_conversion")
+    private Double averageTotalFollowUpPerConversion;
 
     @NotNull
     @Column(name = "client_type")

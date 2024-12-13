@@ -6,6 +6,8 @@ import {PipelineStage} from "../../models/ghl/pipeline-stage";
 import {LegendPosition} from "@swimlane/ngx-charts";
 import {SharedUtil} from "../../util/shared-util";
 import {SalesPersonConversation} from "../../models/ghl/sales-person-conversation";
+import * as shape from "d3-shape";
+import {dropInAnimation} from "../../util/animations";
 
 interface SalesPerson {
   id: string;
@@ -17,36 +19,57 @@ interface SalesPerson {
 @Component({
   selector: 'app-sales-pipeline-report',
   templateUrl: './sales-pipeline-report.component.html',
-  styleUrls: ['./sales-pipeline-report.component.css']
+  styleUrls: ['./sales-pipeline-report.component.css'],
+  animations: [dropInAnimation]
 })
 export class SalesPipelineReportComponent implements OnInit {
   @Input() reportData!: KpiReport;
   @Input() reportDataPreviousMap: [KpiReport, MonthlyAverage][] = [];
+  @Input() averageReportData!: MonthlyAverage;
   @Input() isVisible!: { [key: string]: string };
+  @Input() monthCount!: number;
 
   data: any[] = [];
   followupData: any[] = [];
   selectedPipeline: Pipeline | null = null;
   selectedPipelineNoData: boolean = false;
   pieChartView: [number, number] = [580, 350];
+  lineChartView: [number, number] = [500, 400];
   scheme = 'picnic';
 
   salesPersons: SalesPerson[] = [];
   selectedSalesPersons: SalesPerson[] = [];
   totalConversions: number = 0;
 
-  // Total counts for number cards
   totalSmsCount: number = 0;
   totalEmailCount: number = 0;
   totalCallCount: number = 0;
   totalLiveChatCount: number = 0;
   totalFollowups: number = 0;
   filteredConversations: SalesPersonConversation[] = [];
+  filteredFollowUpConversions: any[] = [];
 
   stageConversionIndex: number = 0;
   followUpIndex: number = 0;
 
   isScrolled = false;
+
+  pipelineStageData: any[] = [];
+  pipelineView: [number, number] = [1150, 400];
+  pipelineStages: PipelineStage[] = [];
+  selectedPipelineStages: PipelineStage[] = [];
+  selectedPipelineStagesLabel: string = 'All stages selected';
+
+  conversionTimeline: { month: string, totalConversions: number }[] = [];
+
+  followUpPerConversionData: any[] = [];
+  xAxisLabel = 'Month & Year';
+  yAxisLabel = 'Follow Up per Conversion';
+  curve: any = shape.curveCatmullRom.alpha(1);
+
+  peerComparisonTooltip = false;
+  timelineInfoTooltip = false;
+  fpcInfoTooltip = false;
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -54,7 +77,6 @@ export class SalesPipelineReportComponent implements OnInit {
     if (pipelineRow) {
       const rect = pipelineRow.getBoundingClientRect();
       this.isScrolled = rect.top == 70;
-      console.log(rect.top);
     }
   }
 
@@ -68,7 +90,6 @@ export class SalesPipelineReportComponent implements OnInit {
       this.salesPersons = this.getUniqueSalesPersonNames(this.reportData.pipelines);
       this.selectedSalesPersons = this.salesPersons;
       this.preloadImages();
-      console.log(this.salesPersons);
     }
 
     this.filterConversations();
@@ -76,8 +97,13 @@ export class SalesPipelineReportComponent implements OnInit {
 
     this.setupChart();
     this.setupFollowupChart();
+    this.populateFollowUpPerConversionChart(this.reportData, this.reportDataPreviousMap);
     this.updateChartView();
     this.computeIndices();
+    this.updateFilteredFollowUpConversions();
+    this.initializePipelineStages();
+    this.populatePipelineChart();
+    this.populateConversionTimeline();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -85,8 +111,261 @@ export class SalesPipelineReportComponent implements OnInit {
     this.updateChartView();
   }
 
+  showTooltip(hoveredObject: string) {
+    this.hideAllTooltips();
+
+    if (hoveredObject === 'timelineInfoTooltip') {
+      this.timelineInfoTooltip = true;
+    } else if (hoveredObject === 'peerComparisonTooltip') {
+      this.peerComparisonTooltip = true;
+    } else if (hoveredObject === 'fpcInfoTooltip') {
+      this.fpcInfoTooltip = true;
+    }
+  }
+
+  hideAllTooltips() {
+    this.peerComparisonTooltip = false;
+    this.timelineInfoTooltip = false;
+    this.fpcInfoTooltip = false;
+  }
+
+  getBuilderType(): string {
+    let clientType = this.reportData.clientType;
+    console.log(this.reportData);
+    return clientType === 'REMODELING'
+      ? 'remodelers'
+      : clientType === 'CUSTOM_HOMES'
+        ? 'custom home builders'
+        : 'remodelers and custom home builders';
+  }
+
+  initializePipelineStages(): void {
+    if (this.selectedPipeline) {
+      this.pipelineStages = [...this.selectedPipeline.pipelineStages];
+      this.selectedPipelineStages = [...this.pipelineStages];
+      this.updateSelectedPipelineStages();
+    }
+  }
+
+  getFontSize(index: number): string {
+    const maxSize = 2;
+    const decrement = 0.2;
+    const minSize = 1;
+    const calculatedSize = maxSize - index * decrement;
+    return `${Math.max(calculatedSize, minSize)}em`;
+  }
+
+  updateSelectedPipelineStages(): void {
+    if (this.selectedPipelineStages.length === 0) {
+      this.selectedPipelineStages = this.selectedPipeline!.pipelineStages;
+    }
+
+    const stageCount = this.selectedPipelineStages.length;
+    this.selectedPipelineStagesLabel =
+      stageCount === this.pipelineStages.length
+        ? 'All stages selected'
+        : `${stageCount} stages selected`;
+
+    this.populatePipelineChart();
+    this.populateConversionTimeline();
+  }
+
+  private populatePipelineChart(): void {
+    if (!this.selectedPipeline) {
+      this.pipelineStageData = [];
+      return;
+    }
+
+    const activeSalesPersons = this.selectedSalesPersons.length > 0
+      ? this.selectedSalesPersons
+      : this.salesPersons;
+
+    const activePipelineStages = this.selectedPipelineStages.length > 0
+      ? this.selectedPipelineStages
+      : this.selectedPipeline.pipelineStages;
+
+    const stageData: { [key: string]: { [month: string]: number } } = {};
+
+    const getSalesPersonCount = (salesPersonConversions: any[]): number => {
+      return salesPersonConversions
+        .filter(sp => activeSalesPersons.some(person => person.id === sp.salesPersonId))
+        .reduce((sum, sp) => sum + sp.count, 0);
+    };
+
+    this.reportDataPreviousMap.forEach(([previousReport, _]: [KpiReport, MonthlyAverage]) => {
+      const previousPipeline = previousReport.pipelines?.find(
+        pipeline => pipeline.pipelineName === this.selectedPipeline?.pipelineName
+      );
+
+      if (previousPipeline) {
+        const month = SharedUtil.formatMonthAndYear(previousReport.monthAndYear);
+
+        previousPipeline.pipelineStages
+          .filter(stage => activePipelineStages.some(selected => selected.stageName === stage.stageName))
+          .forEach(stage => {
+            const totalCount = getSalesPersonCount(stage.salesPersonConversions);
+
+            if (!stageData[stage.stageName]) {
+              stageData[stage.stageName] = {};
+            }
+
+            stageData[stage.stageName][month] = (stageData[stage.stageName][month] || 0) + totalCount;
+          });
+      }
+    });
+
+    const currentMonth = SharedUtil.formatMonthAndYear(this.reportData.monthAndYear);
+    this.selectedPipeline.pipelineStages
+      .filter(stage => activePipelineStages.some(selected => selected.stageName === stage.stageName))
+      .forEach(stage => {
+        const totalCount = getSalesPersonCount(stage.salesPersonConversions);
+
+        if (!stageData[stage.stageName]) {
+          stageData[stage.stageName] = {};
+        }
+
+        stageData[stage.stageName][currentMonth] = (stageData[stage.stageName][currentMonth] || 0) + totalCount;
+      });
+
+    this.pipelineStageData = Object.keys(stageData).map(stageName => ({
+      name: stageName,
+      series: Object.keys(stageData[stageName])
+        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+        .map(month => ({
+          name: month,
+          value: stageData[stageName][month],
+        })),
+    }));
+  }
+
+  private populateFollowUpPerConversionChart(
+    currentData: KpiReport,
+    previousData: [KpiReport, MonthlyAverage][]
+  ): void {
+    const monthsToDisplay = [
+      ...new Set([
+        ...previousData.map(([report]) => SharedUtil.formatMonthAndYear(report.monthAndYear)),
+        SharedUtil.formatMonthAndYear(currentData.monthAndYear)
+      ])
+    ].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    const salespersonData = this.selectedSalesPersons.map(salesperson => ({
+      name: salesperson.name,
+      series: monthsToDisplay.map(month => {
+        const previousEntry = previousData.find(([report]) =>
+          SharedUtil.formatMonthAndYear(report.monthAndYear) === month &&
+          report.followUpConversions.some(conversion =>
+            conversion.ghlUserId === salesperson.id
+          )
+        );
+
+        const previousValue = previousEntry
+          ? previousEntry[0].followUpConversions.find(conversion =>
+          conversion.ghlUserId === salesperson.id
+        )?.totalFollowUpPerConversion ?? 0
+          : 0;
+
+        const currentValue =
+          SharedUtil.formatMonthAndYear(currentData.monthAndYear) === month &&
+          currentData.followUpConversions.some(conversion =>
+            conversion.ghlUserId === salesperson.id
+          )
+            ? currentData.followUpConversions.find(conversion =>
+            conversion.ghlUserId === salesperson.id
+          )?.totalFollowUpPerConversion ?? 0
+            : 0;
+
+        return {
+          name: month,
+          value: parseFloat((currentValue || previousValue).toFixed(2))
+        };
+      })
+    }));
+
+    const peerIndustryAverage = {
+      name: "Peer Industry Average",
+      series: monthsToDisplay.map(month => {
+        const previousAverage = previousData.find(([report, average]) =>
+          SharedUtil.formatMonthAndYear(report.monthAndYear) === month &&
+          average?.averageTotalFollowUpPerConversion !== null
+        )?.[1]?.averageTotalFollowUpPerConversion ?? 0;
+
+        const currentAverage =
+          SharedUtil.formatMonthAndYear(currentData.monthAndYear) === month &&
+          this.averageReportData?.averageTotalFollowUpPerConversion !== null
+            ? this.averageReportData.averageTotalFollowUpPerConversion
+            : 0;
+
+        return {
+          name: month,
+          value: parseFloat((currentAverage || previousAverage).toFixed(2))
+        };
+      })
+    };
+
+    this.followUpPerConversionData = [...salespersonData, peerIndustryAverage];
+  }
+
+  private populateConversionTimeline(): void {
+    if (!this.selectedPipeline) {
+      this.conversionTimeline = [];
+      return;
+    }
+
+    const activeSalesPersons = this.selectedSalesPersons.length > 0
+      ? this.selectedSalesPersons
+      : this.salesPersons;
+
+    const activePipelineStages = this.selectedPipelineStages.length > 0
+      ? this.selectedPipelineStages
+      : this.selectedPipeline.pipelineStages;
+
+    const timelineData: { [month: string]: number } = {};
+
+    const getTotalConversions = (stage: PipelineStage): number => {
+      return stage.salesPersonConversions
+        .filter(sp => activeSalesPersons.some(person => person.id === sp.salesPersonId))
+        .reduce((sum, sp) => sum + sp.count, 0);
+    };
+
+    this.reportDataPreviousMap.forEach(([previousReport]) => {
+      const previousPipeline = previousReport.pipelines?.find(
+        pipeline => pipeline.pipelineName === this.selectedPipeline?.pipelineName
+      );
+
+      if (previousPipeline) {
+        const month = SharedUtil.formatMonthAndYear(previousReport.monthAndYear);
+
+        previousPipeline.pipelineStages
+          .filter(stage => activePipelineStages.some(selected => selected.stageName === stage.stageName))
+          .forEach(stage => {
+            const totalConversions = getTotalConversions(stage);
+            timelineData[month] = (timelineData[month] || 0) + totalConversions;
+          });
+      }
+    });
+
+    const currentMonth = SharedUtil.formatMonthAndYear(this.reportData.monthAndYear);
+
+    this.selectedPipeline.pipelineStages
+      .filter(stage => activePipelineStages.some(selected => selected.stageName === stage.stageName))
+      .forEach(stage => {
+        const totalConversions = getTotalConversions(stage);
+        timelineData[currentMonth] = (timelineData[currentMonth] || 0) + totalConversions;
+      });
+
+    this.conversionTimeline = Object.keys(timelineData)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .map((month, index) => ({
+        month,
+        totalConversions: timelineData[month],
+        index
+      }));
+  }
+
   initializeSalesPersons() {
     const uniqueSalesPersons = new Map<string, SalesPerson>();
+
     this.reportData.salesPersonConversations.forEach(conversation => {
       if (!uniqueSalesPersons.has(conversation.salesPersonId)) {
         uniqueSalesPersons.set(conversation.salesPersonId, {
@@ -97,6 +376,20 @@ export class SalesPipelineReportComponent implements OnInit {
         });
       }
     });
+
+    this.reportDataPreviousMap.forEach(([report]) => {
+      report.salesPersonConversations.forEach(conversation => {
+        if (!uniqueSalesPersons.has(conversation.salesPersonId)) {
+          uniqueSalesPersons.set(conversation.salesPersonId, {
+            id: conversation.salesPersonId,
+            name: conversation.salesPersonName,
+            imageUrl: '',
+            cachedImage: ''
+          });
+        }
+      });
+    });
+
     this.salesPersons = Array.from(uniqueSalesPersons.values());
   }
 
@@ -104,8 +397,23 @@ export class SalesPipelineReportComponent implements OnInit {
     this.setupChart();
     this.filterConversations();
     this.setupFollowupChart();
+    this.populateFollowUpPerConversionChart(this.reportData, this.reportDataPreviousMap);
+    this.updateFilteredFollowUpConversions();
     this.updateChartView();
     this.computeIndices();
+    this.populatePipelineChart();
+    this.populateConversionTimeline();
+  }
+
+  updateFilteredFollowUpConversions(): void {
+    if (this.selectedSalesPersons?.length > 0) {
+      const selectedIds = this.selectedSalesPersons.map(sp => sp.id);
+      this.filteredFollowUpConversions = this.reportData.followUpConversions.filter(conversion =>
+        selectedIds.includes(conversion.ghlUserId)
+      );
+    } else {
+      this.filteredFollowUpConversions = this.reportData.followUpConversions;
+    }
   }
 
   onPipelineChange(event: any): void {
@@ -116,10 +424,16 @@ export class SalesPipelineReportComponent implements OnInit {
   updateChartView() {
     if (window.innerWidth >= 1400) {
       this.pieChartView = [580, 450];
+      this.lineChartView = [460, 315];
+      this.pipelineView = [1150, 400];
     } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
-      this.pieChartView = [480, 350];
+      this.pieChartView = [480, 450];
+      this.lineChartView = [400, 315];
+      this.pipelineView = [900, 400];
     } else {
-      this.pieChartView = [380, 350];
+      this.pieChartView = [380, 450];
+      this.lineChartView = [260, 315];
+      this.pipelineView = [700, 400];
     }
   }
 
@@ -257,7 +571,6 @@ export class SalesPipelineReportComponent implements OnInit {
   }
 
   private computeIndices(): void {
-    // Compute stageConversionIndex
     const previousMonth = this.reportDataPreviousMap.length > 0 ? this.reportDataPreviousMap[0][0] : null;
 
     if (previousMonth) {
@@ -273,13 +586,16 @@ export class SalesPipelineReportComponent implements OnInit {
           this.stageConversionIndex = ((this.totalConversions - previousTotalConversions) / previousTotalConversions) * 100;
         }
       } else {
-        this.stageConversionIndex = 0; // Default if no previous pipeline
+        this.stageConversionIndex = 0;
       }
     } else {
-      this.stageConversionIndex = 0; // Default if no previous month data
+      this.stageConversionIndex = 0;
     }
 
-    // Compute followUpIndex
+    if (this.totalConversions === 0) {
+      this.stageConversionIndex = 0;
+    }
+
     if (previousMonth) {
       const previousConversations = previousMonth.salesPersonConversations.filter(conversation =>
         this.selectedSalesPersons.find(sp => sp.id === conversation.salesPersonId)
@@ -295,11 +611,12 @@ export class SalesPipelineReportComponent implements OnInit {
         this.followUpIndex = ((this.totalFollowups - previousTotalFollowups) / previousTotalFollowups) * 100;
       }
     } else {
-      this.followUpIndex = 0; // Default if no previous month data
+      this.followUpIndex = 0;
     }
 
-    console.log(this.stageConversionIndex);
-    console.log(this.followUpIndex);
+    if (this.totalFollowups === 0) {
+      this.followUpIndex = 0;
+    }
   }
 
   private getPreviousFollowupData(conversations: SalesPersonConversation[]): { sms: number; email: number; calls: number; liveChat: number } {
@@ -319,6 +636,9 @@ export class SalesPipelineReportComponent implements OnInit {
   private updateSelectedPipeline(pipeline: Pipeline | null): void {
     this.selectedPipeline = pipeline;
     this.selectedPipelineNoData = !pipeline?.pipelineStages.some(stage => stage.count > 0);
+
+    this.pipelineStages = pipeline!.pipelineStages;
+    this.selectedPipelineStages = this.pipelineStages;
   }
 
   private setupFollowupChart(): void {
@@ -383,10 +703,44 @@ export class SalesPipelineReportComponent implements OnInit {
       });
     });
 
+    this.reportDataPreviousMap.forEach(([report]) => {
+      report.pipelines.forEach(pipeline => {
+        pipeline.pipelineStages.forEach(stage => {
+          if (Array.isArray(stage.salesPersonConversions) && stage.salesPersonConversions.length > 0) {
+            stage.salesPersonConversions.forEach(ghlUser => {
+              if (ghlUser.salesPersonId && ghlUser.salesPersonName && !salesPersonMap.has(ghlUser.salesPersonId)) {
+                salesPersonMap.set(ghlUser.salesPersonId, {
+                  id: ghlUser.salesPersonId,
+                  name: ghlUser.salesPersonName,
+                  imageUrl: ghlUser.photoUrl
+                });
+              }
+            });
+          }
+        });
+      });
+    });
+
     return Array.from(salesPersonMap.values());
   }
 
-  // followups
+  getFpcComparisonWithAverage(conversion: any): number {
+    if (!this.averageReportData || !this.averageReportData.averageTotalFollowUpPerConversion) {
+      return 0;
+    }
+
+    const averageFpc = this.averageReportData.averageTotalFollowUpPerConversion;
+    const currentFpc = conversion.totalFollowUpPerConversion || 0;
+
+    if (averageFpc === 0 && currentFpc > 0) {
+      return 100;
+    } else if (averageFpc !== 0) {
+      return ((currentFpc - averageFpc) / averageFpc) * 100;
+    }
+
+    return 0;
+  }
+
   filterConversations() {
     if (this.selectedSalesPersons.length > 0) {
       const selectedIds = this.selectedSalesPersons.map(sp => sp.id);
@@ -507,9 +861,9 @@ export class SalesPipelineReportComponent implements OnInit {
 
   getFormattedMessageType(messageType: string): string {
     return messageType
-      .replace(/^type_/i, '') // Remove "type_" prefix if present
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
+      .replace(/^type_/i, '')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
   }
 
   get sortedConversations() {

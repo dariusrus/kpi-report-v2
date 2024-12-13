@@ -323,7 +323,7 @@ export class KpiReportComponent implements OnInit {
         name: item.city,
         value: item.uniqueSiteVisitors
       }))
-      .slice(0, 10);  // Limit to top 15 items
+      .slice(0, 10);
   }
 
   @HostListener('window:scroll', [])

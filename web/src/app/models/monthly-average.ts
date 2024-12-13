@@ -5,4 +5,7 @@ export interface MonthlyAverage {
   averageTotalLeads: number;
   averageOpportunityToLead: number;
   weightedAverageOpportunityToLead: number;
+  averageTotalFollowUps: number;
+  averageTotalConversions: number;
+  averageTotalFollowUpPerConversion: number;
 }

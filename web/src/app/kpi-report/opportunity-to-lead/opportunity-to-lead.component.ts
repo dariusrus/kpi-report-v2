@@ -57,7 +57,7 @@ export class OpportunityToLeadComponent implements OnInit {
 
   fromLastMonthTooltip = false;
   peerComparisonTooltip = false;
-  view: [number, number] = [600, 400];
+  view: [number, number] = [580, 400];
 
   ngOnInit(): void {
     this.populateChart(this.reportData, this.reportDataPreviousMap);
@@ -74,11 +74,11 @@ export class OpportunityToLeadComponent implements OnInit {
 
   updateChartView() {
     if (window.innerWidth >= 1400) {
-      this.view = [600, 400];
+      this.view = [580, 400];
     } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
-      this.view = [500, 400];
+      this.view = [480, 400];
     } else {
-      this.view = [400, 400];
+      this.view = [380, 400];
     }
   }
 

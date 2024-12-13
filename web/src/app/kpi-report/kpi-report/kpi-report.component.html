@@ -11,8 +11,7 @@
   <div class="header-container sticky">
     <div class="container header-sub-container">
       <div class="header-labels d-flex align-items-center">
-<!--        <img src="https://www.builderleadconverter.com/wp-content/uploads/2021/02/favicon.png" alt="Logo" class="header-logo me-2"/>-->
-        <div class="title">KPI Report V2 <span class="release-version">beta 1.2</span></div>
+        <div class="title">KPI Report V2 <span class="release-version">beta 1.3</span></div>
       </div>
 
       <div class="dropdown-container">
@@ -49,103 +48,103 @@
 
     <div>
       <ng-container>
-<!--        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"-->
-<!--             snInViewport-->
-<!--             (inViewportChange)="handleViewportChange($event, 'analytics')"-->
-<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"-->
-<!--        >-->
-<!--          <div class="col-6">-->
-<!--            <div class="report-container">-->
-<!--              <app-google-analytics-->
-<!--                [reportData]="reportData"-->
-<!--                [averageReportData]="averageReportData!"-->
-<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
-<!--                [averageReportDataPrevious]="averageReportDataPrevious"-->
-<!--                [displayComparisons]="displayComparisons"-->
-<!--                [monthCount]="monthCount"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-google-analytics>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-6">-->
-<!--            <div class="report-container">-->
-<!--              <app-opportunity-to-lead-->
-<!--                [reportData]="reportData"-->
-<!--                [averageReportData]="averageReportData!"-->
-<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
-<!--                [averageReportDataPrevious]="averageReportDataPrevious"-->
-<!--                [displayComparisons]="displayComparisons"-->
-<!--                [monthCount]="monthCount"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-opportunity-to-lead>-->
-<!--            </div>-->
-<!--          </div>-->
+        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'analytics')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
+        >
+          <div class="col-6">
+            <div class="report-container">
+              <app-google-analytics
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [averageReportDataPrevious]="averageReportDataPrevious"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-google-analytics>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="report-container">
+              <app-opportunity-to-lead
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [averageReportDataPrevious]="averageReportDataPrevious"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-opportunity-to-lead>
+            </div>
+          </div>
 
-<!--        </div>-->
-<!--        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"-->
-<!--             snInViewport-->
-<!--             (inViewportChange)="handleViewportChange($event, 'leads')"-->
-<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"-->
-<!--        >-->
-<!--          <div class="col-6 d-flex">-->
-<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
-<!--              <app-captured-leads-count-->
-<!--                [reportData]="reportData"-->
-<!--                [averageReportData]="averageReportData!"-->
-<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
-<!--                [displayComparisons]="displayComparisons"-->
-<!--                [monthCount]="monthCount"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-captured-leads-count>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-6 d-flex">-->
-<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
-<!--              <app-contact-channels-->
-<!--                [reportData]="reportData"-->
-<!--                [reportDataPreviousMap]="reportDataPreviousMap"-->
-<!--                [monthCount]="monthCount"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-contact-channels>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"-->
-<!--             snInViewport-->
-<!--             (inViewportChange)="handleViewportChange($event, 'websiteLeads')"-->
-<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"-->
-<!--        >-->
-<!--          <div class="col-12 d-flex">-->
-<!--            <div class="report-container flex-grow-1 d-flex flex-column">-->
-<!--              <app-monthly-leads-captured-->
-<!--                [reportData]="reportData"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-monthly-leads-captured>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="row report-row align-items-stretch"-->
-<!--             snInViewport-->
-<!--             (inViewportChange)="handleViewportChange($event, 'appointments')"-->
-<!--             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"-->
-<!--        >-->
-<!--          <div class="col-6 d-flex">-->
-<!--            <div class="report-container custom-dropdown-container">-->
-<!--              <app-appointments-->
-<!--                [reportData]="reportData"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-appointments>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-6 d-flex">-->
-<!--            <div class="report-container">-->
-<!--              <app-contacts-won-->
-<!--                [reportData]="reportData"-->
-<!--                [isVisible]="isVisible"-->
-<!--              ></app-contacts-won>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
+        </div>
+        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'leads')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-6 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-captured-leads-count
+                [reportData]="reportData"
+                [averageReportData]="averageReportData!"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [displayComparisons]="displayComparisons"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-captured-leads-count>
+            </div>
+          </div>
+          <div class="col-6 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-contact-channels
+                [reportData]="reportData"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [monthCount]="monthCount"
+                [isVisible]="isVisible"
+              ></app-contact-channels>
+            </div>
+          </div>
+        </div>
+        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'websiteLeads')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <div class="col-12 d-flex">
+            <div class="report-container flex-grow-1 d-flex flex-column">
+              <app-monthly-leads-captured
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-monthly-leads-captured>
+            </div>
+          </div>
+        </div>
+        <div class="row report-row align-items-stretch"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'appointments')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
+        >
+          <div class="col-6 d-flex">
+            <div class="report-container custom-dropdown-container">
+              <app-appointments
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-appointments>
+            </div>
+          </div>
+          <div class="col-6 d-flex">
+            <div class="report-container">
+              <app-contacts-won
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-contacts-won>
+            </div>
+          </div>
+        </div>
         <div class="row report-row"
              snInViewport
              (inViewportChange)="handleViewportChange($event, 'pipelines')"
@@ -153,7 +152,10 @@
         >
           <app-sales-pipeline-report
             [reportData]="reportData"
-            [reportDataPreviousMap]="reportDataPreviousMap">
+            [reportDataPreviousMap]="reportDataPreviousMap"
+            [averageReportData]="averageReportData!"
+            [monthCount]="monthCount"
+          >
           </app-sales-pipeline-report>
         </div>
       </ng-container>

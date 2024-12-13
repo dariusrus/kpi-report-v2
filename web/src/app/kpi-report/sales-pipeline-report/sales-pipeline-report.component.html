@@ -73,7 +73,7 @@
         <div class="report-container">
           <ng-container>
             <div class="report-title">
-              Stage Conversion Count
+              Pipeline Stage Conversions
             </div>
             <div class="report-subtitle">
               {{ reportData.monthAndYear }}
@@ -95,7 +95,7 @@
                 <div class="followup-label">Stage Conversions</div>
               </div>
               <ng-container>
-                <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                <ngx-charts-pie-chart *ngIf="totalConversions != 0"
                                       [view]="pieChartView"
                                       [scheme]="scheme"
                                       [results]="data"
@@ -106,6 +106,13 @@
                                       [labels]="true"
                 >
                 </ngx-charts-pie-chart>
+              </ng-container>
+              <ng-container *ngIf="totalConversions === 0">
+                <div class="no-data-placeholder" @fadeIn>
+                  <div>
+                    <i class="pi pi-info-circle"></i> No conversions for this pipeline.
+                  </div>
+                </div>
               </ng-container>
             </div>
           </ng-container>
@@ -137,7 +144,7 @@
                 <div class="followup-label">Follow-ups</div>
               </div>
               <ng-container>
-                <ngx-charts-pie-chart *ngIf="!selectedPipelineNoData"
+                <ngx-charts-pie-chart *ngIf="totalFollowups != 0"
                                       [view]="pieChartView"
                                       [scheme]="scheme"
                                       [results]="followupData"
@@ -149,6 +156,13 @@
                 >
                 </ngx-charts-pie-chart>
               </ng-container>
+              <ng-container *ngIf="totalFollowups === 0">
+                <div class="no-data-placeholder" @fadeIn>
+                  <div>
+                    <i class="pi pi-info-circle"></i> No follow ups for this month.
+                  </div>
+                </div>
+              </ng-container>
             </div>
           </ng-container>
         </div>
@@ -158,7 +172,261 @@
       <div class="col-12">
         <div class="report-container">
           <div class="report-title">
-            Pipeline Stage Conversions
+            Pipeline Stage Conversions Timeline
+          </div>
+          <div class="report-subtitle">
+            {{ reportData.monthAndYear }}
+          </div>
+          <div class="report-data">
+            <div class="timeline-container">
+              <p-timeline [value]="conversionTimeline" layout="horizontal" align="top">
+                <ng-template pTemplate="opposite" let-event let-index="index">
+                  <span
+                    class="timeline-count">
+                    {{ event.totalConversions }}
+                  </span>
+                </ng-template>
+                <ng-template pTemplate="content" let-event>
+                  <span class="timeline-month">{{ event.month }}</span>
+                </ng-template>
+              </p-timeline>
+            </div>
+            <div class="corner-selector">
+              <div class="helper-tooltip">
+                <i class="pi pi-question-circle" (mouseenter)="showTooltip('timelineInfoTooltip')" (mouseleave)="hideAllTooltips()"></i>
+              </div>
+              <div class="main-dropdown">
+                <div class="index-custom-tooltip" *ngIf="timelineInfoTooltip" [@dropIn]>
+                  The graph shows <span class="font-bold-info">pipeline stage conversions</span> of the selected salespeople in the selected pipeline.
+                  Displayed pipeline stages can be toggled in this dropdown.
+                </div>
+                <p-floatLabel>
+                  <p-multiSelect
+                    [options]="pipelineStages"
+                    [(ngModel)]="selectedPipelineStages"
+                    optionLabel="stageName"
+                    placeholder="Select Pipeline Stages"
+                    [selectedItemsLabel]="selectedPipelineStagesLabel"
+                    (onChange)="updateSelectedPipelineStages()"
+                    id="float-label-stages"
+                    [maxSelectedLabels]="1"
+                  />
+                  <label for="float-label-stages">Select Pipeline Stages</label>
+                </p-floatLabel>
+              </div>
+            </div>
+            <ngx-charts-area-chart
+              [view]="pipelineView"
+              [scheme]="'picnic'"
+              [results]="pipelineStageData"
+              [legend]="true"
+              [legendPosition]="LegendPosition.Right"
+              [xAxis]="true"
+              [yAxis]="true"
+              [showXAxisLabel]="true"
+              [showYAxisLabel]="true"
+              [xAxisLabel]="'Month & Year'"
+              [yAxisLabel]="'Conversion Count'"
+            >
+            </ngx-charts-area-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row report-row">
+      <div class="col-7">
+        <div class="report-container" style="min-height: 525px;">
+          <ng-container>
+            <div class="report-title">
+              Follow Up per Conversion
+              <div class="report-tooltip-container" (mouseenter)="showTooltip('fpcInfoTooltip')" (mouseleave)="hideAllTooltips()">
+                <i class="pi pi-question-circle"></i>
+                <div class="report-info-tooltip" *ngIf="fpcInfoTooltip" [@dropIn]>
+                  <span class="font-bold">Follow Up per Conversion (FPC)</span> is the ratio of the total follow up actions (SMS, emails, calls, and live chat messages)
+                  performed by salespeople to the number of successful <span class="font-bold">conversions</span> for the month.
+                </div>
+              </div>
+            </div>
+            <div class="report-subtitle">
+              {{ reportData.monthAndYear }}
+            </div>
+            <div class="report-data">
+              <p-table
+                [value]="filteredFollowUpConversions"
+                dataKey="ghlUserId"
+                rowExpandMode="single"
+                [responsiveLayout]="'scroll'"
+                [scrollable]="true"
+                scrollHeight="400px"
+                [sortField]="'totalFollowUpPerConversion'"
+                [tableStyle]="{'font-size': '0.9em'}"
+                [sortOrder]="-1"
+              >
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th class="align-center" pSortableColumn="totalFollowUps">
+                      Follow Ups
+                    </th>
+                    <th class="align-center" pSortableColumn="totalConversions">
+                      Conversions
+                    </th>
+                    <th pSortableColumn="totalFollowUpPerConversion">
+                      FPC
+                      <p-sortIcon field="totalFollowUpPerConversion"></p-sortIcon>
+                    </th>
+                    <th>Industry Index</th>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-conversion let-expanded="expanded">
+                  <tr>
+                    <td class="chevron-column">
+                      <p-button
+                        type="button"
+                        [pRowToggler]="conversion"
+                        [text]="true"
+                        [rounded]="true"
+                        [plain]="true"
+                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                      />
+                    </td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <p-avatar
+                          [image]="getCachedImage(conversion.ghlUserId)"
+                          shape="circle"
+                        ></p-avatar>
+                        <span>{{ conversion.ghlUserName }}</span>
+                      </div>
+                    </td>
+                    <td class="align-center">{{ conversion.totalFollowUps }}</td>
+                    <td class="align-center">{{ conversion.totalConversions }}</td>
+                    <td class="font-bold">{{ conversion.totalFollowUpPerConversion | number: '1.2-2' }}</td>
+                    <td>
+                      <p-chip
+                        *ngIf="getFpcComparisonWithAverage(conversion) !== 0"
+                        [styleClass]="'conversion-chip ' + (getFpcComparisonWithAverage(conversion) > 0 ? 'increase' : 'decrease')"
+                      >
+                      <span class="conversion-rate"
+                            style="display: flex; align-items: center; padding-top: 4px; padding-bottom: 4px;">
+                        <i
+                          class="pi"
+                          [class.pi-arrow-up]="getFpcComparisonWithAverage(conversion) > 0"
+                          [class.pi-arrow-down]="getFpcComparisonWithAverage(conversion) < 0"
+                          style="font-size: 0.6em; margin-right: 4px;"
+                        ></i>
+                        {{ SharedUtil.formatToPercentage(getFpcComparisonWithAverage(conversion)) }}
+                      </span>
+                      </p-chip>
+                    </td>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="rowexpansion" let-conversion>
+                  <tr>
+                    <td></td>
+                    <td colspan="5">
+                      <div style="display: flex; gap: 2px; justify-content: center;">
+                        <p-button
+                          label="SMS"
+                          icon="pi pi-mobile"
+                          badge="{{ conversion.totalSms }}"
+                          badgeClass="p-badge-primary"
+                          class="dynamic-button sms-button"
+                          [class.disabled]="conversion.totalSms === 0"
+                        ></p-button>
+
+                        <p-button
+                          label="Email"
+                          icon="pi pi-envelope"
+                          badge="{{ conversion.totalEmails }}"
+                          badgeClass="p-badge-primary"
+                          class="dynamic-button email-button"
+                          [class.disabled]="conversion.totalEmails === 0"
+                        ></p-button>
+
+                        <p-button
+                          label="Call"
+                          icon="pi pi-phone"
+                          badge="{{ conversion.totalCalls }}"
+                          badgeClass="p-badge-primary"
+                          class="dynamic-button call-button"
+                          [class.disabled]="conversion.totalCalls === 0"
+                        ></p-button>
+
+                        <p-button
+                          label="Chat"
+                          icon="pi pi-comments"
+                          badge="{{ conversion.totalLiveChatMessages }}"
+                          badgeClass="p-badge-primary"
+                          class="dynamic-button live-chat-button"
+                          [class.disabled]="conversion.totalLiveChatMessages === 0"
+                        ></p-button>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div class="col-5">
+        <div class="report-container">
+          <ng-container>
+            <div class="report-title">
+              FPC Industry Peer Comparison
+            </div>
+            <div class="report-subtitle">
+              (Last {{ monthCount }} months)
+            </div>
+            <div class="report-data">
+              <ng-container>
+                <div class="performance-index-container">
+                  <div class="performance-index-item-wrapper"
+                       (mouseenter)="showTooltip('peerComparisonTooltip')" (mouseleave)="hideAllTooltips()">
+                    <div class="performance-index-item">
+                      <div class="performance-index-value">
+                        {{ averageReportData.averageTotalFollowUpPerConversion }}
+                      </div>
+                      <div class="performance-index-description">
+                        Peer Average FPC
+                      </div>
+                    </div>
+                    <div class="index-custom-tooltip" *ngIf="peerComparisonTooltip" [@dropIn]>
+                      <span>
+                        The average <span class="font-bold">Follow Up per Conversion</span> of salespeople across all
+                        <span class="font-bold">{{ getBuilderType() }}</span>.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              <ngx-charts-line-chart [view]="lineChartView"
+                                     [scheme]="'forest'"
+                                     [showXAxisLabel]="true"
+                                     [showYAxisLabel]="true"
+                                     [xAxis]="true"
+                                     [yAxis]="true"
+                                     [xAxisLabel]="xAxisLabel"
+                                     [yAxisLabel]="yAxisLabel"
+                                     [roundDomains]="false"
+                                     [results]="followUpPerConversionData"
+                                     [curve]="curve"
+              >
+              </ngx-charts-line-chart>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div class="row report-row">
+      <div class="col-12">
+        <div class="report-container">
+          <div class="report-title">
+            Pipeline Stage Conversions Count
           </div>
           <div class="report-subtitle">
             {{ reportData.monthAndYear }}
@@ -168,7 +436,7 @@
               <p-table [value]="selectedPipeline!.pipelineStages" [tableStyle]="{'font-size': '0.9em'}"
                        dataKey="stageName"
                        rowExpandMode="single"
-                       [responsiveLayout]="'scroll'" @fadeIn>
+                       [responsiveLayout]="'scroll'">
                 <ng-template pTemplate="body" let-stage let-expanded="expanded">
                   <tr>
                     <td *ngIf="getSalesPersonDataForStage(stage).count > 0" style="width: 15px">
@@ -234,7 +502,6 @@
                             </tr>
                           </ng-template>
 
-                          <!-- Subheader for Salesperson -->
                           <ng-template pTemplate="groupheader" let-contact>
                             <tr pRowGroupHeader class="sales-person-tr">
                               <td>
@@ -258,7 +525,7 @@
                                 ></p-button>
 
                                 <p-button
-                                  label="Emails"
+                                  label="Email"
                                   icon="pi pi-envelope"
                                   badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalEmails }}"
                                   badgeClass="p-badge-primary"
@@ -267,7 +534,7 @@
                                 ></p-button>
 
                                 <p-button
-                                  label="Calls"
+                                  label="Call"
                                   icon="pi pi-phone"
                                   badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalCalls }}"
                                   badgeClass="p-badge-primary"
@@ -276,7 +543,7 @@
                                 ></p-button>
 
                                 <p-button
-                                  label="Live Chat"
+                                  label="Chat"
                                   icon="pi pi-comments"
                                   badge="{{ getStageTotalsForSalesPerson(stage, contact.salesPerson.salesPersonId).totalLiveChatMessages }}"
                                   badgeClass="p-badge-primary"
@@ -287,7 +554,6 @@
                             </tr>
                           </ng-template>
 
-                          <!-- Contact Rows -->
                           <ng-template pTemplate="body" let-contact>
                             <tr>
                               <td class="align-center contact-avatar">
@@ -301,7 +567,6 @@
                               <td class="align-left">{{ SharedUtil.titleCase(contact.contactName) }}</td>
                               <td class="align-left">{{ SharedUtil.handleEmptyString(contact.contactEmail) }}</td>
                               <td class="align-left" [style.width]="'54%'">
-                                <!-- SMS Button -->
                                 <p-button
                                   *ngIf="contact.totalSms > 0"
                                   label="SMS"
@@ -313,7 +578,7 @@
 
                                 <p-button
                                   *ngIf="contact.totalEmails > 0"
-                                  label="Emails"
+                                  label="Email"
                                   icon="pi pi-envelope"
                                   badge="{{ contact.totalEmails }}"
                                   badgeClass="p-badge-primary"
@@ -322,7 +587,7 @@
 
                                 <p-button
                                   *ngIf="contact.totalCalls > 0"
-                                  label="Calls"
+                                  label="Call"
                                   icon="pi pi-phone"
                                   badge="{{ contact.totalCalls }}"
                                   badgeClass="p-badge-primary"
@@ -331,7 +596,7 @@
 
                                 <p-button
                                   *ngIf="contact.totalLiveChatMessages > 0"
-                                  label="Live Chat"
+                                  label="Live"
                                   icon="pi pi-comments"
                                   badge="{{ contact.totalLiveChatMessages }}"
                                   badgeClass="p-badge-primary"
@@ -341,7 +606,6 @@
                             </tr>
                           </ng-template>
 
-                          <!-- Empty Message -->
                           <ng-template pTemplate="emptymessage">
                             <tr>
                               <td colspan="2">No contacts available for this stage.</td>
@@ -383,23 +647,6 @@
             </div>
             <div class="row">
               <div class="col-12 report-data">
-                <!--              <div class="dropdown-row">-->
-                <!--                <div class="custom-dropdown">-->
-                <!--                  <p-floatLabel>-->
-                <!--                    <p-multiSelect-->
-                <!--                      [options]="salesPersons"-->
-                <!--                      [(ngModel)]="selectedSalesPersons"-->
-                <!--                      optionLabel="name"-->
-                <!--                      placeholder="Select Sales Person"-->
-                <!--                      display="chip"-->
-                <!--                      (onChange)="filterConversations()"-->
-                <!--                      id="sales-person-multiselect"-->
-                <!--                    ></p-multiSelect>-->
-                <!--                    <label for="sales-person-multiselect">Select Sales Person</label>-->
-                <!--                  </p-floatLabel>-->
-                <!--                </div>-->
-                <!--              </div>-->
-
                 <div class="row conversation-number-card-container">
                   <div class="col-3">
                     <div class="conversation-number-card">
@@ -473,14 +720,6 @@
                           ariaLabel="Filter Contact Email"
                         ></p-columnFilter>
                       </th>
-                      <!--            <th>-->
-                      <!--              <p-columnFilter-->
-                      <!--                type="text"-->
-                      <!--                field="contactPhone"-->
-                      <!--                placeholder="Phone"-->
-                      <!--                ariaLabel="Filter Contact Phone"-->
-                      <!--              ></p-columnFilter>-->
-                      <!--            </th>-->
                       <th class="align-center" style="width: 200px;">Last Message Type</th>
                       <th class="align-center" style="width: 120px;">Message Count</th>
                       <th style="width: 175px;">Sales Person</th>
@@ -509,7 +748,6 @@
                       </td>
                       <td>{{ SharedUtil.titleCase(conversation.contactName) }}</td>
                       <td>{{ SharedUtil.handleEmptyString(conversation.contactEmail) }}</td>
-                      <!--            <td>{{ conversation.contactPhone }}</td>-->
                       <td class="align-center">
                         <p-chip class="me-1">
           <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">
