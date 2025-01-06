@@ -21,6 +21,7 @@ public class GhlDataWriterService {
     private final LeadContactService leadContactService;
     private final CalendarService calendarService;
     private final AppointmentService appointmentService;
+    private final AppointmentOpportunityService appointmentOpportunityService;
     private final PipelineStageService pipelineStageService;
     private final ContactWonService contactWonService;
     private final SalesPersonConversionService salesPersonConversionService;
@@ -148,8 +149,12 @@ public class GhlDataWriterService {
             if (calendar.getAppointments() != null && !calendar.getAppointments().isEmpty()) {
                 calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
                 appointmentService.saveAll(calendar.getAppointments());
+
+                calendar.getAppointmentOpportunities().forEach(appointmentOpportunity -> appointmentOpportunity.setCalendar(calendar));
+                appointmentOpportunityService.saveAll(calendar.getAppointmentOpportunities());
             }
         });
+
         return calendarService.saveAll(calendars);
     }
 

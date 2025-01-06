@@ -42,6 +42,10 @@ public class Calendar extends DateAudit implements Serializable {
     @JsonManagedReference
     private List<Appointment> appointments;
 
+    @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<AppointmentOpportunity> appointmentOpportunities;
+
     @ManyToOne
     @JoinColumn(name = "go_high_level_report_id", nullable = false)
     @JsonBackReference

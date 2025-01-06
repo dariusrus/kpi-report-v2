@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.blc</groupId>
 	<artifactId>kpi-report-v2</artifactId>
-	<version>beta-1.2</version>
+	<version>beta-1.3</version>
 	<name>kpi-report-v2</name>
 	<description>BLC KPI Report Generator V2</description>
 	<url/>

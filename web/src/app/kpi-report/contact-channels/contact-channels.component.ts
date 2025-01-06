@@ -80,6 +80,7 @@ export class ContactChannelsComponent implements OnInit {
 
   private populateChart(selectedAttributions: string[], currentData: KpiReport, previousData: [KpiReport, MonthlyAverage][]): void {
     const attributionData: { [key: string]: { [month: string]: number } } = {};
+    const allMonths: Set<string> = new Set();
     const isValidAttribution = (attribution: string) => attribution && attribution !== '-' && attribution.trim() !== '';
 
     const normalizeAttribution = (attribution: string): string => {
@@ -89,8 +90,12 @@ export class ContactChannelsComponent implements OnInit {
       return attribution;
     };
 
-    // Process previous data
-    previousData.forEach(([previousReport, previousAverage]: [KpiReport, MonthlyAverage]) => {
+    previousData.forEach(([previousReport]) => {
+      allMonths.add(SharedUtil.formatMonthAndYear(previousReport.monthAndYear));
+    });
+    allMonths.add(SharedUtil.formatMonthAndYear(currentData.monthAndYear));
+
+    previousData.forEach(([previousReport]) => {
       if (previousReport.websiteLead?.leadSource) {
         const previousMonth = SharedUtil.formatMonthAndYear(previousReport.monthAndYear);
         previousReport.websiteLead.leadSource.forEach(source => {
@@ -125,7 +130,6 @@ export class ContactChannelsComponent implements OnInit {
       }
     });
 
-    // Process current data
     currentData.websiteLead?.leadSource.forEach(source => {
       source.leadContacts?.forEach(ghlContact => {
         if (!ghlContact.attributionSource) return;
@@ -136,10 +140,10 @@ export class ContactChannelsComponent implements OnInit {
             .find(source => source === 'Organic Search' || source === 'Direct Traffic')
           || ghlContact.attributionSource.split(',')[0].trim();
 
+        const currentMonth = SharedUtil.formatMonthAndYear(currentData.monthAndYear);
         if (!isValidAttribution(toDisplayAttribution)) return;
 
         const normalizedAttribution = normalizeAttribution(toDisplayAttribution);
-        const currentMonth = SharedUtil.formatMonthAndYear(currentData.monthAndYear);
 
         if (!attributionData[normalizedAttribution]) {
           attributionData[normalizedAttribution] = {};
@@ -157,32 +161,37 @@ export class ContactChannelsComponent implements OnInit {
       });
     });
 
-    // Filter and prepare data for chart
+    this.attributionSources.forEach(attribution => {
+      if (!attributionData[attribution]) {
+        attributionData[attribution] = {};
+      }
+      allMonths.forEach(month => {
+        if (!attributionData[attribution][month]) {
+          attributionData[attribution][month] = 0;
+        }
+      });
+    });
+
     if (selectedAttributions.length > 0) {
       this.selectedSources = this.attributionSources.filter(source => selectedAttributions.includes(source));
-      this.data = this.selectedSources.map(attributionSource => ({
-        name: attributionSource,
-        series: Object.keys(attributionData[attributionSource])
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-          .map(month => ({
-            name: month,
-            value: attributionData[attributionSource][month]
-          }))
-      }));
     } else {
       this.selectedSources = [...this.attributionSources];
-      this.data = this.selectedSources.map(attributionSource => ({
-        name: attributionSource,
-        series: Object.keys(attributionData[attributionSource])
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-          .map(month => ({
-            name: month,
-            value: attributionData[attributionSource][month]
-          }))
-      }));
-      this.selectedSources = [];
+    }
+
+    this.data = this.selectedSources.map(attributionSource => ({
+      name: attributionSource,
+      series: Object.keys(attributionData[attributionSource])
+        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+        .map(month => ({
+          name: month,
+          value: attributionData[attributionSource][month]
+        }))
+    }));
+
+    if (selectedAttributions.length === 0) {
       this.selectedSourcesLabel = 'All channels displayed';
     }
   }
+
   protected readonly LegendPosition = LegendPosition;
 }

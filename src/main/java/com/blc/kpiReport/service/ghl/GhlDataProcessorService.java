@@ -511,51 +511,110 @@ public class GhlDataProcessorService {
         log.debug("Processing appointments for report: {}", goHighLevelReport.getId());
 
         Map<JsonNode, List<JsonNode>> calendarMap = ghlApiData.getCalendarMap();
+        List<JsonNode> opportunities = ghlApiData.getOpportunityList();
+        JsonNode pipelineJson = ghlApiData.getPipelineJson();
         List<Calendar> calendars = new ArrayList<>();
+
+        Map<String, String> pipelineStageToPipelineMap = new HashMap<>();
+        Map<String, String> pipelineStageToStageMap = new HashMap<>();
+        for (JsonNode pipeline : pipelineJson.path("pipelines")) {
+            String pipelineName = pipeline.path("name").asText();
+            for (JsonNode stage : pipeline.path("stages")) {
+                String stageId = stage.path("id").asText();
+                String stageName = stage.path("name").asText();
+                pipelineStageToPipelineMap.put(stageId, pipelineName);
+                pipelineStageToStageMap.put(stageId, stageName);
+            }
+        }
 
         for (Map.Entry<JsonNode, List<JsonNode>> entry : calendarMap.entrySet()) {
             JsonNode calendarJsonNode = entry.getKey();
             List<JsonNode> appointmentJsonNodes = entry.getValue();
 
             Calendar calendar = Calendar.builder()
-                .calendarGhlId(calendarJsonNode.get("id").asText())
-                .calendarName(calendarJsonNode.get("name").asText())
-                .goHighLevelReport(goHighLevelReport)
-                .build();
+                    .calendarGhlId(calendarJsonNode.get("id").asText())
+                    .calendarName(calendarJsonNode.get("name").asText())
+                    .goHighLevelReport(goHighLevelReport)
+                    .build();
 
             Map<String, Integer> statusCountMap = new HashMap<>();
+            List<AppointmentOpportunity> appointmentOpportunities = new ArrayList<>();
 
             for (JsonNode appointmentNode : appointmentJsonNodes) {
-                String status = appointmentNode.path("appointmentStatus").asText();
-                statusCountMap.put(status, statusCountMap.getOrDefault(status, 0) + 1);
+                String appointmentContactId = appointmentNode.path("contactId").asText();
+                Optional<JsonNode> opportunityOpt = opportunities.stream()
+                        .filter(opportunity -> opportunity.path("contact").path("id").asText().equals(appointmentContactId))
+                        .findFirst();
+
+                if (opportunityOpt.isPresent()) {
+                    JsonNode opportunity = opportunityOpt.get();
+                    String status = appointmentNode.path("appointmentStatus").asText();
+                    statusCountMap.put(status, statusCountMap.getOrDefault(status, 0) + 1);
+
+                    String pipelineStageId = opportunity.path("pipelineStageId").asText();
+                    String pipelineName = pipelineStageToPipelineMap.getOrDefault(pipelineStageId, "Unknown Pipeline");
+                    String stageName = pipelineStageToStageMap.getOrDefault(pipelineStageId, "Unknown Stage");
+
+                    Instant appointmentDate = Instant.parse(appointmentNode.path("startTime").asText());
+
+                    if ("showed".equalsIgnoreCase(status)) {
+
+                        GhlContact ghlContact = ghlContactService.saveOrUpdate(GhlContact.builder()
+                                .ghlId(appointmentContactId)
+                                .name(opportunity.path("contact").path("name").asText())
+                                .email(opportunity.path("contact").path("email").asText(null))
+                                .phone(opportunity.path("contact").path("phone").asText(null))
+                                .build());
+
+                        AppointmentOpportunity appointmentOpportunity = AppointmentOpportunity.builder()
+                                .status(status)
+                                .appointmentDate(appointmentDate)
+                                .lastStageChangeAt(Instant.parse(opportunity.path("lastStageChangeAt").asText()))
+                                .pipelineName(pipelineName)
+                                .stageName(stageName)
+                                .ghlContact(ghlContact)
+                                .calendar(calendar)
+                                .build();
+                        appointmentOpportunities.add(appointmentOpportunity);
+                    }
+                }
             }
 
-            int totalAppointments = statusCountMap.values().stream().mapToInt(Integer::intValue).sum();
-            List<Appointment> appointments = new ArrayList<>();
+            if (!statusCountMap.isEmpty()) {
+                int totalAppointments = statusCountMap.values().stream().mapToInt(Integer::intValue).sum();
+                List<Appointment> appointments = new ArrayList<>();
 
-            for (Map.Entry<String, Integer> statusEntry : statusCountMap.entrySet()) {
-                String status = statusEntry.getKey();
-                int count = statusEntry.getValue();
-                double percentage = (double) count / totalAppointments * 100;
+                for (Map.Entry<String, Integer> statusEntry : statusCountMap.entrySet()) {
+                    String status = statusEntry.getKey();
+                    int count = statusEntry.getValue();
+                    double percentage = (double) count / totalAppointments * 100;
 
-                Appointment appointment = Appointment.builder()
-                    .status(status)
-                    .count(count)
-                    .percentage(percentage)
-                    .calendar(calendar)
-                    .build();
-                appointments.add(appointment);
-            }
-            appointments.sort(Comparator.comparing(Appointment::getStatus));
+                    Appointment appointment = Appointment.builder()
+                            .status(status)
+                            .count(count)
+                            .percentage(percentage)
+                            .calendar(calendar)
+                            .build();
+                    appointments.add(appointment);
+                }
 
-            calendar.setAppointments(appointments);
-            calendar.getAppointments().forEach(appointment -> appointment.setCalendar(calendar));
-            calendars.add(calendar);
+                appointments.sort(Comparator.comparing(Appointment::getStatus));
+                calendar.setAppointments(appointments);
+                calendar.setAppointmentOpportunities(appointmentOpportunities);
 
-            if (appointments.size() > 0) {
-                log.debug("Processed {} appointments for calendar: {}", appointments.size(), calendar.getCalendarGhlId());
+                calendars.add(calendar);
+
+                log.debug("Processed {} appointments and {} opportunities for calendar: {}",
+                        appointments.size(), appointmentOpportunities.size(), calendar.getCalendarGhlId());
+            } else {
+                log.debug("Skipping calendar with no appointments: {}", calendarJsonNode.get("id").asText());
             }
         }
+
+        calendars = calendars.stream()
+                .filter(calendar -> !calendar.getAppointments().isEmpty())
+                .collect(Collectors.toList());
+
         return calendars;
     }
 
@@ -573,6 +632,14 @@ public class GhlDataProcessorService {
                 int position = stageNode.path("position").asInt();
                 pipelineStageMap.put(stageId, new PipelineStageInfo(stageName, pipelineName, position));
                 salesPersonConversionMap.put(stageId, new HashMap<>());
+            }
+        }
+
+        for (JsonNode pipelineNode : ghlApiData.getPipelineJson().path("pipelines")) {
+            String pipelineName = pipelineNode.path("name").asText();
+            for (JsonNode stageNode : pipelineNode.path("stages")) {
+                String stageId = stageNode.path("id").asText();
+                String stageName = stageNode.path("name").asText();
             }
         }
 

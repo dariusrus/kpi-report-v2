@@ -13,4 +13,5 @@ public class CalendarResponse {
     private String calendarId;
     private String calendarName;
     private List<AppointmentResponse> appointments;
+    private List<AppointmentOpportunityResponse> appointmentOpportunities;
 }

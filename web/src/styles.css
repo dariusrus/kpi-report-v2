@@ -341,3 +341,45 @@ app-contact-channels ngx-charts-area-chart .chart-legend .legend-labels {
   max-width: 180px !important;
 }
 
+app-kpi-report .chip-true {
+  background-color: #15b66d; /* Green */
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+app-kpi-report .chip-false {
+  background-color: #cc566c; /* Red */
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+app-appointment-conversion .p-card-content {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.p-card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.appointment-subtitle {
+  font-size: 0.9rem;
+  color: #2f2f2f;
+}
+
+app-appointment-conversion .p-timeline-event-opposite {
+  margin-left: -200px;
+}
+
+app-appointment-conversion .p-card.p-component {
+  width: fit-content;
+  border-left: 4px solid #72a2e0; /* Faint info blue border */
+}
+
+app-appointment-conversion ul.legend-labels.horizontal-legend {
+  overflow: scroll;
+}

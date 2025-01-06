@@ -313,6 +313,9 @@ export class KpiReportComponent implements OnInit {
 
     this.selectedMonth = '';
     this.selectedYear = currentYear;
+    if (currentMonth <= 0) {
+      this.selectedYear = currentYear - 1;
+    }
 
     this.filterAndSortMonths(currentMonth, currentYear);
   }
@@ -343,14 +346,12 @@ export class KpiReportComponent implements OnInit {
       this.ghlLocationId = params.get('id');
       if (this.ghlLocationId) {
         this.years = this.years.sort((a, b) => b - a);
-
         this.selectedMonth = this.months[0];
         this.selectedYear = this.years[0];
 
         const currentDate = new Date();
         const currentMonth = currentDate.getMonth();
         const currentYear = currentDate.getFullYear();
-
         this.loadAllData(this.ghlLocationId, currentMonth, currentYear);
       }
     });
@@ -363,9 +364,17 @@ export class KpiReportComponent implements OnInit {
   }
 
   loadAllData(locationId: string, currentMonth: number, currentYear: number): void {
+    if (currentMonth <= 0) {
+      currentMonth = 12;
+      currentYear = currentYear - 1;
+      this.selectedYear = currentYear;
+    }
     this.isLoading = true;
     this.monthCount = 1 + this.config.previousMonthsCount;
     const previousMonths = this.getPreviousMonths(currentMonth, currentYear, this.config.previousMonthsCount);
+
+    console.log(currentMonth);
+    console.log(currentYear);
 
     this.kpiReportService.getReportData(locationId, currentMonth, currentYear).subscribe({
       next: (currentData) => {

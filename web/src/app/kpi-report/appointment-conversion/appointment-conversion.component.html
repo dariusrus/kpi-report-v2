@@ -1,0 +1,152 @@
+<div class="row">
+  <div class="col-8 d-flex">
+    <div class="report-container custom-dropdown-container">
+      <div class="report-title">
+        Appointment-to-Conversion (Showed)
+      </div>
+      <div class="report-subtitle">
+        {{ reportData.monthAndYear }}
+      </div>
+      <div class="row">
+        <div class="col-12 report-data">
+          <div class="corner-selector">
+            <div class="helper-tooltip">
+              <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
+            </div>
+            <div class="main-dropdown">
+              <div class="index-custom-tooltip" *ngIf="infoTooltip" [@dropIn]>
+                The table shows appointments with status
+                <span class="font-bold-info">Showed</span> from the selected calendar.
+                Only calendars with <span class="font-bold-info">showed</span> appointments set within the month of
+                <span class="font-bold-info">{{ reportData.monthAndYear }}</span> are shown as options in the dropdown.
+              </div>
+              <p-floatLabel>
+                <p-dropdown
+                  [options]="filteredCalendars"
+                  [(ngModel)]="selectedCalendar"
+                  optionLabel="calendarName"
+                  placeholder="Select a Calendar"
+                  [filter]="true"
+                  filterBy="calendarName"
+                  (onChange)="onCalendarChange($event)"
+                  id="calendarDropdown"
+                ></p-dropdown>
+                <label for="calendarDropdown">Select Calendar</label>
+              </p-floatLabel>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12 report-data" style="min-height: 400px">
+          <p-table [value]="appointmentOpportunities"
+                   scrollHeight="400px"
+                   [tableStyle]="{'font-size': '0.8em'}"
+                   rowExpandMode="single"
+                   [responsiveLayout]="'scroll'"
+                   dataKey="contactName"
+                   [scrollable]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th></th>
+                <th colspan="2">Contact Name</th>
+                <th class="align-center">Advanced to Next Stage</th>
+                <th>Current Stage</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-opportunity let-expanded="expanded">
+              <tr>
+                <td class="chevron-column">
+                  <p-button
+                    type="button"
+                    [pRowToggler]="opportunity"
+                    [text]="true"
+                    [rounded]="true"
+                    [plain]="true"
+                    [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                  ></p-button>
+                </td>
+                <td class="align-center" style="max-width: 50px;">
+                  <div
+                    [ngStyle]="{ 'background-color': SharedUtil.getRandomColor(opportunity.contactName) }"
+                    class="avatar-icon"
+                    [innerHTML]="SharedUtil.getInitialsWithPhone(opportunity.contactName)"
+                  ></div>
+                </td>
+                <td>{{ opportunity.contactName }}</td>
+                <td class="align-center">
+                  <p-chip
+                    [label]="opportunity.appointmentDate < opportunity.lastStageChangeAt ? 'YES' : 'NO'"
+                    [styleClass]="opportunity.appointmentDate < opportunity.lastStageChangeAt ? 'chip-true' : 'chip-false'">
+                  </p-chip>
+                </td>
+                <td>{{ opportunity.stageName }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="rowexpansion" let-opportunity>
+              <tr>
+                <td colspan="5">
+                  <div>
+                    <p-timeline [value]="getTimelineEvents(opportunity)" align="left">
+                      <ng-template pTemplate="opposite" let-event>
+                        <small>{{ event.time | date: 'EEEE, MMM d, y, h:mm a' }}</small>
+                      </ng-template>
+                      <ng-template pTemplate="content" let-event>
+                        <div *ngIf="event.type === 'appointment'" class="timeline-content">
+                          <div style="font-style: italic; margin-bottom: 12px;">Appointment took place.</div>
+                        </div>
+                        <div *ngIf="event.type === 'stage-change'" style="margin-bottom: 32px;">
+                          <div style="font-style: italic; margin-bottom: 12px;"
+                          *ngIf="event.time > opportunity.appointmentDate">Pipeline Stage was updated.</div>
+                          <p-card>
+                            <div style="margin-bottom: 12px;">{{ event.contactName }}</div>
+                            <div class="appointment-subtitle">
+                              <div class="font-bold">{{ event.stageName }}</div>
+                              <div>{{ event.pipelineName }}</div>
+                            </div>
+                          </p-card>
+                        </div>
+                      </ng-template>
+                    </p-timeline>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4 d-flex">
+    <div class="report-container">
+      <div class="report-title">
+        Appointment-to-Conversion Rate
+      </div>
+      <div class="report-subtitle">
+        {{ reportData.monthAndYear }}
+      </div>
+      <div class="row">
+        <div class="col-12 report-data">
+          <ngx-charts-gauge
+            [view]="gaugeView"
+            [scheme]="'forest'"
+            [results]="gaugeData"
+            [angleSpan]="270"
+            [startAngle]="-135"
+            [min]="0"
+            [max]="100"
+            [units]="'%'"
+            [bigSegments]="5"
+            [smallSegments]="2"
+            [valueFormatting]="SharedUtil.valueFormatting"
+            [showText]="false"
+            [legend]="true"
+            [legendPosition]="LegendPosition.Below"
+            [legendTitle]="'Calendars w/ Showed Appointments'"
+          >
+          </ngx-charts-gauge>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

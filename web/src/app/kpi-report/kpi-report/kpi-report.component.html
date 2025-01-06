@@ -11,7 +11,7 @@
   <div class="header-container sticky">
     <div class="container header-sub-container">
       <div class="header-labels d-flex align-items-center">
-        <div class="title">KPI Report V2 <span class="release-version">beta 1.3</span></div>
+        <div class="title">KPI Report V2 <span class="release-version">beta 1.4</span></div>
       </div>
 
       <div class="dropdown-container">
@@ -144,6 +144,19 @@
               ></app-contacts-won>
             </div>
           </div>
+        </div>
+        <div class="row report-row align-items-stretch"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'pipelines')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.65}"
+        >
+          <app-appointment-conversion
+            [reportData]="reportData"
+            [reportDataPreviousMap]="reportDataPreviousMap"
+            [averageReportData]="averageReportData!"
+            [monthCount]="monthCount"
+          >
+          </app-appointment-conversion>
         </div>
         <div class="row report-row"
              snInViewport

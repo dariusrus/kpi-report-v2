@@ -11,9 +11,12 @@ import java.util.stream.Collectors;
 public class CalendarMapper {
 
     private final AppointmentMapper appointmentMapper;
+    private final AppointmentOpportunityMapper appointmentOpportunityMapper;
 
-    public CalendarMapper(AppointmentMapper appointmentMapper) {
+    public CalendarMapper(AppointmentMapper appointmentMapper,
+                          AppointmentOpportunityMapper appointmentOpportunityMapper) {
         this.appointmentMapper = appointmentMapper;
+        this.appointmentOpportunityMapper = appointmentOpportunityMapper;
     }
 
     public CalendarResponse toResponse(Calendar calendar) {
@@ -25,6 +28,9 @@ public class CalendarMapper {
             .calendarId(calendar.getCalendarGhlId())
             .calendarName(calendar.getCalendarName())
             .appointments(appointmentMapper.toResponseList(calendar.getAppointments()))
+            .appointmentOpportunities(appointmentOpportunityMapper.toResponseList(
+                    calendar.getAppointmentOpportunities()
+            ))
             .build();
     }
 

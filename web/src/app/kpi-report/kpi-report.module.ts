@@ -44,9 +44,10 @@ import {ChipModule} from "primeng/chip";
 import {TimelineModule} from "primeng/timeline";
 import {CardModule} from "primeng/card";
 import {BadgeModule} from "primeng/badge";
+import { AppointmentConversionComponent } from './appointment-conversion/appointment-conversion.component';
 
 @NgModule({
-  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent, SalesPipelineReportComponent],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent, SalesPipelineReportComponent, AppointmentConversionComponent],
   imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule, TimelineModule, CardModule, PieChartModule, BadgeModule],
   providers: [KpiReportService],
 })

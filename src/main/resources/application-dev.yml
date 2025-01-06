@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/KPI_Report
     username: PriceRequest
-    password:
+    password: welike2kupo
   mail:
     account:
       username: ian@builderleadconverter.com
