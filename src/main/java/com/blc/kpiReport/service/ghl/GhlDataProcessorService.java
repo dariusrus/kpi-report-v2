@@ -56,6 +56,7 @@ public class GhlDataProcessorService {
             .pipelineStages(processPipelineStages(ghlApiData, goHighLevelReport, ghlUsers))
             .contactsWon(processContactsWon(ghlApiData, goHighLevelReport))
             .salesPersonConversations(processSalesPersonConversations(ghlApiData, goHighLevelReport, ghlUsers))
+            .contactScheduledAppointments(processContactScheduledAppointments(ghlApiData, goHighLevelReport, ghlUsers))
             .build();
 
         reportData.setFollowUpConversions(processFollowUpConversions(goHighLevelReport,
@@ -776,5 +777,65 @@ public class GhlDataProcessorService {
 
         log.debug("Processed {} contacts won for report: {}", contactsWon.size(), goHighLevelReport.getId());
         return contactsWon;
+    }
+
+    private List<ContactScheduledAppointment> processContactScheduledAppointments(GhlApiData ghlApiData, GoHighLevelReport goHighLevelReport, Map<String, GhlUser> ghlUserMap) {
+        log.debug("Processing lead scheduled appointments for report: {}", goHighLevelReport.getId());
+        var contactMap = ghlApiData.getCreatedAtContactMap();
+        List<ContactScheduledAppointment> contactScheduledAppointments = new ArrayList<>();
+
+        for (JsonNode opportunity : ghlApiData.getCreatedAtOpportunityList()) {
+            log.trace("Processing opportunity: {}", opportunity);
+
+            String source = opportunity.path("source").asText();
+            if ("".equals(source) || "null".equals(source) || source == null) {
+                source = UNSPECIFIED;
+            } else {
+                source = toTitleCase(source.trim());
+            }
+
+            if ("Database Reactivation".equalsIgnoreCase(source)) {
+                log.debug("Skipping lead with source 'Database Reactivation'");
+                continue;
+            }
+
+            var contactNode = contactMap.get(opportunity.path("contact").path("id").asText());
+            if (contactNode == null) continue;
+
+            String contactId = contactNode.path("id").asText();
+            String contactName = contactNode.path("firstName").asText() + " " + contactNode.path("lastName").asText();
+            String contactEmail = contactNode.path("email").asText();
+            String contactPhone = contactNode.path("phone").asText();
+
+            GhlContact ghlContact = ghlContactService.saveOrUpdate(GhlContact.builder()
+                    .ghlId(contactId)
+                    .name(contactName)
+                    .email(contactEmail)
+                    .phone(contactPhone)
+                    .build());
+
+            var contactScheduledAppointment = com.blc.kpiReport.schema.ghl.ContactScheduledAppointment.builder()
+                    .ghlContact(ghlContact)
+                    .contactName(ghlContact.getName())
+                    .ghlUser(ghlUserMap.get(opportunity.path("assignedTo").asText()))
+                    .scheduledACall(checkScheduledCall(ghlContact.getGhlId(), ghlApiData.getCalendarMap()))
+                    .build();
+            contactScheduledAppointments.add(contactScheduledAppointment);
+
+        }
+        return contactScheduledAppointments;
+    }
+
+    private boolean checkScheduledCall(String ghlId, Map<JsonNode, List<JsonNode>> calendarMap) {
+        for (Map.Entry<JsonNode, List<JsonNode>> entry : calendarMap.entrySet()) {
+            JsonNode calendarJsonNode = entry.getKey();
+            List<JsonNode> appointmentJsonNodes = entry.getValue();
+
+            for (JsonNode appointmentNode : appointmentJsonNodes) {
+                String appointmentContactId = appointmentNode.path("contactId").asText();
+                if (appointmentContactId.equals(ghlId)) return true;
+            }
+        }
+        return false;
     }
 }

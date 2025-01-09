@@ -265,7 +265,7 @@
                   onLabel="Toggle Top 10 URLs"
                   offLabel="Toggle Advanced Table"/>
               </div>
-              <div class="report-data no-top" *ngIf="isVisible['website'] && !advancedTableOptions">
+              <div class="report-data no-top" *ngIf="isVisible['pipeline'] && !advancedTableOptions">
                 <p-table
                   #dt1
                   [value]="topUrls"
@@ -302,7 +302,7 @@
                   </ng-template>
                 </p-table>
               </div>
-              <div class="report-data no-top" *ngIf="isVisible['website'] && advancedTableOptions">
+              <div class="report-data no-top" *ngIf="isVisible['pipeline'] && advancedTableOptions">
                 <div class="custom-dropdown corner-right">
                   <p-floatLabel>
                     <p-dropdown

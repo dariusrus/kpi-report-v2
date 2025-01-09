@@ -73,7 +73,7 @@
                     [innerHTML]="SharedUtil.getInitialsWithPhone(opportunity.contactName)"
                   ></div>
                 </td>
-                <td>{{ opportunity.contactName }}</td>
+                <td>{{ SharedUtil.titleCase(opportunity.contactName) }}</td>
                 <td class="align-center">
                   <p-chip
                     [label]="opportunity.appointmentDate < opportunity.lastStageChangeAt ? 'YES' : 'NO'"
@@ -99,7 +99,7 @@
                           <div style="font-style: italic; margin-bottom: 12px;"
                           *ngIf="event.time > opportunity.appointmentDate">Pipeline Stage was updated.</div>
                           <p-card>
-                            <div style="margin-bottom: 12px;">{{ event.contactName }}</div>
+                            <div style="margin-bottom: 12px;">{{ SharedUtil.titleCase(event.contactName) }}</div>
                             <div class="appointment-subtitle">
                               <div class="font-bold">{{ event.stageName }}</div>
                               <div>{{ event.pipelineName }}</div>
