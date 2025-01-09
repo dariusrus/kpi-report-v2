@@ -29,6 +29,7 @@ public class GhlDataWriterService {
     private final ConversationMessageService conversationMessageService;
     private final FollowUpConversionService followUpConversionService;
     private final GhlContactService ghlContactService;
+    private final ContactScheduledAppointmentService contactScheduledAppointmentService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteGhlApiData(GoHighLevelReport goHighLevelReport) {
@@ -58,6 +59,11 @@ public class GhlDataWriterService {
                 .filter(contact -> contact != null)
                 .collect(Collectors.toList()));
 
+        contactsToDelete.addAll(contactScheduledAppointmentService.findAllByGoHighLevelReportId(id).stream()
+                .map(ContactScheduledAppointment::getGhlContact)
+                .filter(contact -> contact != null)
+                .collect(Collectors.toList()));
+
         contactsToDelete = contactsToDelete.stream().distinct().collect(Collectors.toList());
 
         if (!contactsToDelete.isEmpty()) {
@@ -71,6 +77,7 @@ public class GhlDataWriterService {
         contactWonService.deleteByGoHighLevelReportId(id);
         salesPersonConversationService.deleteByGoHighLevelReportId(id);
         followUpConversionService.deleteByGoHighLevelReportId(id);
+        contactScheduledAppointmentService.deleteByGoHighLevelReportId(id);
 
         log.info("Successfully deleted data for GoHighLevelReport with ID: {}", id);
     }
@@ -120,6 +127,7 @@ public class GhlDataWriterService {
             .contactsWon(saveContactsWon(ghlReportData.getContactsWon()))
             .salesPersonConversations(saveSalesPersonConversation(ghlReportData.getSalesPersonConversations()))
             .followUpConversions(saveFollowUpConversions(ghlReportData.getFollowUpConversions()))
+            .contactScheduledAppointments(saveContactScheduledAppointments(ghlReportData.getContactScheduledAppointments()))
             .build();
 
         log.info("GHL report data saved successfully");
@@ -222,5 +230,11 @@ public class GhlDataWriterService {
     private List<FollowUpConversion> saveFollowUpConversions(List<FollowUpConversion> followUpConversions) {
         log.info("Saving {} follow up conversions", followUpConversions.size());
         return followUpConversionService.saveAll(followUpConversions);
+    }
+
+    private List<ContactScheduledAppointment> saveContactScheduledAppointments(
+            List<ContactScheduledAppointment> contactScheduledAppointments) {
+        log.info("Saving {} contact scheduled appointments won", contactScheduledAppointments.size());
+        return contactScheduledAppointmentService.saveAll(contactScheduledAppointments);
     }
 }

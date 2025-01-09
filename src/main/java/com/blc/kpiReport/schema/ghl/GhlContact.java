@@ -65,6 +65,10 @@ public class GhlContact extends DateAudit implements Serializable {
     @JsonBackReference
     private SalesPersonConversation salesPersonConversation;
 
+    @OneToOne(mappedBy = "ghlContact")
+    @JsonBackReference
+    private ContactScheduledAppointment contactScheduledAppointment;
+
     @ManyToOne
     @JoinColumn(name = "sales_person_conversion_id")
     @JsonBackReference

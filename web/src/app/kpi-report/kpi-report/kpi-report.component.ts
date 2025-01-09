@@ -403,7 +403,6 @@ export class KpiReportComponent implements OnInit {
   scrollToSection(index: number): void {
     const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'website'];
     const sectionId = sections[index];
-    console.log(`Scrolling to section: ${sectionId}`);
 
     const element = document.querySelector(`#${sectionId}`);
     if (element) {

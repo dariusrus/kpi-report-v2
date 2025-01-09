@@ -1,6 +1,7 @@
 package com.blc.kpiReport.schema.ghl;
 
 import com.blc.kpiReport.schema.shared.DateAudit;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -39,4 +40,9 @@ public class ContactScheduledAppointment extends DateAudit implements Serializab
     @ManyToOne
     @JoinColumn(name = "ghl_user_id")
     private GhlUser ghlUser;
+
+    @ManyToOne
+    @JoinColumn(name = "go_high_level_report_id", nullable = false)
+    @JsonBackReference
+    private GoHighLevelReport goHighLevelReport;
 }

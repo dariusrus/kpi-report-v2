@@ -16,10 +16,7 @@ import com.blc.kpiReport.repository.KpiReportRepository;
 import com.blc.kpiReport.repository.ghl.MonthlyAverageRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.MonthlyAverage;
-import com.blc.kpiReport.schema.ghl.GhlUser;
 import com.blc.kpiReport.schema.ghl.LeadSource;
-import com.blc.kpiReport.schema.ghl.SalesPersonConversation;
-import com.blc.kpiReport.schema.mc.DeviceMetric;
 import com.blc.kpiReport.schema.mc.MonthlyClarityReport;
 import com.blc.kpiReport.schema.mc.UrlMetric;
 import com.blc.kpiReport.service.ghl.models.GhlUserService;
@@ -58,6 +55,7 @@ public class KpiReportRetrievalService {
     private final MonthlyAverageMapper monthlyAverageMapper;
     private final GhlUserMapper ghlUserMapper;
     private final FollowUpConversionMapper followUpConversionMapper;
+    private final ContactScheduledAppointmentMapper contactScheduledAppointmentMapper;
 
     public KpiReportResponse getKpiReport(String ghlLocationId, int month, int year) {
         var ghlLocation = ghlLocationService.findByLocationId(ghlLocationId);
@@ -89,6 +87,7 @@ public class KpiReportRetrievalService {
                         salesPersonConversationMapper.toResponseList(goHighLevelReport.getSalesPersonConversations()),
                         ghlUserMapper.toResponseList(ghlUsers),
                         followUpConversionMapper.toResponseList(goHighLevelReport.getFollowUpConversions()),
+                        contactScheduledAppointmentMapper.toResponseList(goHighLevelReport.getContactScheduledAppointments()),
                         monthlyClarityResponse);
                 }
             }
@@ -131,6 +130,7 @@ public class KpiReportRetrievalService {
                                                   List<SalesPersonConversationResponse> salesPersonConversation,
                                                   List<GhlUserResponse> ghlUsers,
                                                   List<FollowUpConversionResponse> followUpConversions,
+                                                  List<ContactScheduledAppointmentResponse> contactScheduledAppointments,
                                                   MonthlyClarityReportResponse monthlyClarityReport) {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
@@ -154,6 +154,7 @@ public class KpiReportRetrievalService {
             .monthlyClarityReport(monthlyClarityReport)
             .ghlUsers(ghlUsers)
             .followUpConversions(followUpConversions)
+            .contactScheduledAppointments(contactScheduledAppointments)
             .build();
     }
 

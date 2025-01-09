@@ -819,6 +819,7 @@ public class GhlDataProcessorService {
                     .contactName(ghlContact.getName())
                     .ghlUser(ghlUserMap.get(opportunity.path("assignedTo").asText()))
                     .scheduledACall(checkScheduledCall(ghlContact.getGhlId(), ghlApiData.getCalendarMap()))
+                    .goHighLevelReport(goHighLevelReport)
                     .build();
             contactScheduledAppointments.add(contactScheduledAppointment);
 
