@@ -11,6 +11,7 @@ import {LeadSource} from "../../models/ghl/lead-source";
 import {SharedUtil} from "../../util/shared-util";
 import {HttpClient} from "@angular/common/http";
 import {AnalyticsInsights} from "../../models/ghl/analytic-insights";
+import { MenuItem } from "primeng/api";
 
 
 @Component({
@@ -55,6 +56,7 @@ import {AnalyticsInsights} from "../../models/ghl/analytic-insights";
   encapsulation: ViewEncapsulation.None
 })
 export class KpiReportComponent implements OnInit {
+  items: MenuItem[] | undefined;
   clarityAverageScrollGaugeChart: any[] = [];
   clarityTotalSessionsPieChart: any[] = [];
   clarityTotalActiveTimeTreeMap: any[] = [];
@@ -303,6 +305,10 @@ export class KpiReportComponent implements OnInit {
     },
   ];
 
+  isScrolled: boolean = false;
+
+  activeTabIndex: number = 0;
+
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
               @Inject(APP_CONFIG) private config: AppConfig,
@@ -335,8 +341,10 @@ export class KpiReportComponent implements OnInit {
     if (header) {
       if (window.scrollY > 48) {
         header.classList.add('scrolled');
+        this.isScrolled = true;
       } else {
         header.classList.remove('scrolled');
+        this.isScrolled = false;
       }
     }
   }
@@ -355,11 +363,60 @@ export class KpiReportComponent implements OnInit {
         this.loadAllData(this.ghlLocationId, currentMonth, currentYear);
       }
     });
+
+    this.items = [
+      { label: 'Google Analytics', icon: 'pi pi-chart-line' },
+      { label: 'Captured Leads', icon: 'pi pi-chart-bar' },
+      { label: 'Lead Sources', icon: 'pi pi-list' },
+      { label: 'Appointments', icon: 'pi pi-phone' },
+      { label: 'Pipeline Stage Conversions', icon: 'pi pi-chart-pie' },
+      { label: 'Website Analytics', icon: 'pi pi-globe' }
+    ]
   }
 
   handleViewportChange(inViewport: boolean, chartId: string): void {
     if (inViewport && !this.isLoading) {
       this.isVisible[chartId] = 'I see ' + chartId;
+      console.log('I see ' + chartId);
+
+      const tabIndex = this.items?.findIndex(item => item.label!.toLowerCase().includes(chartId.toLowerCase()));
+      if (tabIndex !== undefined && tabIndex >= 0) {
+        this.activeTabIndex = tabIndex;
+      }
+    }
+  }
+
+  onTabClick(event: MouseEvent): void {
+    const clickedTab = (event.target as HTMLElement).closest('.p-menuitem-link');
+    if (!clickedTab) {
+      return;
+    }
+
+    // Get the index of the clicked tab
+    const tabs = document.querySelectorAll('.p-tabmenu .p-menuitem-link');
+    const index = Array.from(tabs).indexOf(clickedTab as HTMLElement);
+
+    if (index !== -1) {
+      this.scrollToSection(index);
+    }
+  }
+
+  scrollToSection(index: number): void {
+    const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'website'];
+    const sectionId = sections[index];
+    console.log(`Scrolling to section: ${sectionId}`);
+
+    const element = document.querySelector(`#${sectionId}`);
+    if (element) {
+      let yOffset = -140;
+      if (sectionId == 'pipeline') yOffset = -120;
+      if (sectionId == 'website') yOffset = -180;
+      const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
+
+      window.scrollTo({
+        top: yPosition,
+        behavior: 'smooth',
+      });
     }
   }
 

@@ -76,7 +76,7 @@ export class SalesPipelineReportComponent implements OnInit {
     const pipelineRow = document.querySelector('.sales-pipeline-row') as HTMLElement;
     if (pipelineRow) {
       const rect = pipelineRow.getBoundingClientRect();
-      this.isScrolled = rect.top == 70;
+      this.isScrolled = rect.top >= 115 && rect.top <= 116;
     }
   }
 
