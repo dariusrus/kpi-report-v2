@@ -347,6 +347,27 @@ export class KpiReportComponent implements OnInit {
         this.isScrolled = false;
       }
     }
+
+    const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'contacts', 'website'];
+    const navbarOffset = 150;
+    const threshold = 72;
+    let newActiveTabIndex = -1;
+
+    for (let index = 0; index < sections.length; index++) {
+      const sectionElement = document.querySelector(`#${sections[index]}`);
+      if (sectionElement) {
+        const boundingRect = sectionElement.getBoundingClientRect();
+
+        if (boundingRect.top <= navbarOffset + threshold && boundingRect.bottom > navbarOffset) {
+          newActiveTabIndex = index;
+          break;
+        }
+      }
+    }
+
+    if (newActiveTabIndex !== this.activeTabIndex) {
+      this.activeTabIndex = newActiveTabIndex;
+    }
   }
 
   ngOnInit(): void {
@@ -370,6 +391,7 @@ export class KpiReportComponent implements OnInit {
       { label: 'Lead Sources', icon: 'pi pi-list' },
       { label: 'Appointments', icon: 'pi pi-phone' },
       { label: 'Pipeline Stage Conversions', icon: 'pi pi-chart-pie' },
+      { label: 'Contacts Won', icon: 'pi pi-hammer' },
       { label: 'Website Analytics', icon: 'pi pi-globe' }
     ]
   }
@@ -378,10 +400,10 @@ export class KpiReportComponent implements OnInit {
     if (inViewport && !this.isLoading) {
       this.isVisible[chartId] = 'I see ' + chartId;
 
-      const tabIndex = this.items?.findIndex(item => item.label!.toLowerCase().includes(chartId.toLowerCase()));
-      if (tabIndex !== undefined && tabIndex >= 0) {
-        this.activeTabIndex = tabIndex;
-      }
+      // const tabIndex = this.items?.findIndex(item => item.label!.toLowerCase().includes(chartId.toLowerCase()));
+      // if (tabIndex !== undefined && tabIndex >= 0) {
+      //   this.activeTabIndex = tabIndex;
+      // }
     }
   }
 
@@ -391,7 +413,6 @@ export class KpiReportComponent implements OnInit {
       return;
     }
 
-    // Get the index of the clicked tab
     const tabs = document.querySelectorAll('.p-tabmenu .p-menuitem-link');
     const index = Array.from(tabs).indexOf(clickedTab as HTMLElement);
 
@@ -401,7 +422,7 @@ export class KpiReportComponent implements OnInit {
   }
 
   scrollToSection(index: number): void {
-    const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'website'];
+    const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'contacts', 'website'];
     const sectionId = sections[index];
 
     const element = document.querySelector(`#${sectionId}`);
