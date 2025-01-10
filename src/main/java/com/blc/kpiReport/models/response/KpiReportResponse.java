@@ -29,5 +29,6 @@ public class KpiReportResponse {
     private MonthlyClarityReportResponse monthlyClarityReport;
     private List<GhlUserResponse> ghlUsers;
     private List<FollowUpConversionResponse> followUpConversions;
+    private List<ContactScheduledAppointmentResponse> contactScheduledAppointments;
 }
 

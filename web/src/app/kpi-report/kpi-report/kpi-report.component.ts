@@ -377,7 +377,6 @@ export class KpiReportComponent implements OnInit {
   handleViewportChange(inViewport: boolean, chartId: string): void {
     if (inViewport && !this.isLoading) {
       this.isVisible[chartId] = 'I see ' + chartId;
-      console.log('I see ' + chartId);
 
       const tabIndex = this.items?.findIndex(item => item.label!.toLowerCase().includes(chartId.toLowerCase()));
       if (tabIndex !== undefined && tabIndex >= 0) {
@@ -404,7 +403,6 @@ export class KpiReportComponent implements OnInit {
   scrollToSection(index: number): void {
     const sections = ['analytics', 'leads', 'sources', 'appointments', 'pipeline', 'website'];
     const sectionId = sections[index];
-    console.log(`Scrolling to section: ${sectionId}`);
 
     const element = document.querySelector(`#${sectionId}`);
     if (element) {
@@ -429,9 +427,6 @@ export class KpiReportComponent implements OnInit {
     this.isLoading = true;
     this.monthCount = 1 + this.config.previousMonthsCount;
     const previousMonths = this.getPreviousMonths(currentMonth, currentYear, this.config.previousMonthsCount);
-
-    console.log(currentMonth);
-    console.log(currentYear);
 
     this.kpiReportService.getReportData(locationId, currentMonth, currentYear).subscribe({
       next: (currentData) => {

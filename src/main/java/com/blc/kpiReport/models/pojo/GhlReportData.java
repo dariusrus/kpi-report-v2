@@ -17,5 +17,6 @@ public class GhlReportData {
     private List<ContactWon> contactsWon;
     private List<SalesPersonConversation> salesPersonConversations;
     private List<FollowUpConversion> followUpConversions;
+    private List<ContactScheduledAppointment> contactScheduledAppointments;
 }
 
