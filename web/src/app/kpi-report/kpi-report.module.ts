@@ -46,9 +46,10 @@ import {CardModule} from "primeng/card";
 import {BadgeModule} from "primeng/badge";
 import { AppointmentConversionComponent } from './appointment-conversion/appointment-conversion.component';
 import {CarouselModule} from "primeng/carousel";
+import { NewLeadAppointmentsComponent } from './new-lead-appointments/new-lead-appointments.component';
 
 @NgModule({
-  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent, SalesPipelineReportComponent, AppointmentConversionComponent],
+  declarations: [KpiReportComponent, GoogleAnalyticsComponent, OpportunityToLeadComponent, MonthlyNumbersComponent, CapturedLeadsCountComponent, LeadValuationComponent, MonthlyLeadsCapturedComponent, AppointmentsComponent, ContactsWonComponent, ContactsWonComponent, PipelineStagesComponent, ContactChannelsComponent, SalesPersonConversationsComponent, SalesPipelineReportComponent, AppointmentConversionComponent, NewLeadAppointmentsComponent],
     imports: [CommonModule, FormsModule, NumberCardModule, BarChartModule, LineChartModule, InViewportModule, AreaChartModule, DropdownModule, TableModule, AnimateOnScrollModule, ScrollTopModule, SpeedDialModule, ProgressSpinnerModule, ToggleButtonModule, FloatLabelModule, GaugeModule, TreeMapModule, TabMenuModule, AvatarModule, TagModule, DialogModule, InputNumberModule, ButtonModule, SelectButtonModule, MultiSelectModule, ChipModule, TimelineModule, CardModule, PieChartModule, BadgeModule, CarouselModule],
   providers: [KpiReportService],
 })

@@ -149,7 +149,11 @@
             </div>
             <div class="col-6 d-flex">
               <div class="report-container">
-                <!-- we'll be replacing this one -->
+                <app-new-lead-appointments
+                  [reportData]="reportData"
+                  [reportDataPreviousMap]="reportDataPreviousMap"
+                >
+                </app-new-lead-appointments>
               </div>
             </div>
           </div>

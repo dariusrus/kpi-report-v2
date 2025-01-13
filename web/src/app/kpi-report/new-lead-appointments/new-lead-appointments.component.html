@@ -1,0 +1,56 @@
+<ng-container>
+  <div class="report-title">
+    Booked Appointments by new leads
+  </div>
+  <div class="report-subtitle">
+    {{ reportData.monthAndYear }}
+  </div>
+  <div class="row">
+    <div class="performance-index-container" style="padding-top: 48px;">
+      <div class="performance-index-items">
+        <ng-container *ngIf="previousMonthIndex">
+          <div class="performance-index-item-wrapper"
+               (mouseenter)="showTooltip('fromLastMonth')" (mouseleave)="hideAllTooltips()">
+            <div class="performance-index-item">
+              <div class="performance-index-value">
+                <i class="pi"
+                   [class.pi-arrow-down]="previousMonthIndex < 0"
+                   [class.pi-arrow-up]="previousMonthIndex > 0"
+                ></i> {{ SharedUtil.formatToPercentage(previousMonthIndex) }}
+              </div>
+              <div class="performance-index-description">
+                from Last Month
+              </div>
+            </div>
+            <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
+                  <span *ngIf="previousMonthIndex > 0">
+                    <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s percentage of booked appointments by new leads.
+                  </span>
+              <span *ngIf="previousMonthIndex < 0">
+                    <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s percentage of booked appointments by new leads.
+                  </span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <div class="col-12" style="font-weight: 500; font-size: 1.5em; display: flex; justify-content: space-between; padding: 0px 24px 0 32px;">
+      <div>{{ withAppointmentsPercentage }}%</div>
+      <div>{{ withoutAppointmentsPercentage }}%</div>
+    </div>
+    <div class="col-12">
+      <ngx-charts-bar-horizontal-normalized
+        [view]="view"
+        [customColors]="customColors"
+        [results]="multi"
+        [gradient]="gradient"
+      >
+      </ngx-charts-bar-horizontal-normalized>
+    </div>
+    <div class="col-12" style="font-weight: 400; display: flex; justify-content: space-between; padding: 0 24px 0 32px;">
+      <div style="font-weight: 300"><span class="font-bold" style="font-size: 1.3em;">{{ withAppointments }}</span> new leads who booked an appointment</div>
+      <div style="font-weight: 300"><span class="font-bold" style="font-size: 1.3em;">{{ withoutAppointments }}</span> new leads who didn't book an appointment</div>
+    </div>
+  </div>
+</ng-container>

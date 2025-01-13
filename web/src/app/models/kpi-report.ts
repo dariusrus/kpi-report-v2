@@ -7,6 +7,11 @@ import {CityAnalytics} from "./ga/city-analytics";
 import {SalesPersonConversation} from "./ghl/sales-person-conversation";
 import {FollowUpConversion} from "./ghl/follow-up-conversion";
 
+export interface ContactScheduledAppointments {
+  contactName: string;
+  scheduledACall: boolean;
+}
+
 export interface KpiReport {
   subAgency: string;
   ghlLocationId: string;
@@ -23,4 +28,5 @@ export interface KpiReport {
   monthlyClarityReport: MonthlyClarityReport;
   salesPersonConversations: SalesPersonConversation[];
   followUpConversions: FollowUpConversion[];
+  contactScheduledAppointments: ContactScheduledAppointments[];
 }
