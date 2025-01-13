@@ -1,5 +1,5 @@
 <div class="row">
-  <div class="col-3 number-card" *ngIf="isVisible['summary']" (mouseenter)="showTooltip('uniqueSiteVisitors')" (mouseleave)="hideAllTooltips()">
+  <div class="col-3 number-card" (mouseenter)="showTooltip('uniqueSiteVisitors')" (mouseleave)="hideAllTooltips()">
     <div class="number-card-container">
       <ngx-charts-number-card
         [scheme]="scheme"
@@ -15,7 +15,7 @@
       w/ IP addresses from <span *ngIf="reportData.country === 'United States'">the </span><span class="font-bold">{{ reportData.country }}</span>.
     </div>
   </div>
-  <div class="col-3 number-card" *ngIf="isVisible['summary']" (mouseenter)="showTooltip('totalLeads')" (mouseleave)="hideAllTooltips()">
+  <div class="col-3 number-card" (mouseenter)="showTooltip('totalLeads')" (mouseleave)="hideAllTooltips()">
     <div class="number-card-container purple">
       <ngx-charts-number-card
         [scheme]="scheme"
@@ -31,7 +31,7 @@
       <span class="font-bold">{{selectedMonth}}</span>, including both website leads and ghlUser input.
     </div>
   </div>
-  <div class="col-3 number-card" *ngIf="isVisible['summary']"
+  <div class="col-3 number-card"
        (mouseenter)="showTooltip('opportunityToLead')" (mouseleave)="hideAllTooltips()">
     <div class="number-card-container blue">
       <ngx-charts-number-card
@@ -48,7 +48,7 @@
       <span class="font-bold">Unique Site Visitors</span> for this month.
     </div>
   </div>
-  <div class="col-3 number-card" *ngIf="isVisible['summary']"
+  <div class="col-3 number-card"
        (mouseenter)="showTooltip('totalValues')" (mouseleave)="hideAllTooltips()">
     <div class="number-card-container green">
       <ngx-charts-number-card

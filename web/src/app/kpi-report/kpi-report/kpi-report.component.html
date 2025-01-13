@@ -133,46 +133,44 @@
             </div>
           </div>
         </div>
-        <div class="row report-row align-items-stretch"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'appointments')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
-             id="appointments"
-        >
-          <div class="col-6 d-flex">
-            <div class="report-container custom-dropdown-container">
-              <app-appointments
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-appointments>
-            </div>
-          </div>
-          <div class="col-6 d-flex">
-            <div class="report-container">
-              <app-contacts-won
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-contacts-won>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row align-items-stretch"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'appointments')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-        >
-          <app-appointment-conversion
-            [reportData]="reportData"
-            [reportDataPreviousMap]="reportDataPreviousMap"
-            [averageReportData]="averageReportData!"
-            [monthCount]="monthCount"
+        <div id="appointments">
+          <div class="row report-row align-items-stretch"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'appointments')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
           >
-          </app-appointment-conversion>
+            <div class="col-6 d-flex">
+              <div class="report-container custom-dropdown-container">
+                <app-appointments
+                  [reportData]="reportData"
+                  [isVisible]="isVisible"
+                ></app-appointments>
+              </div>
+            </div>
+            <div class="col-6 d-flex">
+              <div class="report-container">
+                <!-- we'll be replacing this one -->
+              </div>
+            </div>
+          </div>
+          <div class="row report-row align-items-stretch"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'appointments')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+          >
+            <app-appointment-conversion
+              [reportData]="reportData"
+              [reportDataPreviousMap]="reportDataPreviousMap"
+              [averageReportData]="averageReportData!"
+              [monthCount]="monthCount"
+            >
+            </app-appointment-conversion>
+          </div>
         </div>
         <div class="row report-row"
              snInViewport
              (inViewportChange)="handleViewportChange($event, 'pipeline')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.1}"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
              id="pipeline"
         >
           <app-sales-pipeline-report
@@ -183,9 +181,24 @@
           >
           </app-sales-pipeline-report>
         </div>
+        <div class="row report-row align-items-stretch"
+             style="margin-bottom: 48px;"
+             snInViewport
+             (inViewportChange)="handleViewportChange($event, 'contacts')"
+             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+             id="contacts">
+          <div class="col-12 d-flex">
+            <div class="report-container">
+              <app-contacts-won
+                [reportData]="reportData"
+                [isVisible]="isVisible"
+              ></app-contacts-won>
+            </div>
+          </div>
+        </div>
       </ng-container>
       <ng-container *ngIf="reportData.monthlyClarityReport && reportData.monthlyClarityReport.deviceClarityAggregate.length > 0">
-        <h2>Website Analytics</h2>
+        <h2 style="margin-top: 24px;">Website Analytics</h2>
         <div class="row report-row align-items-stretch"
              snInViewport
              (inViewportChange)="handleViewportChange($event, 'website')"
@@ -196,7 +209,7 @@
             <div class="report-container report-container-sm">
               <div class="report-title">Average Scroll Depth</div>
               <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data top-deficit" *ngIf="isVisible['website']">
+              <div class="report-data top-deficit">
                 <ngx-charts-gauge
                   [scheme]="'nightLights'"
                   [results]="clarityAverageScrollGaugeChart"
@@ -218,7 +231,7 @@
             <div class="report-container report-container-sm">
               <div class="report-title">Total Session Count</div>
               <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data" *ngIf="isVisible['website']">
+              <div class="report-data">
                 <ngx-charts-pie-grid
                   [scheme]="'nightLights'"
                   [results]="clarityTotalSessionsPieChart"
@@ -231,7 +244,7 @@
             <div class="report-container report-container-sm">
               <div class="report-title">Total Active Time</div>
               <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data" *ngIf="isVisible['website']">
+              <div class="report-data">
                 <ngx-charts-bar-vertical
                   [results]="clarityTotalActiveTimeTreeMap"
                   [scheme]="'nightLights'"
@@ -265,7 +278,7 @@
                   onLabel="Toggle Top 10 URLs"
                   offLabel="Toggle Advanced Table"/>
               </div>
-              <div class="report-data no-top" *ngIf="isVisible['pipeline'] && !advancedTableOptions">
+              <div class="report-data no-top" *ngIf="!advancedTableOptions">
                 <p-table
                   #dt1
                   [value]="topUrls"
@@ -302,7 +315,7 @@
                   </ng-template>
                 </p-table>
               </div>
-              <div class="report-data no-top" *ngIf="isVisible['pipeline'] && advancedTableOptions">
+              <div class="report-data no-top" *ngIf="advancedTableOptions">
                 <div class="custom-dropdown corner-right">
                   <p-floatLabel>
                     <p-dropdown

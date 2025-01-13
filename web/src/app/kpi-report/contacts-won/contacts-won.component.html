@@ -5,51 +5,49 @@
   <div class="report-subtitle">
     {{ reportData.monthAndYear }}
   </div>
-  <div class="report-data" *ngIf="isVisible['appointments']">
+  <div class="report-data">
     <ng-container *ngIf="reportData.contactsWon.length > 0; else noContactsTemplate">
-      <p-table [value]="reportData.contactsWon" [tableStyle]="{'font-size': '0.8em'}"
-               [responsiveLayout]="'scroll'" [styleClass]="'p-datatable-sm'"
-               [scrollable]="true"
-               scrollHeight="275px"
-               @fadeIn>
-        <ng-template pTemplate="header">
-          <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Contact Source</th>
-            <th>Session Channel(s)</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-contactWon>
-          <tr>
-            <td class="align-center">
-              <div [ngStyle]="{'background-color': SharedUtil.getRandomColor(contactWon.contactName)}"
-                   class="avatar-icon">
-                {{ SharedUtil.getInitials(contactWon.contactName) }}
-              </div>
-            </td>
-            <td class="align-left">{{ contactWon.contactName | titlecase }}</td>
-            <td class="align-left">{{ contactWon.contactSource ? contactWon.contactSource : '-' }}</td>
-            <td>
-              <ng-container *ngIf="contactWon.attributionSource; else noAttribution">
-                <ng-container *ngFor="let source of contactWon.attributionSource.split(',')">
-                  <p-chip class="me-1">
-                    <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ source }}</span>
-                  </p-chip>
-                </ng-container>
-              </ng-container>
-              <ng-template #noAttribution>
-                -
+      <p-carousel
+        [value]="reportData.contactsWon"
+        [numVisible]="3"
+        [numScroll]="3"
+        [circular]="true"
+        autoplayInterval="3000">
+        <ng-template let-contactWon pTemplate="item">
+          <div style="padding: 0 12px 0 12px;">
+            <p-card class="m-2">
+              <ng-template pTemplate="content">
+                <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 36px;">
+                  <span [ngStyle]="{'background-color': SharedUtil.getRandomColor(contactWon.contactName)}"
+                        class="avatar-icon mx-auto" style="font-size: 0.9em; margin: 0 12px 0 0 !important;">
+                    {{ SharedUtil.getInitials(contactWon.contactName) }}
+                  </span>
+                  <span style="font-size: 1.2em; font-weight: 500">{{ contactWon.contactName | titlecase }}</span>
+                </div>
+                <div class="text-center mb-2">
+                  {{ contactWon.contactSource ? contactWon.contactSource : '-' }}
+                </div>
+                <div class="text-center">
+                  <ng-container *ngIf="contactWon.attributionSource; else noAttribution">
+                    <ng-container *ngFor="let source of contactWon.attributionSource.split(',')">
+                      <p-chip class="me-1">
+                        <span style="font-size: 0.8em; padding-top: 4px; padding-bottom: 4px;">{{ source }}</span>
+                      </p-chip>
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #noAttribution>
+                  </ng-template>
+                </div>
               </ng-template>
-            </td>
-          </tr>
+            </p-card>
+          </div>
         </ng-template>
-      </p-table>
+      </p-carousel>
     </ng-container>
     <ng-template #noContactsTemplate>
       <div class="no-data-placeholder" @fadeIn>
         <div>
-          <i class="pi pi-address-book"></i> No contacts won.
+          <i class="pi pi-address-book"></i> No contacts won for {{ reportData.monthAndYear }}.
         </div>
       </div>
     </ng-template>
