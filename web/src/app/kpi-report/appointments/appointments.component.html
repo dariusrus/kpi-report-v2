@@ -7,7 +7,7 @@
   </div>
   <div class="row">
     <div class="col-12 report-data">
-      <div class="corner-selector">
+      <div *ngIf="hasAppointments" class="corner-selector">
         <div class="helper-tooltip">
           <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
         </div>
@@ -31,12 +31,18 @@
         </div>
       </div>
       <ngx-charts-advanced-pie-chart
+        *ngIf="hasAppointments"
         [view]="advancedPieChartView"
         [scheme]="'forest'"
         [results]="data"
         [gradient]="true"
       >
       </ngx-charts-advanced-pie-chart>
+      <div class="no-data-placeholder" *ngIf="!hasAppointments">
+        <div>
+          <i class="pi pi-info-circle"></i> No appointments booked for this month.
+        </div>
+      </div>
     </div>
   </div>
 </ng-container>

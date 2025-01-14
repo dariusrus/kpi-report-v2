@@ -9,7 +9,7 @@
       </div>
       <div class="row">
         <div class="col-12 report-data">
-          <div class="corner-selector">
+          <div *ngIf="hasAppointments" class="corner-selector">
             <div class="helper-tooltip">
               <i class="pi pi-question-circle" (mouseenter)="showTooltip('infoTooltip')" (mouseleave)="hideAllTooltips()"></i>
             </div>
@@ -37,8 +37,8 @@
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-12 report-data" style="min-height: 400px">
+      <div class="row" >
+        <div *ngIf="hasAppointments" class="col-12 report-data" style="min-height: 400px">
           <p-table [value]="appointmentOpportunities"
                    scrollHeight="400px"
                    [tableStyle]="{'font-size': '0.8em'}"
@@ -114,6 +114,13 @@
             </ng-template>
           </p-table>
         </div>
+        <div class="col-12" *ngIf="!hasAppointments">
+          <div class="no-data-placeholder">
+            <div>
+              <i class="pi pi-info-circle"></i> No appointments booked for this month.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -128,6 +135,7 @@
       <div class="row">
         <div class="col-12 report-data">
           <ngx-charts-gauge
+            *ngIf="hasAppointments"
             [view]="gaugeView"
             [scheme]="'forest'"
             [results]="gaugeData"
@@ -145,6 +153,11 @@
             [legendTitle]="'Calendars w/ Showed Appointments'"
           >
           </ngx-charts-gauge>
+          <div class="no-data-placeholder" *ngIf="!hasAppointments">
+            <div>
+              <i class="pi pi-info-circle"></i> No data to show.
+            </div>
+          </div>
         </div>
       </div>
     </div>

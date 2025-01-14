@@ -13,7 +13,7 @@ export class NewLeadAppointmentsComponent implements OnInit {
   @Input() reportData!: KpiReport;
   @Input() reportDataPreviousMap: [KpiReport, any][] = [];
 
-  view: [number, number] = [600, 35];
+  view: [number, number] = [600, 30];
 
   gradient: boolean = false;
 
