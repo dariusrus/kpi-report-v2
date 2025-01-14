@@ -1,0 +1,72 @@
+<ng-container>
+    <div class="report-title">
+        Booked Appointments by new leads
+    </div>
+    <div class="report-subtitle">
+        {{ reportData.monthAndYear }}
+    </div>
+    <div class="row">
+        <div class="col-12 report-data">
+            <ng-container *ngIf="reportData.contactScheduledAppointments.length > 0; else noData">
+                <div class="performance-index-container">
+                    <div class="performance-index-items">
+                        <ng-container *ngIf="previousMonthIndex">
+                            <div class="performance-index-item-wrapper"
+                                 (mouseenter)="showTooltip('fromLastMonth')" (mouseleave)="hideAllTooltips()">
+                                <div class="performance-index-item">
+                                    <div class="performance-index-value">
+                                        <i class="pi"
+                                           [class.pi-arrow-down]="previousMonthIndex < 0"
+                                           [class.pi-arrow-up]="previousMonthIndex > 0"
+                                        ></i> {{ SharedUtil.formatToPercentage(previousMonthIndex) }}
+                                    </div>
+                                    <div class="performance-index-description">
+                                        from Last Month
+                                    </div>
+                                </div>
+                                <div class="index-custom-tooltip" *ngIf="fromLastMonthTooltip" [@dropIn]>
+                      <span *ngIf="previousMonthIndex > 0">
+                        <span class="font-bold">Increased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s percentage of booked appointments by new leads.
+                      </span>
+                                    <span *ngIf="previousMonthIndex < 0">
+                        <span class="font-bold">Decreased by {{ SharedUtil.formatToPercentage(previousMonthIndex) }}</span> compared to last month’s percentage of booked appointments by new leads.
+                      </span>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+                <div class="col-12 percentage-display">
+                    <div>{{ withAppointmentsPercentage }}%</div>
+                    <div>{{ withoutAppointmentsPercentage }}%</div>
+                </div>
+                <div class="col-12">
+                    <ngx-charts-bar-horizontal-normalized
+                            [view]="view"
+                            [customColors]="customColors"
+                            [results]="multi"
+                            [gradient]="gradient"
+                    >
+                    </ngx-charts-bar-horizontal-normalized>
+                </div>
+                <div class="col-12 appointment-info">
+                    <div class="appointment-details">
+                        <span class="font-bold appointment-count">{{ withAppointments }}</span> new leads who booked an
+                        appointment
+                    </div>
+                    <div class="appointment-details">
+                        <span class="font-bold appointment-count">{{ withoutAppointments }}</span> new leads who didn't book
+                        an appointment
+                    </div>
+                </div>
+            </ng-container>
+            <ng-template #noData>
+                <div class="no-data-placeholder">
+                    <div>
+                        <i class="pi pi-info-circle"></i> No lead appointments for this month.
+                    </div>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</ng-container>

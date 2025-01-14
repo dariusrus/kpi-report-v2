@@ -278,7 +278,7 @@
 
 .custom-dropdown-container {
    position: relative;
-   padding-top: 24px;
+   padding-top: 30px;
 }
 
 .corner-right {
@@ -663,11 +663,11 @@
 }
 
 .index-chip {
-  position: absolute; /* Absolute positioning to control placement */
-  top: 50%; /* Vertically center relative to the main number */
-  left: 100%; /* Start position relative to the main number */
-  margin-left: 12px; /* Distance between the main number and the chip */
-  transform: translateY(-50%); /* Ensure proper vertical alignment */
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: 12px;/
+  transform: translateY(-50%);
   padding: 4px 8px;
   border-radius: 16px;
   font-weight: 400;
@@ -718,3 +718,28 @@
   width: 40px;
   text-align: center;
 }
+
+/** Lead to appointment */
+.percentage-display {
+  font-weight: 500;
+  font-size: 1.5em;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px 0 32px;
+}
+
+.appointment-info {
+  font-weight: 400;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px 0 32px;
+}
+
+.appointment-details {
+  font-weight: 300;
+}
+
+.appointment-count {
+  font-size: 1.3em;
+}
+

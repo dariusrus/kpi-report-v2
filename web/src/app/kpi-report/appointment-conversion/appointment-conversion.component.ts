@@ -24,9 +24,9 @@ export class AppointmentConversionComponent implements OnInit {
   appointmentOpportunities: AppointmentOpportunities[] = [];
   infoTooltip = false;
 
-  // Gauge chart properties
   gaugeData: { name: string; value: number }[] = [];
   gaugeView: [number, number] = [400, 400];
+  hasAppointments: boolean = false;
 
   ngOnInit(): void {
     this.filterCalendarsWithOpportunities();
@@ -35,7 +35,14 @@ export class AppointmentConversionComponent implements OnInit {
       this.selectedCalendar = this.filteredCalendars[0];
       this.updateAppointmentOpportunities(this.selectedCalendar);
     }
-    this.generateGaugeData(); // Generate data for the gauge chart
+    this.generateGaugeData();
+    this.checkForAppointments();
+  }
+
+  checkForAppointments(): void {
+    this.hasAppointments = this.reportData.calendars.some(calendar =>
+      calendar.appointments.some(appointment => appointment.count > 0)
+    );
   }
 
   filterCalendarsWithOpportunities(): void {

@@ -2,7 +2,7 @@
   <div class="report-title">Monthly Leads Captured</div>
   <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
   <div class="report-data flex-grow-1">
-    <p-table [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable'" @fadeIn>
+    <p-table *ngIf="reportData.websiteLead.leadSource.length > 0; else noData" [value]="reportData.websiteLead.leadSource" dataKey="source" [tableStyle]="{'font-size': '0.8em'}" [styleClass]="'p-datatable'" @fadeIn>
       <ng-template pTemplate="caption">
         <div class="flex flex-wrap justify-content-end gap-2">
         </div>
@@ -118,5 +118,12 @@
         </tr>
       </ng-template>
     </p-table>
+    <ng-template #noData>
+      <div class="no-data-placeholder" @fadeIn>
+        <div>
+          <i class="pi pi-info-circle"></i> No leads captured for this month.
+        </div>
+      </div>
+    </ng-template>
   </div>
 </ng-container>

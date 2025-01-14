@@ -24,16 +24,24 @@ export class AppointmentsComponent implements OnInit{
   advancedPieChartView: [number, number] = [400, 250];
 
   infoTooltip = false;
+  hasAppointments: boolean = false;
 
   ngOnInit(): void {
     this.preprocessCalendars(this.reportData.calendars);
     this.setupChart(this.reportData);
     this.updateChartView();
+    this.checkForAppointments();
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.updateChartView();
+  }
+
+  checkForAppointments(): void {
+    this.hasAppointments = this.reportData.calendars.some(calendar =>
+      calendar.appointments.some(appointment => appointment.count > 0)
+    );
   }
 
   onCalendarChange(event: any): void {
