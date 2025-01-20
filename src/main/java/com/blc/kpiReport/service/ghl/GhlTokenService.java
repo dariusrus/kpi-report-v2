@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.config.GoHighLevelProperties;
-import com.blc.kpiReport.models.pojo.GhlOauthToken;
+import com.blc.kpiReport.models.pojo.ghl.GhlOauthToken;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.service.GhlLocationService;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.exception.GhlApiException;
-import com.blc.kpiReport.models.pojo.GhlApiData;
+import com.blc.kpiReport.models.pojo.ghl.GhlApiData;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

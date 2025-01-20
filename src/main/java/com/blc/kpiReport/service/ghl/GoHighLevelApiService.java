@@ -1,8 +1,8 @@
 package com.blc.kpiReport.service.ghl;
 
 import com.blc.kpiReport.exception.GhlApiException;
-import com.blc.kpiReport.models.pojo.GhlApiData;
-import com.blc.kpiReport.models.pojo.GhlReportData;
+import com.blc.kpiReport.models.pojo.ghl.GhlApiData;
+import com.blc.kpiReport.models.pojo.ghl.GhlReportData;
 import com.blc.kpiReport.repository.ghl.GoHighLevelReportRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.schema.ghl.GoHighLevelReport;

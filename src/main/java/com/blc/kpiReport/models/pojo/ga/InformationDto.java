@@ -1,4 +1,4 @@
-package com.blc.kpiReport.models.pojo;
+package com.blc.kpiReport.models.pojo.ga;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

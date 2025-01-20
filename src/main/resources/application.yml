@@ -86,3 +86,9 @@ kpi-report:
     - RsP2iFiH92QXbGkV1scN
     - WikBDTbhq0XkMkVPLTg2
     - 0aLEDqje2UIjN1JZOV9I
+openai:
+  api:
+    project-id: proj_lQNqnv2XyC68K6ofi7Xp2NUO
+    base-url: https://api.openai.com/v1
+    model: gpt-4o
+    max-tokens: 4096

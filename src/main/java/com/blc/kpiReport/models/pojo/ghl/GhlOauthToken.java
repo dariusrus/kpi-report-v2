@@ -1,8 +1,7 @@
-package com.blc.kpiReport.models.pojo;
+package com.blc.kpiReport.models.pojo.ghl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

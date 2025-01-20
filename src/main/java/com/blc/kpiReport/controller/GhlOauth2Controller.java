@@ -1,6 +1,6 @@
 package com.blc.kpiReport.controller;
 
-import com.blc.kpiReport.models.pojo.GhlOauthToken;
+import com.blc.kpiReport.models.pojo.ghl.GhlOauthToken;
 import com.blc.kpiReport.repository.GhlLocationRepository;
 import com.blc.kpiReport.schema.GhlLocation;
 import com.blc.kpiReport.service.ghl.GhlTokenService;

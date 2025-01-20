@@ -1,8 +1,8 @@
 package com.blc.kpiReport.service.ghl;
 
-import com.blc.kpiReport.models.pojo.GhlApiData;
-import com.blc.kpiReport.models.pojo.GhlReportData;
-import com.blc.kpiReport.models.pojo.PipelineStageInfo;
+import com.blc.kpiReport.models.pojo.ghl.GhlApiData;
+import com.blc.kpiReport.models.pojo.ghl.GhlReportData;
+import com.blc.kpiReport.models.pojo.ghl.PipelineStageInfo;
 import com.blc.kpiReport.schema.ghl.Calendar;
 import com.blc.kpiReport.schema.ghl.*;
 import com.blc.kpiReport.service.ghl.models.GhlContactService;
