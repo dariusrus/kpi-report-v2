@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class TopSessionChannel {
+public class TopSessionChannel {
     private String sessionChannel;
     private int count;
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class PreviousMonthLeads {
+public class PreviousMonthLeads {
     private String monthAndYear;
     private int totalLeadsCaptured;
 }

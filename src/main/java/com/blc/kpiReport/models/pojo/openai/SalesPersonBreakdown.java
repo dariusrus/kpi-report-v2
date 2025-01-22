@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class SalesPersonBreakdown {
+public class SalesPersonBreakdown {
     private String salesPersonName;
     private int stageConversions;
     private int followUps;

@@ -1,5 +1,6 @@
 package com.blc.kpiReport.models.pojo.openai;
 
+import com.blc.kpiReport.models.response.ghl.ContactsWonResponse;
 import com.blc.kpiReport.schema.ghl.ContactWon;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,5 +20,5 @@ public class MonthlyPrompt {
     private GoogleAnalytics googleAnalytics;
     private WebsiteAnalytics websiteAnalytics;
     private GoHighLevel goHighLevel;
-    private List<ContactWon> contactsWon;
+    private List<ContactsWonResponse> contactsWon;
 }

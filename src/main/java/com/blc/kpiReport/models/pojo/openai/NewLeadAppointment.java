@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class NewLeadAppointment {
+public class NewLeadAppointment {
     private int scheduledACallCount;
     private int noScheduledCallsCount;
 }

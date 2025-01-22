@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-class PipelineStageConversions {
+public class PipelineStageConversions {
     private int totalStageConversions;
     private int totalFollowups;
     private List<SalesPersonBreakdown> salesPersonBreakdown;

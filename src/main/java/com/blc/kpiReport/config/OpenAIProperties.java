@@ -2,14 +2,13 @@ package com.blc.kpiReport.config;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
 @Getter
-public class OpenAIConfig {
+public class OpenAIProperties {
 
     @Value("${openai.api.secret-key}")
     private String apiKey;
@@ -17,5 +16,9 @@ public class OpenAIConfig {
     @Value("${openai.api.base-url}")
     private String baseUrl;
 
-    private final OkHttpClient okHttpClient;
+    @Value("${openai.api.model}")
+    private String model;
+
+    @Value("${openai.api.max-tokens}")
+    private int maxTokens;
 }

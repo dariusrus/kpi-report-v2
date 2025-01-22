@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class DeviceClarityAggregate {
+public class DeviceClarityAggregate {
     private String deviceName;
     private double collectiveAverageScrollDepth;
     private int totalSessions;

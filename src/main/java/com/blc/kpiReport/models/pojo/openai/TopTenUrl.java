@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-class TopTenUrl {
+public class TopTenUrl {
     private String url;
     private List<Device> devices;
     private double averageScrollDepth;

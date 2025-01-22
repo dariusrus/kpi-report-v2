@@ -37,7 +37,7 @@ public class OpenAIController {
     )
     @GetMapping("/openai")
     public KpiReportResponse getReportByMonthYearAndLocation(@RequestParam String ghlLocationId, @RequestParam int month, @RequestParam int year) throws IOException {
-        openAIGeneratorService.chatGPTRequest("test");
+//        openAIGeneratorService.chatGPTRequest("test");
         return null;
     }
 }

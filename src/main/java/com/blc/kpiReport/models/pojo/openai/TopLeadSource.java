@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class TopLeadSource {
+public class TopLeadSource {
     private String leadSource;
     private int count;
 }

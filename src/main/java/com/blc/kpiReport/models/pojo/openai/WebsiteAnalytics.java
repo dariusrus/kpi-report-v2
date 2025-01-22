@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-class WebsiteAnalytics {
+public class WebsiteAnalytics {
     private List<DeviceClarityAggregate> deviceClarityAggregate;
     private List<TopTenUrl> topTenUrls;
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class Device {
+public class Device {
     private String deviceType;
     private double averageScrollDepth;
     private int totalTime;

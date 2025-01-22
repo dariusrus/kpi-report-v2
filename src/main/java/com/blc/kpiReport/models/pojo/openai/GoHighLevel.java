@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-class GoHighLevel {
+public class GoHighLevel {
     private int totalLeadsCaptured;
     private int industryAverageTotalLeadsCaptured;
     private List<PreviousMonthLeads> previousMonthTotalLeadsCaptured;
@@ -17,6 +17,6 @@ class GoHighLevel {
     private int totalManualUserInputLeadsCaptured;
     private List<TopLeadSource> topLeadSources;
     private List<TopSessionChannel> topSessionChannels;
-    private List<NewLeadAppointment> newLeadAppointments;
+    private NewLeadAppointment newLeadAppointment;
     private PipelineStageConversions pipelineStageConversions;
 }

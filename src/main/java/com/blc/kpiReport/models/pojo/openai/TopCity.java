@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-class TopCity {
+public class TopCity {
     private String city;
     private int uniqueSiteVisitors;
 }

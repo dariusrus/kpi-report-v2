@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-class GoogleAnalytics {
+public class GoogleAnalytics {
     private int totalUniqueSiteVisitors;
     private int industryAverageUniqueSiteVisitors;
     private List<PreviousMonthVisitors> previousMonthsTotalUniqueSiteVisitors;
