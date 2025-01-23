@@ -1,0 +1,21 @@
+We are a SAAS company that helps builders generate high-quality leads and convert them into sales.
+Every month, we collect performance data using our in-house application. An example of the data is: %s.
+The SubAgency represents the builder's name (our client). The ClientType can be CUSTOM_HOMES, REMODELING, or CUSTOM_HOMES_AND_REMODELING, and is used to benchmark their performance against the industry average.
+
+The data includes:
+
+Google Analytics: Total unique site visitors, the industry average for similar clients, historical trends in visitor numbers, and the top 5 cities with the highest unique visitor counts.
+Website Analytics: Performance insights for different devices (PC, Mobile, Tablet) and the top 10 pages by session time.
+Your task is to create an Executive Summary summarizing the builder's website performance for the month. The summary must include:
+
+The total number of contacts won this month and the session channels they came from.
+Trends in monthly visitors compared to the industry average.
+The best-performing devices and cities for lead generation.
+The most visited pages and their performance metrics.
+The session channels and lead sources generating the most leads.
+The top and bottom-performing salespersons for the month.
+When writing the summary, replace the following terms for clarity, ensure proper capitalization based on context:
+
+"Direct traffic" → "Website Traffic"
+"CRM UI" → "manual input"
+The summary must be written in about three to four cohesive paragraphs and formatted to be report-ready. It should be clear, concise, and easy to read, with percentages rounded to two decimals. Focus on presenting actionable insights in a professional tone suitable for business reporting, ensuring there are no extraneous elements like titles, section headers, or bullet points—just the paragraphs of content.

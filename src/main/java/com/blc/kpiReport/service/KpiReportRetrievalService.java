@@ -88,7 +88,8 @@ public class KpiReportRetrievalService {
                         ghlUserMapper.toResponseList(ghlUsers),
                         followUpConversionMapper.toResponseList(goHighLevelReport.getFollowUpConversions()),
                         contactScheduledAppointmentMapper.toResponseList(goHighLevelReport.getContactScheduledAppointments()),
-                        monthlyClarityResponse);
+                        monthlyClarityResponse,
+                        kpiReport.getExecutiveSummary() != null ? kpiReport.getExecutiveSummary().getSummary() : "");
                 }
             }
         } catch (NullPointerException e) {
@@ -131,7 +132,7 @@ public class KpiReportRetrievalService {
                                                   List<GhlUserResponse> ghlUsers,
                                                   List<FollowUpConversionResponse> followUpConversions,
                                                   List<ContactScheduledAppointmentResponse> contactScheduledAppointments,
-                                                  MonthlyClarityReportResponse monthlyClarityReport) {
+                                                  MonthlyClarityReportResponse monthlyClarityReport, String summary) {
         double opportunityToLead = (uniqueSiteVisitors == 0 || websiteLead.getTotalLeads() == 0)
             ? 0
             : roundToTwoDecimalPlaces(((double) websiteLead.getTotalLeads() / uniqueSiteVisitors) * 100);
@@ -155,6 +156,7 @@ public class KpiReportRetrievalService {
             .ghlUsers(ghlUsers)
             .followUpConversions(followUpConversions)
             .contactScheduledAppointments(contactScheduledAppointments)
+            .executiveSummary(summary)
             .build();
     }
 

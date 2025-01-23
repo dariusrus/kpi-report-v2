@@ -1,7 +1,7 @@
 package com.blc.kpiReport.controller;
 
 import com.blc.kpiReport.models.response.KpiReportResponse;
-import com.blc.kpiReport.service.OpenAIGeneratorService;
+import com.blc.kpiReport.service.openai.OpenAIGeneratorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -450,7 +450,7 @@ public class KpiReportGeneratorService {
         return "N/A";
     }
 
-    private KpiReport getOrCreateKpiReport(GhlLocation ghlLocation, int month, int year) {
+    public KpiReport getOrCreateKpiReport(GhlLocation ghlLocation, int month, int year) {
         log.debug("Checking for existing KPI report for month: {}, year: {}, location ID: {}", month, year, ghlLocation.getId());
         var existingKpiReport = repository.findByMonthAndYearAndGhlLocation_Id(month, year, ghlLocation.getId());
 

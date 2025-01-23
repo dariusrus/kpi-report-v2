@@ -1,4 +1,4 @@
-package com.blc.kpiReport.service;
+package com.blc.kpiReport.service.openai;
 
 import com.blc.kpiReport.config.OpenAIProperties;
 import com.blc.kpiReport.models.ClientType;
@@ -10,6 +10,11 @@ import com.blc.kpiReport.models.response.MonthlyAverageResponse;
 import com.blc.kpiReport.models.response.ghl.ContactScheduledAppointmentResponse;
 import com.blc.kpiReport.models.response.ghl.FollowUpConversionResponse;
 import com.blc.kpiReport.models.response.mc.MonthlyClarityReportResponse;
+import com.blc.kpiReport.repository.openai.ExecutiveSummaryRepository;
+import com.blc.kpiReport.schema.openai.ExecutiveSummary;
+import com.blc.kpiReport.service.GhlLocationService;
+import com.blc.kpiReport.service.KpiReportGeneratorService;
+import com.blc.kpiReport.service.KpiReportRetrievalService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +22,7 @@ import okhttp3.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,21 +40,59 @@ import java.util.stream.IntStream;
 @Slf4j
 public class OpenAIGeneratorService {
 
+    private final ExecutiveSummaryRepository executiveSummaryRepository;
     private final OpenAIProperties openAIProperties;
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final GhlLocationService ghlLocationService;
+    private final KpiReportGeneratorService kpiReportGeneratorService;
     private final KpiReportRetrievalService kpiReportRetrievalService;
     private final ResourceLoader resourceLoader;
 
-    public CompletableFuture<GenerateKpiReportResponse> generateOpenAISummary(GenerateKpiReportByLocationRequest request) {
+    public String generateExecutiveSummary(GenerateKpiReportByLocationRequest request) {
         var monthlyPrompt = generateJsonPrompt(request);
         try {
-            chatGPTRequest(monthlyPrompt);
+            var executiveSummary = generateExecutiveSummary(monthlyPrompt);
+            saveExecutiveSummary(executiveSummary, request);
+            return executiveSummary;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
+
+    @Transactional
+    private void saveExecutiveSummary(String executiveSummary, GenerateKpiReportByLocationRequest request) {
+        if (executiveSummary == null || executiveSummary.isBlank()) {
+            throw new IllegalArgumentException("Executive summary cannot be null or blank.");
+        }
+        if (request == null) {
+            throw new IllegalArgumentException("Request cannot be null.");
+        }
+
+        var ghlLocation = ghlLocationService.findByLocationId(request.getGhlLocationId());
+        if (ghlLocation == null) {
+            throw new IllegalStateException("GHL Location not found for ID: " + request.getGhlLocationId());
+        }
+
+        var kpiReport = kpiReportGeneratorService.getOrCreateKpiReport(ghlLocation, request.getMonth(), request.getYear());
+        if (kpiReport == null) {
+            throw new IllegalStateException("Failed to fetch or create KPI Report.");
+        }
+
+        var executiveSummaryEntity = ExecutiveSummary.builder()
+                .kpiReport(kpiReport)
+                .summary(executiveSummary)
+                .build();
+
+        try {
+            executiveSummaryRepository.save(executiveSummaryEntity);
+            log.info("Successfully saved executive summary for KPI Report ID: {}", kpiReport.getId());
+        } catch (Exception e) {
+            log.error("Failed to save executive summary for KPI Report ID: {}", kpiReport.getId(), e);
+            throw new RuntimeException("Unable to save executive summary. Please try again later.", e);
+        }
+    }
+
 
     private MonthlyPrompt generateJsonPrompt(GenerateKpiReportByLocationRequest request) {
         var kpiReports = IntStream.range(0, 6)
@@ -263,7 +307,7 @@ public class OpenAIGeneratorService {
                 .build();
     }
 
-    public String chatGPTRequest(MonthlyPrompt monthlyPrompt) throws IOException {
+    public String generateExecutiveSummary(MonthlyPrompt monthlyPrompt) throws IOException {
         log.info("Preparing request for OpenAI API...");
 
         String templatePath = "classpath:openai/executive-summary-prompt.txt";
@@ -301,11 +345,10 @@ public class OpenAIGeneratorService {
 
             Map<String, Object> responseMap = objectMapper.readValue(responseBody, Map.class);
             List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-            String formattedContent = (String) ((Map<String, Object>) choices.get(0).get("message")).get("content");
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+            String content = (String) message.get("content");
 
-            log.info("Formatted Response Content:\n{}", formattedContent);
-
-            return formattedContent;
+            return content;
         } catch (IOException e) {
             log.error("Error during API call: {}", e.getMessage(), e);
             throw e;
