@@ -61,8 +61,8 @@ public class OpenAIGeneratorService {
     }
 
     @Transactional
-    private void saveExecutiveSummary(String executiveSummary, GenerateKpiReportByLocationRequest request) {
-        if (executiveSummary == null || executiveSummary.isBlank()) {
+    private void saveExecutiveSummary(String summary, GenerateKpiReportByLocationRequest request) {
+        if (summary == null || summary.isBlank()) {
             throw new IllegalArgumentException("Executive summary cannot be null or blank.");
         }
         if (request == null) {
@@ -79,13 +79,20 @@ public class OpenAIGeneratorService {
             throw new IllegalStateException("Failed to fetch or create KPI Report.");
         }
 
-        var executiveSummaryEntity = ExecutiveSummary.builder()
-                .kpiReport(kpiReport)
-                .summary(executiveSummary)
-                .build();
+        var existingExecutiveSummary = executiveSummaryRepository.findByKpiReportId(kpiReport.getId());
+        ExecutiveSummary executiveSummary = null;
+        if (existingExecutiveSummary.isPresent()) {
+            executiveSummary = existingExecutiveSummary.get();
+            executiveSummary.setSummary(summary);
+        } else {
+            executiveSummary = ExecutiveSummary.builder()
+                    .kpiReport(kpiReport)
+                    .summary(summary)
+                    .build();
+        }
 
         try {
-            executiveSummaryRepository.save(executiveSummaryEntity);
+            executiveSummaryRepository.save(executiveSummary);
             log.info("Successfully saved executive summary for KPI Report ID: {}", kpiReport.getId());
         } catch (Exception e) {
             log.error("Failed to save executive summary for KPI Report ID: {}", kpiReport.getId(), e);

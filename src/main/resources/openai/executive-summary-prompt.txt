@@ -1,5 +1,5 @@
 We are a SAAS company that helps builders generate high-quality leads and convert them into sales.
-Every month, we collect performance data using our in-house application. An example of the data is: %s.
+Every month, we collect performance data using our in-house application. The data for this month is: %s.
 The SubAgency represents the builder's name (our client). The ClientType can be CUSTOM_HOMES, REMODELING, or CUSTOM_HOMES_AND_REMODELING, and is used to benchmark their performance against the industry average.
 
 The data includes:
@@ -8,12 +8,18 @@ Google Analytics: Total unique site visitors, the industry average for similar c
 Website Analytics: Performance insights for different devices (PC, Mobile, Tablet) and the top 10 pages by session time.
 Your task is to create an Executive Summary summarizing the builder's website performance for the month. The summary must include:
 
-The total number of contacts won this month and the session channels they came from.
-Trends in monthly visitors compared to the industry average.
-The best-performing devices and cities for lead generation.
-The most visited pages and their performance metrics.
-The session channels and lead sources generating the most leads.
-The top and bottom-performing salespersons for the month.
+Contacts Won: Provide the total number of contacts won this month.
+Visitor Trends: Compare the current month's visitors to:
+ - All past months data.
+ - The industry average for the current month.
+Devices and Cities: Identify the best-performing devices and cities for lead generation.
+Page Performance: List the most visited pages and their performance metrics.
+Captured Leads: Provide the number of leads captured this month and compare it to the industry average.
+Appointments Booked: Compare and analyze the number of new leads who scheduled a call and those who didn't.
+Lead Trends: Highlight trends in monthly captured leads for this client.
+Lead Sources and Channels: Identify the session channels and lead sources generating the most leads.
+Salesperson Performance: Highlight the top and bottom-performing salespersons for the month.
+
 When writing the summary, replace the following terms for clarity, ensure proper capitalization based on context:
 
 "Direct traffic" → "Website Traffic"
