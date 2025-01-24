@@ -1,10 +1,10 @@
 package com.blc.kpiReport.service.openai;
 
+import com.blc.kpiReport.config.GhlLocationsToGenerateProperties;
 import com.blc.kpiReport.config.OpenAIProperties;
 import com.blc.kpiReport.models.ClientType;
+import com.blc.kpiReport.models.ReportStatus;
 import com.blc.kpiReport.models.pojo.openai.*;
-import com.blc.kpiReport.models.request.GenerateKpiReportByLocationRequest;
-import com.blc.kpiReport.models.response.GenerateKpiReportResponse;
 import com.blc.kpiReport.models.response.KpiReportResponse;
 import com.blc.kpiReport.models.response.MonthlyAverageResponse;
 import com.blc.kpiReport.models.response.ghl.ContactScheduledAppointmentResponse;
@@ -22,16 +22,14 @@ import okhttp3.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.YearMonth;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,12 +46,33 @@ public class OpenAIGeneratorService {
     private final KpiReportGeneratorService kpiReportGeneratorService;
     private final KpiReportRetrievalService kpiReportRetrievalService;
     private final ResourceLoader resourceLoader;
+    private final GhlLocationsToGenerateProperties ghlLocations;
 
-    public String generateExecutiveSummary(GenerateKpiReportByLocationRequest request) {
-        var monthlyPrompt = generateJsonPrompt(request);
+    @Transactional
+    public List<String> generateExecutiveSummaryBatch(int month, int year) {
+        List<String> uniqueLocationIds = new ArrayList<>(new HashSet<>(ghlLocations.getGhlLocationIds()));
+        List<String> summaries = new ArrayList<>();
+
+        for (String locationId : uniqueLocationIds) {
+            try {
+                log.info("Generating executive summary for location ID: {}", locationId);
+                String summary = generateExecutiveSummary(locationId, month, year);
+                summaries.add("Success: " + locationId);
+                log.info("Successfully generated executive summary for location ID: {}", locationId);
+            } catch (Exception e) {
+                summaries.add("Failed: " + locationId + " - " + e.getMessage());
+                log.error("Failed to generate executive summary for location ID: {}", locationId, e);
+            }
+        }
+        return summaries;
+    }
+
+    @Transactional(propagation= Propagation.REQUIRED, readOnly=true, noRollbackFor=Exception.class)
+    public String generateExecutiveSummary(String locationId, int month, int year) {
+        var monthlyPrompt = generateJsonPrompt(locationId, month, year);
         try {
             var executiveSummary = generateExecutiveSummary(monthlyPrompt);
-            saveExecutiveSummary(executiveSummary, request);
+            saveExecutiveSummary(executiveSummary, locationId, month, year);
             return executiveSummary;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -61,20 +80,17 @@ public class OpenAIGeneratorService {
     }
 
     @Transactional
-    private void saveExecutiveSummary(String summary, GenerateKpiReportByLocationRequest request) {
+    private void saveExecutiveSummary(String summary, String locationId, int month, int year) {
         if (summary == null || summary.isBlank()) {
             throw new IllegalArgumentException("Executive summary cannot be null or blank.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Request cannot be null.");
-        }
 
-        var ghlLocation = ghlLocationService.findByLocationId(request.getGhlLocationId());
+        var ghlLocation = ghlLocationService.findByLocationId(locationId);
         if (ghlLocation == null) {
-            throw new IllegalStateException("GHL Location not found for ID: " + request.getGhlLocationId());
+            throw new IllegalStateException("GHL Location not found for ID: " + locationId);
         }
 
-        var kpiReport = kpiReportGeneratorService.getOrCreateKpiReport(ghlLocation, request.getMonth(), request.getYear());
+        var kpiReport = kpiReportGeneratorService.getOrCreateKpiReport(ghlLocation, month, year);
         if (kpiReport == null) {
             throw new IllegalStateException("Failed to fetch or create KPI Report.");
         }
@@ -93,22 +109,24 @@ public class OpenAIGeneratorService {
 
         try {
             executiveSummaryRepository.save(executiveSummary);
+            kpiReportGeneratorService.setStatus(kpiReport, ReportStatus.SUCCESS);
             log.info("Successfully saved executive summary for KPI Report ID: {}", kpiReport.getId());
         } catch (Exception e) {
             log.error("Failed to save executive summary for KPI Report ID: {}", kpiReport.getId(), e);
+            kpiReportGeneratorService.setStatus(kpiReport, ReportStatus.COMPLETED_W_FAILURES);
             throw new RuntimeException("Unable to save executive summary. Please try again later.", e);
         }
     }
 
 
-    private MonthlyPrompt generateJsonPrompt(GenerateKpiReportByLocationRequest request) {
+    private MonthlyPrompt generateJsonPrompt(String locationId, int month, int year) {
         var kpiReports = IntStream.range(0, 6)
                 .mapToObj(offset -> {
-                    var yearMonth = YearMonth.of(request.getYear(), request.getMonth()).minusMonths(offset);
-                    return kpiReportRetrievalService.getKpiReport(request.getGhlLocationId(), yearMonth.getMonthValue(), yearMonth.getYear());
+                    var yearMonth = YearMonth.of(year, month).minusMonths(offset);
+                    return kpiReportRetrievalService.getKpiReport(locationId, yearMonth.getMonthValue(), yearMonth.getYear());
                 })
                 .toList();
-        var monthlyAverage = kpiReportRetrievalService.getMonthlyAverage(request.getMonth(), request.getYear(), ClientType.valueOf(kpiReports.stream().findFirst().get().getClientType()));
+        var monthlyAverage = kpiReportRetrievalService.getMonthlyAverage(month, year, ClientType.valueOf(kpiReports.stream().findFirst().get().getClientType()));
         return generateMonthlyPrompt(kpiReports, monthlyAverage);
     }
 
