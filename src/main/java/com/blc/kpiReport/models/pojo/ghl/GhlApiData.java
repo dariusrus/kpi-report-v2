@@ -1,4 +1,4 @@
-package com.blc.kpiReport.models.pojo;
+package com.blc.kpiReport.models.pojo.ghl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;

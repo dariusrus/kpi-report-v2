@@ -1,8 +1,8 @@
 package com.blc.kpiReport.service.mc;
 
 import com.blc.kpiReport.config.MicrosoftClarityProperties;
-import com.blc.kpiReport.models.pojo.InformationDto;
-import com.blc.kpiReport.models.pojo.MetricDto;
+import com.blc.kpiReport.models.pojo.ga.InformationDto;
+import com.blc.kpiReport.models.pojo.ga.MetricDto;
 import com.blc.kpiReport.schema.mc.Information;
 import com.blc.kpiReport.schema.mc.Metric;
 import com.fasterxml.jackson.core.JsonProcessingException;

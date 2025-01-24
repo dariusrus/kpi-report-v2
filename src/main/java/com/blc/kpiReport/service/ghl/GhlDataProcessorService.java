@@ -1,8 +1,8 @@
 package com.blc.kpiReport.service.ghl;
 
-import com.blc.kpiReport.models.pojo.GhlApiData;
-import com.blc.kpiReport.models.pojo.GhlReportData;
-import com.blc.kpiReport.models.pojo.PipelineStageInfo;
+import com.blc.kpiReport.models.pojo.ghl.GhlApiData;
+import com.blc.kpiReport.models.pojo.ghl.GhlReportData;
+import com.blc.kpiReport.models.pojo.ghl.PipelineStageInfo;
 import com.blc.kpiReport.schema.ghl.Calendar;
 import com.blc.kpiReport.schema.ghl.*;
 import com.blc.kpiReport.service.ghl.models.GhlContactService;
@@ -59,12 +59,28 @@ public class GhlDataProcessorService {
             .contactScheduledAppointments(processContactScheduledAppointments(ghlApiData, goHighLevelReport, ghlUsers))
             .build();
 
+        List<ContactScheduledAppointment> filteredAppointments = reportData.getContactScheduledAppointments().stream()
+                .filter(appointment -> isWebsiteLeadContact(appointment.getGhlContact(), reportData.getLeadSources()))
+                .toList();
+        reportData.setContactScheduledAppointments(filteredAppointments);
+
         reportData.setFollowUpConversions(processFollowUpConversions(goHighLevelReport,
                 reportData.getPipelineStages(),
                 reportData.getSalesPersonConversations()));
 
         log.info("GHL data processing completed successfully for report: {}", goHighLevelReport.getId());
         return reportData;
+    }
+
+    private boolean isWebsiteLeadContact(GhlContact ghlContact, List<LeadSource> leadSources) {
+        if (ghlContact == null || ghlContact.getGhlId() == null) {
+            return false;
+        }
+
+        return leadSources.stream()
+                .filter(source -> WEBSITE_LEAD.equals(source.getLeadType()))
+                .flatMap(source -> source.getLeadContacts().stream())
+                .anyMatch(contact -> ghlContact.getGhlId().equals(contact.getGhlContact().getGhlId()));
     }
 
     private List<FollowUpConversion> processFollowUpConversions(

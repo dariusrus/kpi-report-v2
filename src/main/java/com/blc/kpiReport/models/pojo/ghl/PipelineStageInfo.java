@@ -1,4 +1,4 @@
-package com.blc.kpiReport.models.pojo;
+package com.blc.kpiReport.models.pojo.ghl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

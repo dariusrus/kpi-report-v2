@@ -22,8 +22,11 @@ import com.blc.kpiReport.schema.mc.*;
 import com.blc.kpiReport.service.ga.GoogleAnalyticsService;
 import com.blc.kpiReport.service.ghl.GoHighLevelApiService;
 import com.blc.kpiReport.service.mc.MicrosoftClarityApiService;
+import com.blc.kpiReport.service.openai.OpenAIGeneratorService;
 import com.blc.kpiReport.util.DateUtil;
 import jakarta.mail.MessagingException;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -450,7 +453,12 @@ public class KpiReportGeneratorService {
         return "N/A";
     }
 
-    private KpiReport getOrCreateKpiReport(GhlLocation ghlLocation, int month, int year) {
+    public KpiReport getOrCreateKpiReport(String locationId, int month, int year) {
+        var ghlLocation = ghlLocationService.findByLocationId(locationId);
+        return getOrCreateKpiReport(ghlLocation, month, year);
+    }
+
+    public KpiReport getOrCreateKpiReport(GhlLocation ghlLocation, int month, int year) {
         log.debug("Checking for existing KPI report for month: {}, year: {}, location ID: {}", month, year, ghlLocation.getId());
         var existingKpiReport = repository.findByMonthAndYearAndGhlLocation_Id(month, year, ghlLocation.getId());
 
@@ -527,7 +535,7 @@ public class KpiReportGeneratorService {
         return CompletableFuture.completedFuture(null);
     }
 
-    private void setStatus(KpiReport kpiReport, ReportStatus status) {
+    public void setStatus(KpiReport kpiReport, ReportStatus status) {
         kpiReport.setLastRunStatus(status);
         if (ReportStatus.SUCCESS == status || ReportStatus.FAILED == status) {
             kpiReport.setLastEndTime(Instant.now());

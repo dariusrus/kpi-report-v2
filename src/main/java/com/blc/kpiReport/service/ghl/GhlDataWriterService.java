@@ -1,6 +1,6 @@
 package com.blc.kpiReport.service.ghl;
 
-import com.blc.kpiReport.models.pojo.GhlReportData;
+import com.blc.kpiReport.models.pojo.ghl.GhlReportData;
 import com.blc.kpiReport.schema.ghl.*;
 import com.blc.kpiReport.service.ghl.models.*;
 import lombok.RequiredArgsConstructor;

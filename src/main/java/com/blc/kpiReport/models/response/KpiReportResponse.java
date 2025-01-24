@@ -30,5 +30,6 @@ public class KpiReportResponse {
     private List<GhlUserResponse> ghlUsers;
     private List<FollowUpConversionResponse> followUpConversions;
     private List<ContactScheduledAppointmentResponse> contactScheduledAppointments;
+    private String executiveSummary;
 }
 
