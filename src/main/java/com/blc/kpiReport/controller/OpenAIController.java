@@ -1,43 +1,56 @@
 package com.blc.kpiReport.controller;
 
-import com.blc.kpiReport.models.response.KpiReportResponse;
+import com.blc.kpiReport.models.pojo.openai.PromptTemplate;
 import com.blc.kpiReport.service.openai.OpenAIGeneratorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/reports")
-@Tag(name = "KPI Report Retrieval API", description = "Endpoints used to retrieve KPI Reports.")
+@RequestMapping("/openai")
+@Tag(name = "OpenAI API", description = "Endpoints for managing OpenAI prompts and generation.")
 public class OpenAIController {
 
     private final OpenAIGeneratorService openAIGeneratorService;
 
     @Operation(
-            summary = "Fetch generated executive summary by location ID",
-            description = "Retrieve the OpenAI generated summary for a specified location, month, and year.",
+            summary = "Update the OpenAI prompt template",
+            description = "Dynamically update the OpenAI prompt template used for generating executive summaries.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "Daily Metric fetched successfully",
+                            description = "Prompt template updated successfully.",
                             content = @Content(mediaType = "application/json")
                     ),
-                    @ApiResponse(responseCode = "404", description = "Report not found"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "400", description = "Invalid prompt template provided."),
+                    @ApiResponse(responseCode = "500", description = "Internal server error occurred.")
             }
     )
-    @GetMapping("/openai")
-    public KpiReportResponse getReportByMonthYearAndLocation(@RequestParam String ghlLocationId, @RequestParam int month, @RequestParam int year) throws IOException {
-//        openAIGeneratorService.chatGPTRequest("test");
-        return null;
+    @PostMapping("/modify-prompt")
+    public PromptTemplate modifyPrompt(@RequestBody PromptTemplate updatedPrompt) {
+        String updatedTemplate = openAIGeneratorService.updatePrompt(updatedPrompt.getTemplate());
+        return new PromptTemplate(updatedTemplate);
+    }
+
+    @Operation(
+            summary = "Retrieve the current OpenAI prompt template",
+            description = "Fetch the current OpenAI prompt template being used for generating executive summaries.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Prompt template retrieved successfully.",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @ApiResponse(responseCode = "500", description = "Internal server error occurred.")
+            }
+    )
+    @GetMapping("/get-prompt")
+    public PromptTemplate getPrompt() {
+        String currentTemplate = openAIGeneratorService.getPrompt();
+        return new PromptTemplate(currentTemplate);
     }
 }

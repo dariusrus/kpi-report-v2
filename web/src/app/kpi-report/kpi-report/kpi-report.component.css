@@ -666,7 +666,7 @@
   position: absolute;
   top: 50%;
   left: 100%;
-  margin-left: 12px;/
+  margin-left: 12px;
   transform: translateY(-50%);
   padding: 4px 8px;
   border-radius: 16px;
@@ -742,4 +742,3 @@
 .appointment-count {
   font-size: 1.3em;
 }
-

@@ -51,6 +51,11 @@ import { MenuItem } from "primeng/api";
           transform: 'translateY(0) translateX(-50%)'
         }))
       ])
+    ]),
+    trigger('slideRight', [
+      state('default', style({ transform: 'translateX(0)' })),
+      state('moved', style({ transform: 'translateX(600px)' })),
+      transition('default <=> moved', animate('500ms ease-in-out')),
     ])
   ],
   encapsulation: ViewEncapsulation.None
@@ -309,6 +314,73 @@ export class KpiReportComponent implements OnInit {
 
   activeTabIndex: number = 0;
 
+  gradients = [
+    'linear-gradient(135deg, rgba(246, 208, 255, 0.7), rgba(254, 250, 255, 0.7))', // Soft Lavender and Blush
+    'linear-gradient(135deg, rgba(232, 245, 255, 0.7), rgba(208, 255, 236, 0.7))', // Sky Blue and Aqua
+    'linear-gradient(135deg, rgba(230, 255, 242, 0.7), rgba(225, 236, 255, 0.7))', // Mint Green and Periwinkle
+    'linear-gradient(135deg, rgba(255, 250, 232, 0.7), rgba(255, 236, 208, 0.7))', // Peach and Lemon
+    'linear-gradient(135deg, rgba(255, 244, 244, 0.7), rgba(232, 245, 255, 0.7))', // Rose Quartz and Serenity
+    'linear-gradient(135deg, rgba(230, 230, 255, 0.7), rgba(200, 245, 255, 0.7))', // Lilac and Baby Blue
+    'linear-gradient(135deg, rgba(255, 230, 240, 0.7), rgba(230, 255, 255, 0.7))', // Pale Pink and Soft Cyan
+    'linear-gradient(135deg, rgba(255, 255, 230, 0.7), rgba(230, 255, 242, 0.7))', // Lemon Yellow and Mint Green
+    'linear-gradient(135deg, rgba(230, 240, 255, 0.7), rgba(255, 230, 240, 0.7))', // Baby Blue and Soft Pink
+    'linear-gradient(135deg, rgba(240, 230, 255, 0.7), rgba(230, 255, 250, 0.7))', // Pastel Purple and Light Aqua
+    'linear-gradient(135deg, rgba(255, 245, 225, 0.7), rgba(248, 220, 255, 0.7))', // Soft Peach and Lavender
+    'linear-gradient(135deg, rgba(220, 255, 250, 0.7), rgba(220, 245, 255, 0.7))', // Aqua and Sky Blue
+    'linear-gradient(135deg, rgba(248, 255, 220, 0.7), rgba(220, 255, 230, 0.7))', // Soft Yellow and Mint
+    'linear-gradient(135deg, rgba(255, 225, 245, 0.7), rgba(225, 245, 255, 0.7))', // Blush Pink and Light Blue
+    'linear-gradient(135deg, rgba(230, 255, 240, 0.7), rgba(220, 230, 255, 0.7))', // Mint Green and Pale Purple
+    'linear-gradient(135deg, rgba(255, 240, 240, 0.7), rgba(230, 255, 240, 0.7))', // Soft Pink and Mint Green
+    'linear-gradient(135deg, rgba(255, 250, 225, 0.7), rgba(240, 225, 255, 0.7))', // Light Yellow and Lavender
+    'linear-gradient(135deg, rgba(240, 255, 255, 0.7), rgba(240, 225, 255, 0.7))', // Light Cyan and Lavender
+    'linear-gradient(135deg, rgba(255, 225, 225, 0.7), rgba(255, 240, 225, 0.7))', // Pastel Red and Peach
+    'linear-gradient(135deg, rgba(225, 245, 255, 0.7), rgba(240, 250, 255, 0.7))', // Baby Blue and White
+    'linear-gradient(135deg, rgba(255, 240, 255, 0.7), rgba(245, 255, 230, 0.7))', // Lavender and Light Green
+    'linear-gradient(135deg, rgba(240, 245, 255, 0.7), rgba(255, 245, 230, 0.7))', // Sky Blue and Peach
+    'linear-gradient(135deg, rgba(250, 255, 240, 0.7), rgba(255, 235, 245, 0.7))', // Light Green and Soft Pink
+    'linear-gradient(135deg, rgba(230, 255, 225, 0.7), rgba(240, 225, 255, 0.7))', // Lime Green and Lavender
+    'linear-gradient(135deg, rgba(255, 245, 255, 0.7), rgba(225, 240, 255, 0.7))'  // Pale Pink and Baby Blue
+  ];
+
+  isOpen: boolean = false;
+  hasTypedOnce: boolean = false;
+  typedParagraphs: string[] = [];
+  isParagraphVisible: boolean[] = [];
+  typingSpeed: number = 2;
+
+  toggleAIPanel(): void {
+    if (!this.isOpen && !this.hasTypedOnce) {
+      this.startTypewriterEffect();
+      this.hasTypedOnce = true;
+    }
+    this.isOpen = !this.isOpen;
+  }
+
+  startTypewriterEffect(): void {
+    const paragraphs = this.reportData!.executiveSummary.split('\n\n');
+    this.typedParagraphs = Array(paragraphs.length).fill('');
+    this.isParagraphVisible = Array(paragraphs.length).fill(false);
+
+    let currentParagraphIndex = 0;
+
+    const typeParagraph = (text: string, index: number, charIndex: number = 0) => {
+      if (charIndex === 0) {
+        this.isParagraphVisible[index] = true;
+      }
+
+      if (charIndex < text.length) {
+        this.typedParagraphs[index] += text.charAt(charIndex);
+
+        setTimeout(() => typeParagraph(text, index, charIndex + 1), this.typingSpeed);
+      } else if (index + 1 < paragraphs.length) {
+        currentParagraphIndex++;
+        typeParagraph(paragraphs[currentParagraphIndex], currentParagraphIndex);
+      }
+    };
+
+    typeParagraph(paragraphs[currentParagraphIndex], currentParagraphIndex);
+  }
+
   constructor(private kpiReportService: KpiReportService,
               private route: ActivatedRoute,
               @Inject(APP_CONFIG) private config: AppConfig,
@@ -333,6 +405,10 @@ export class KpiReportComponent implements OnInit {
         value: item.uniqueSiteVisitors
       }))
       .slice(0, 10);
+  }
+
+  getGradient(index: number): string {
+    return this.gradients[index % this.gradients.length];
   }
 
   @HostListener('window:scroll', [])
@@ -371,6 +447,7 @@ export class KpiReportComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.shuffleGradients();
     this.route.paramMap.subscribe(params => {
       this.ghlLocationId = params.get('id');
       if (this.ghlLocationId) {
@@ -394,6 +471,13 @@ export class KpiReportComponent implements OnInit {
       { label: 'Contacts Won', icon: 'pi pi-hammer' },
       { label: 'Website Analytics', icon: 'pi pi-globe' }
     ]
+  }
+
+  shuffleGradients(): void {
+    for (let i = this.gradients.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.gradients[i], this.gradients[j]] = [this.gradients[j], this.gradients[i]];
+    }
   }
 
   handleViewportChange(inViewport: boolean, chartId: string): void {

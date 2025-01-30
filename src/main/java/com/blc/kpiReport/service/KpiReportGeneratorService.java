@@ -535,6 +535,7 @@ public class KpiReportGeneratorService {
         return CompletableFuture.completedFuture(null);
     }
 
+    @Transactional
     public void setStatus(KpiReport kpiReport, ReportStatus status) {
         kpiReport.setLastRunStatus(status);
         if (ReportStatus.SUCCESS == status || ReportStatus.FAILED == status) {
@@ -562,6 +563,11 @@ public class KpiReportGeneratorService {
 
 
         Map<ClientType, Integer> followUpsMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> liveChatMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> smsMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> emailMap = initializeMapWithDefault(ClientType.values(), 0);
+        Map<ClientType, Integer> callMap = initializeMapWithDefault(ClientType.values(), 0);
+
         Map<ClientType, Integer> conversionsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> totalFollowUpsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> totalConversionsMap = initializeMapWithDefault(ClientType.values(), 0);
@@ -576,7 +582,8 @@ public class KpiReportGeneratorService {
             populateUniqueSiteVisitors(report, totalUniqueSiteVisitorsMap, clientType);
             populateLeadSources(report, totalLeadSourcesMap, clientType);
             populateOpportunityToLead(report, sumOpportunityToLeadMap, clientType, validOpportunityToLeadCountMap);
-            populateFollowUpConversionMaps(report, followUpsMap, conversionsMap, totalFollowUpsMap, totalConversionsMap, clientType);
+            populateFollowUpConversionMaps(report, followUpsMap, conversionsMap, totalFollowUpsMap, totalConversionsMap,
+                    liveChatMap, smsMap, emailMap, callMap, clientType);
         }
 
         for (ClientType clientType : ClientType.values()) {
@@ -599,6 +606,11 @@ public class KpiReportGeneratorService {
             int averageTotalFollowUps = totalFollowUpsMap.get(clientType) / reportCountMap.get(clientType);
             int averageTotalConversions = totalConversionsMap.get(clientType) / reportCountMap.get(clientType);
 
+            int averageSms = smsMap.get(clientType) / reportCountMap.get(clientType);
+            int averageCalls = callMap.get(clientType) / reportCountMap.get(clientType);
+            int averageEmails = emailMap.get(clientType) / reportCountMap.get(clientType);
+            int averageLiveChat = liveChatMap.get(clientType) / reportCountMap.get(clientType);
+
             double averageFollowUpPerConversion = 0;
             double averageTotalFollowUpPerConversion = 0;
             if (averageConversions > 0) {
@@ -614,6 +626,10 @@ public class KpiReportGeneratorService {
             log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
             log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
             log.info("Average Follow-Ups: {}", averageFollowUps);
+            log.info("Average SMS: {}", averageSms);
+            log.info("Average Live Chat Messages: {}", averageLiveChat);
+            log.info("Average Emails: {}", averageEmails);
+            log.info("Average Calls: {}", averageCalls);
             log.info("Average Conversions: {}", averageConversions);
             log.info("Average Follow-Up Per Conversion: {}", averageFollowUpPerConversion);
             log.info("Average Total Follow-Ups: {}", averageTotalFollowUps);
@@ -636,6 +652,10 @@ public class KpiReportGeneratorService {
             monthlyAverage.setAverageTotalFollowUps(averageTotalFollowUps);
             monthlyAverage.setAverageTotalConversions(averageTotalConversions);
             monthlyAverage.setAverageTotalFollowUpPerConversion(averageTotalFollowUpPerConversion);
+            monthlyAverage.setAverageLiveChatMessage(averageLiveChat);
+            monthlyAverage.setAverageSms(averageSms);
+            monthlyAverage.setAverageEmails(averageEmails);
+            monthlyAverage.setAverageCalls(averageCalls);
 
             monthlyAverageRepository.save(monthlyAverage);
         }
@@ -727,6 +747,10 @@ public class KpiReportGeneratorService {
             Map<ClientType, Integer> conversionsMap,
             Map<ClientType, Integer> totalFollowUpsMap,
             Map<ClientType, Integer> totalConversionsMap,
+            Map<ClientType, Integer> liveChatMap,
+            Map<ClientType, Integer> smsMap,
+            Map<ClientType, Integer> emailMap,
+            Map<ClientType, Integer> callMap,
             ClientType clientType
     ) {
         if (report.getGoHighLevelReport() != null) {
@@ -737,6 +761,10 @@ public class KpiReportGeneratorService {
                 conversionsMap.put(clientType, conversionsMap.get(clientType) + conversion.getConversions());
                 totalFollowUpsMap.put(clientType, totalFollowUpsMap.get(clientType) + conversion.getTotalFollowUps());
                 totalConversionsMap.put(clientType, totalConversionsMap.get(clientType) + conversion.getTotalConversions());
+                liveChatMap.put(clientType, liveChatMap.get(clientType) + conversion.getTotalLiveChatMessages());
+                smsMap.put(clientType, smsMap.get(clientType) + conversion.getTotalSms());
+                emailMap.put(clientType, emailMap.get(clientType) + conversion.getTotalEmails());
+                callMap.put(clientType, callMap.get(clientType) + conversion.getTotalCalls());
             }
         }
     }

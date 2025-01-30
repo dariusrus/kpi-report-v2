@@ -1,375 +1,342 @@
 <ng-container *ngIf="!isLoading; else loadingOrError">
   <ng-container *ngIf="reportData; else noDataTemplate">
-  <p-scrollTop icon="pi pi-angle-up"/>
-  <div class="feedback-button">
-    <a href="https://builderleadconverter.atlassian.net/servicedesk/customer/portal/5/group/6/create/34" target="_blank" rel="noopener noreferrer">
-      <button>Give Us Feedback!
-        <i class="ms-2 pi pi-external-link"></i>
-      </button>
-    </a>
-  </div>
-  <div class="header-container sticky">
-    <div class="container header-sub-container">
-      <div class="header-labels d-flex align-items-center">
-        <div class="title">KPI Report V2 <span class="release-version">beta 1.4</span></div>
+    <p-scrollTop icon="pi pi-angle-up"/>
+    <div class="feedback-button">
+      <a href="https://builderleadconverter.atlassian.net/servicedesk/customer/portal/5/group/6/create/34"
+         target="_blank" rel="noopener noreferrer">
+        <button>Give Us Feedback!
+          <i class="ms-2 pi pi-external-link"></i>
+        </button>
+      </a>
+    </div>
+    <div class="header-container sticky">
+      <div class="container header-sub-container">
+        <div class="header-labels d-flex align-items-center">
+          <div class="title">KPI Report V2 <span class="release-version">beta 1.4</span></div>
+        </div>
+
+        <div class="dropdown-container">
+          <p-toggleButton
+            [(ngModel)]="displayComparisons"
+            onLabel="{{ averageLabel }}"
+            offLabel="{{ averageLabel }}"/>
+          <p-dropdown
+            [options]="months"
+            [(ngModel)]="selectedMonth"
+            (onChange)="onMonthChange()"
+          />
+          <p-dropdown
+            [options]="years"
+            [(ngModel)]="selectedYear"
+            (onChange)="onYearChange()"
+          />
+        </div>
+      </div>
+      <div *ngIf="isScrolled" class="container header-sub-container nav" @fadeIn>
+        <p-tabMenu
+          [model]="items"
+          [activeItem]="items![activeTabIndex]"
+          (click)="onTabClick($event)"
+        ></p-tabMenu>
+      </div>
+    </div>
+    <div class="ai-container" *ngIf="reportData.executiveSummary" [@slideRight]="isOpen ? 'moved' : 'default'">
+      <div class="ai-tab"
+           *ngIf="!isOpen"
+           (click)="toggleAIPanel()">✨ AI Executive Summary
+      </div>
+      <div class="ai-header-container">
+        <div class="ai-header">
+          <span>
+          ✨ AI Executive Summary
+          </span>
+          <span (click)="toggleAIPanel()">
+            <i class="pi pi-step-backward"></i>
+          </span>
+        </div>
+        <div class="ai-subheader">
+          Your monthly executive summary is powered by AI and is intended to provide insights based on available data.
+          <a href="https://builderleadconverter.atlassian.net/servicedesk/customer/portal/5/group/6/create/34" target="_blank" rel="noopener noreferrer">
+            Share your feedback
+          </a>
+          for any concerns.
+        </div>
+
+      </div>
+      <div class="ai-paragraphs-container">
+        <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 304px)' }">
+          <ng-container *ngFor="let paragraph of typedParagraphs; let i = index">
+            <ng-container *ngIf="isParagraphVisible[i]">
+              <div
+                class="ai-paragraph"
+                [ngStyle]="{ background: getGradient(i) }"
+                [innerHTML]="paragraph">
+              </div>
+            </ng-container>
+          </ng-container>
+        </p-scrollPanel>
+      </div>
+    </div>
+    <div class="container">
+      <div class="dashboard-text">KPI Dashboard</div>
+      <div class="sub-agency-name">{{ reportData.subAgency }}</div>
+      <div class="row"
+           snInViewport
+           (inViewportChange)="handleViewportChange($event, 'summary')"
+           [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}">
+        <app-monthly-numbers
+          [reportData]="reportData"
+          [isVisible]="isVisible"
+          [selectedMonth]="selectedMonth"
+        ></app-monthly-numbers>
       </div>
 
-      <div class="dropdown-container">
-        <p-toggleButton
-          [(ngModel)]="displayComparisons"
-          onLabel="{{ averageLabel }}"
-          offLabel="{{ averageLabel }}"/>
-        <p-dropdown
-          [options]="months"
-          [(ngModel)]="selectedMonth"
-          (onChange)="onMonthChange()"
-        />
-        <p-dropdown
-          [options]="years"
-          [(ngModel)]="selectedYear"
-          (onChange)="onYearChange()"
-        />
-      </div>
-    </div>
-    <div *ngIf="isScrolled" class="container header-sub-container nav" @fadeIn>
-      <p-tabMenu
-        [model]="items"
-        [activeItem]="items![activeTabIndex]"
-        (click)="onTabClick($event)"
-      ></p-tabMenu>
-    </div>
-  </div>
-  <div class="container">
-    <div class="dashboard-text">KPI Dashboard</div>
-    <div class="sub-agency-name">{{ reportData.subAgency }}</div>
-    <div class="row"
-         snInViewport
-         (inViewportChange)="handleViewportChange($event, 'summary')"
-         [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}">
-      <app-monthly-numbers
-        [reportData]="reportData"
-        [isVisible]="isVisible"
-        [selectedMonth]="selectedMonth"
-      ></app-monthly-numbers>
-    </div>
-
-    <div>
-      <ng-container>
-        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'analytics')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
-             id="analytics"
-        >
-          <div class="col-6">
-            <div class="report-container">
-              <app-google-analytics
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [averageReportDataPrevious]="averageReportDataPrevious"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-google-analytics>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="report-container">
-              <app-opportunity-to-lead
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [averageReportDataPrevious]="averageReportDataPrevious"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-opportunity-to-lead>
-            </div>
-          </div>
-
-        </div>
-        <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'leads')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-             id="leads"
-        >
-          <div class="col-6 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-captured-leads-count
-                [reportData]="reportData"
-                [averageReportData]="averageReportData!"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [displayComparisons]="displayComparisons"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-captured-leads-count>
-            </div>
-          </div>
-          <div class="col-6 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-contact-channels
-                [reportData]="reportData"
-                [reportDataPreviousMap]="reportDataPreviousMap"
-                [monthCount]="monthCount"
-                [isVisible]="isVisible"
-              ></app-contact-channels>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'sources')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-             id="sources"
-        >
-          <div class="col-12 d-flex">
-            <div class="report-container flex-grow-1 d-flex flex-column">
-              <app-monthly-leads-captured
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-monthly-leads-captured>
-            </div>
-          </div>
-        </div>
-        <div id="appointments">
-          <div class="row report-row align-items-stretch"
+      <div>
+        <ng-container>
+          <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
                snInViewport
-               (inViewportChange)="handleViewportChange($event, 'appointments')"
-               [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
+               (inViewportChange)="handleViewportChange($event, 'analytics')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}"
+               id="analytics"
+          >
+            <div class="col-6">
+              <div class="report-container">
+                <app-google-analytics
+                  [reportData]="reportData"
+                  [averageReportData]="averageReportData!"
+                  [reportDataPreviousMap]="reportDataPreviousMap"
+                  [averageReportDataPrevious]="averageReportDataPrevious"
+                  [displayComparisons]="displayComparisons"
+                  [monthCount]="monthCount"
+                  [isVisible]="isVisible"
+                ></app-google-analytics>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="report-container">
+                <app-opportunity-to-lead
+                  [reportData]="reportData"
+                  [averageReportData]="averageReportData!"
+                  [reportDataPreviousMap]="reportDataPreviousMap"
+                  [averageReportDataPrevious]="averageReportDataPrevious"
+                  [displayComparisons]="displayComparisons"
+                  [monthCount]="monthCount"
+                  [isVisible]="isVisible"
+                ></app-opportunity-to-lead>
+              </div>
+            </div>
+
+          </div>
+          <div class="row report-row" [class.legend]="displayComparisons" style="min-height: 500px"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'leads')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+               id="leads"
           >
             <div class="col-6 d-flex">
-              <div class="report-container custom-dropdown-container">
-                <app-appointments
+              <div class="report-container flex-grow-1 d-flex flex-column">
+                <app-captured-leads-count
                   [reportData]="reportData"
+                  [averageReportData]="averageReportData!"
+                  [reportDataPreviousMap]="reportDataPreviousMap"
+                  [displayComparisons]="displayComparisons"
+                  [monthCount]="monthCount"
                   [isVisible]="isVisible"
-                ></app-appointments>
+                ></app-captured-leads-count>
               </div>
             </div>
             <div class="col-6 d-flex">
-              <div class="report-container">
-                <app-new-lead-appointments
+              <div class="report-container flex-grow-1 d-flex flex-column">
+                <app-contact-channels
                   [reportData]="reportData"
                   [reportDataPreviousMap]="reportDataPreviousMap"
-                >
-                </app-new-lead-appointments>
+                  [monthCount]="monthCount"
+                  [isVisible]="isVisible"
+                ></app-contact-channels>
               </div>
             </div>
           </div>
-          <div class="row report-row align-items-stretch"
+          <div class="row report-row align-items-stretch" [class.legend]="displayComparisons"
                snInViewport
-               (inViewportChange)="handleViewportChange($event, 'appointments')"
+               (inViewportChange)="handleViewportChange($event, 'sources')"
                [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+               id="sources"
           >
-            <app-appointment-conversion
+            <div class="col-12 d-flex">
+              <div class="report-container flex-grow-1 d-flex flex-column">
+                <app-monthly-leads-captured
+                  [reportData]="reportData"
+                  [isVisible]="isVisible"
+                ></app-monthly-leads-captured>
+              </div>
+            </div>
+          </div>
+          <div id="appointments">
+            <div class="row report-row align-items-stretch"
+                 snInViewport
+                 (inViewportChange)="handleViewportChange($event, 'appointments')"
+                 [inViewportOptions]="{rootMargin: '0px', threshold: 0.5}"
+            >
+              <div class="col-6 d-flex">
+                <div class="report-container custom-dropdown-container">
+                  <app-appointments
+                    [reportData]="reportData"
+                    [isVisible]="isVisible"
+                  ></app-appointments>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="report-container">
+                  <app-new-lead-appointments
+                    [reportData]="reportData"
+                    [reportDataPreviousMap]="reportDataPreviousMap"
+                  >
+                  </app-new-lead-appointments>
+                </div>
+              </div>
+            </div>
+            <div class="row report-row align-items-stretch"
+                 snInViewport
+                 (inViewportChange)="handleViewportChange($event, 'appointments')"
+                 [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+            >
+              <app-appointment-conversion
+                [reportData]="reportData"
+                [reportDataPreviousMap]="reportDataPreviousMap"
+                [averageReportData]="averageReportData!"
+                [monthCount]="monthCount"
+              >
+              </app-appointment-conversion>
+            </div>
+          </div>
+          <div class="row report-row"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'pipeline')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+               id="pipeline"
+          >
+            <app-sales-pipeline-report
               [reportData]="reportData"
               [reportDataPreviousMap]="reportDataPreviousMap"
               [averageReportData]="averageReportData!"
               [monthCount]="monthCount"
             >
-            </app-appointment-conversion>
+            </app-sales-pipeline-report>
           </div>
-        </div>
-        <div class="row report-row"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'pipeline')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-             id="pipeline"
-        >
-          <app-sales-pipeline-report
-            [reportData]="reportData"
-            [reportDataPreviousMap]="reportDataPreviousMap"
-            [averageReportData]="averageReportData!"
-            [monthCount]="monthCount"
+          <div class="row report-row align-items-stretch"
+               style="margin-bottom: 48px;"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'contacts')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+               id="contacts">
+            <div class="col-12 d-flex">
+              <div class="report-container">
+                <app-contacts-won
+                  [reportData]="reportData"
+                  [isVisible]="isVisible"
+                ></app-contacts-won>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container
+          *ngIf="reportData.monthlyClarityReport && reportData.monthlyClarityReport.deviceClarityAggregate.length > 0">
+          <h2 style="margin-top: 24px;">Website Analytics</h2>
+          <div class="row report-row align-items-stretch"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'website')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
+               id="website"
           >
-          </app-sales-pipeline-report>
-        </div>
-        <div class="row report-row align-items-stretch"
-             style="margin-bottom: 48px;"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'contacts')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-             id="contacts">
-          <div class="col-12 d-flex">
-            <div class="report-container">
-              <app-contacts-won
-                [reportData]="reportData"
-                [isVisible]="isVisible"
-              ></app-contacts-won>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="reportData.monthlyClarityReport && reportData.monthlyClarityReport.deviceClarityAggregate.length > 0">
-        <h2 style="margin-top: 24px;">Website Analytics</h2>
-        <div class="row report-row align-items-stretch"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'website')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}"
-             id="website"
-        >
-          <div class="col-4 d-flex">
-            <div class="report-container report-container-sm">
-              <div class="report-title">Average Scroll Depth</div>
-              <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data top-deficit">
-                <ngx-charts-gauge
-                  [scheme]="'nightLights'"
-                  [results]="clarityAverageScrollGaugeChart"
-                  [angleSpan]="240"
-                  [legend]="true"
-                  [legendPosition]="LegendPosition.Below"
-                  [bigSegments]="4"
-                  [startAngle]="-120"
-                  [max]="100"
-                  [showText]="false"
-                  [legendTitle]="'Device Type'"
-                  [valueFormatting]="SharedUtil.valueFormatting"
-                >
-                </ngx-charts-gauge>
-              </div>
-            </div>
-          </div>
-          <div class="col-4 d-flex">
-            <div class="report-container report-container-sm">
-              <div class="report-title">Total Session Count</div>
-              <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data">
-                <ngx-charts-pie-grid
-                  [scheme]="'nightLights'"
-                  [results]="clarityTotalSessionsPieChart"
-                >
-                </ngx-charts-pie-grid>
-              </div>
-            </div>
-          </div>
-          <div class="col-4 d-flex">
-            <div class="report-container report-container-sm">
-              <div class="report-title">Total Active Time</div>
-              <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="report-data">
-                <ngx-charts-bar-vertical
-                  [results]="clarityTotalActiveTimeTreeMap"
-                  [scheme]="'nightLights'"
-                  [roundEdges]="false"
-                  [gradient]="gradient"
-                  [xAxis]="true"
-                  [yAxis]="false"
-                  [showDataLabel]="true"
-                  [showXAxisLabel]="true"
-                  [showYAxisLabel]="false"
-                  [xAxisLabel]="'Device Types'"
-                  [roundDomains]="true"
-                  [dataLabelFormatting]="SharedUtil.timeFormatting"
-                >
-                </ngx-charts-bar-vertical>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row report-row align-items-stretch"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'website')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}">
-          <div class="col-12">
-            <div class="report-container report-container-sm clarity-container">
-              <div class="report-title">URL Metrics</div>
-              <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
-              <div class="table-toggle">
-                <p-toggleButton
-                  [(ngModel)]="advancedTableOptions"
-                  onLabel="Toggle Top 10 URLs"
-                  offLabel="Toggle Advanced Table"/>
-              </div>
-              <div class="report-data no-top" *ngIf="!advancedTableOptions">
-                <p-table
-                  #dt1
-                  [value]="topUrls"
-                  dataKey="id"
-                  [rows]="10"
-                  [paginator]="false"
-                  [tableStyle]="{'font-size': '0.8em'}"
-                  [responsiveLayout]="'scroll'"
-                  @fadeIn>
-                  <ng-template pTemplate="header">
-                    <tr class="custom-tr">
-                      <th style="min-width:20rem">URL</th>
-                      <th style="min-width:12.5rem">Average Scroll Depth</th>
-                      <th style="min-width:12.5rem">Active Time</th>
-                      <th style="min-width:12.5rem">Session Count</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-urlMetric>
-                    <tr>
-                      <td>
-                        <a [href]="urlMetric.url" target="_blank" style="color: #17a2b8; text-decoration: none;">
-                          {{ urlMetric.url }}
-                        </a>
-                      </td>
-                      <td>{{ SharedUtil.percentageFormatting(urlMetric.averageScrollDepth) }}</td>
-                      <td>{{ SharedUtil.timeFormatting(urlMetric.activeTime) }}</td>
-                      <td>{{ urlMetric.totalSessionCount }}</td>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="emptymessage">
-                    <tr>
-                      <td colspan="4">No data available.</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-              <div class="report-data no-top" *ngIf="advancedTableOptions">
-                <div class="custom-dropdown corner-right">
-                  <p-floatLabel>
-                    <p-dropdown
-                      [options]="deviceTypes"
-                      [(ngModel)]="selectedDevice"
-                      (onChange)="onDeviceChange($event)"
-                      id="float-label-device"
-                    />
-                    <label for="float-label-device">Select Device</label>
-                  </p-floatLabel>
+            <div class="col-4 d-flex">
+              <div class="report-container report-container-sm">
+                <div class="report-title">Average Scroll Depth</div>
+                <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+                <div class="report-data top-deficit">
+                  <ngx-charts-gauge
+                    [scheme]="'nightLights'"
+                    [results]="clarityAverageScrollGaugeChart"
+                    [angleSpan]="240"
+                    [legend]="true"
+                    [legendPosition]="LegendPosition.Below"
+                    [bigSegments]="4"
+                    [startAngle]="-120"
+                    [max]="100"
+                    [showText]="false"
+                    [legendTitle]="'Device Type'"
+                    [valueFormatting]="SharedUtil.valueFormatting"
+                  >
+                  </ngx-charts-gauge>
                 </div>
-                <div class="row">
+              </div>
+            </div>
+            <div class="col-4 d-flex">
+              <div class="report-container report-container-sm">
+                <div class="report-title">Total Session Count</div>
+                <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+                <div class="report-data">
+                  <ngx-charts-pie-grid
+                    [scheme]="'nightLights'"
+                    [results]="clarityTotalSessionsPieChart"
+                  >
+                  </ngx-charts-pie-grid>
+                </div>
+              </div>
+            </div>
+            <div class="col-4 d-flex">
+              <div class="report-container report-container-sm">
+                <div class="report-title">Total Active Time</div>
+                <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+                <div class="report-data">
+                  <ngx-charts-bar-vertical
+                    [results]="clarityTotalActiveTimeTreeMap"
+                    [scheme]="'nightLights'"
+                    [roundEdges]="false"
+                    [gradient]="gradient"
+                    [xAxis]="true"
+                    [yAxis]="false"
+                    [showDataLabel]="true"
+                    [showXAxisLabel]="true"
+                    [showYAxisLabel]="false"
+                    [xAxisLabel]="'Device Types'"
+                    [roundDomains]="true"
+                    [dataLabelFormatting]="SharedUtil.timeFormatting"
+                  >
+                  </ngx-charts-bar-vertical>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row report-row align-items-stretch"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'website')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.4}">
+            <div class="col-12">
+              <div class="report-container report-container-sm clarity-container">
+                <div class="report-title">URL Metrics</div>
+                <div class="report-subtitle">{{ reportData.monthAndYear }}</div>
+                <div class="table-toggle">
+                  <p-toggleButton
+                    [(ngModel)]="advancedTableOptions"
+                    onLabel="Toggle Top 10 URLs"
+                    offLabel="Toggle Advanced Table"/>
+                </div>
+                <div class="report-data no-top" *ngIf="!advancedTableOptions">
                   <p-table
                     #dt1
-                    [value]="reportData.monthlyClarityReport.urls"
+                    [value]="topUrls"
                     dataKey="id"
                     [rows]="10"
-                    [rowsPerPageOptions]="[10, 25, 50]"
-                    [breakpoint]="'960px'"
-                    [loading]="false"
-                    [paginator]="true"
-                    [globalFilterFields]="['url']"
+                    [paginator]="false"
                     [tableStyle]="{'font-size': '0.8em'}"
                     [responsiveLayout]="'scroll'"
-                    [styleClass]="'p-datatable-sm'"
-                    @fadeIn
-                  >
+                    @fadeIn>
                     <ng-template pTemplate="header">
                       <tr class="custom-tr">
-                        <th style="min-width:20rem">
-                          <div class="flex align-items-center">
-                            URL
-                            <p-columnFilter type="text" field="url" display="menu"></p-columnFilter>
-                          </div>
-                        </th>
-                        <th style="min-width:12.5rem" pSortableColumn="averageScrollDepth">
-                          <div class="flex align-items-center">
-                            Average Scroll Depth
-                          </div>
-                        </th>
-                        <th style="min-width:12.5rem" pSortableColumn="activeTime">
-                          <div class="flex align-items-center">
-                            Active Time
-                          </div>
-                        </th>
-                        <th style="min-width:12.5rem" pSortableColumn="totalSessionCount">
-                          <div class="flex align-items-center">
-                            Session Count
-                          </div>
-                        </th>
+                        <th style="min-width:20rem">URL</th>
+                        <th style="min-width:12.5rem">Average Scroll Depth</th>
+                        <th style="min-width:12.5rem">Active Time</th>
+                        <th style="min-width:12.5rem">Session Count</th>
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-urlMetric>
@@ -391,78 +358,150 @@
                     </ng-template>
                   </p-table>
                 </div>
+                <div class="report-data no-top" *ngIf="advancedTableOptions">
+                  <div class="custom-dropdown corner-right">
+                    <p-floatLabel>
+                      <p-dropdown
+                        [options]="deviceTypes"
+                        [(ngModel)]="selectedDevice"
+                        (onChange)="onDeviceChange($event)"
+                        id="float-label-device"
+                      />
+                      <label for="float-label-device">Select Device</label>
+                    </p-floatLabel>
+                  </div>
+                  <div class="row">
+                    <p-table
+                      #dt1
+                      [value]="reportData.monthlyClarityReport.urls"
+                      dataKey="id"
+                      [rows]="10"
+                      [rowsPerPageOptions]="[10, 25, 50]"
+                      [breakpoint]="'960px'"
+                      [loading]="false"
+                      [paginator]="true"
+                      [globalFilterFields]="['url']"
+                      [tableStyle]="{'font-size': '0.8em'}"
+                      [responsiveLayout]="'scroll'"
+                      [styleClass]="'p-datatable-sm'"
+                      @fadeIn
+                    >
+                      <ng-template pTemplate="header">
+                        <tr class="custom-tr">
+                          <th style="min-width:20rem">
+                            <div class="flex align-items-center">
+                              URL
+                              <p-columnFilter type="text" field="url" display="menu"></p-columnFilter>
+                            </div>
+                          </th>
+                          <th style="min-width:12.5rem" pSortableColumn="averageScrollDepth">
+                            <div class="flex align-items-center">
+                              Average Scroll Depth
+                            </div>
+                          </th>
+                          <th style="min-width:12.5rem" pSortableColumn="activeTime">
+                            <div class="flex align-items-center">
+                              Active Time
+                            </div>
+                          </th>
+                          <th style="min-width:12.5rem" pSortableColumn="totalSessionCount">
+                            <div class="flex align-items-center">
+                              Session Count
+                            </div>
+                          </th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-urlMetric>
+                        <tr>
+                          <td>
+                            <a [href]="urlMetric.url" target="_blank" style="color: #17a2b8; text-decoration: none;">
+                              {{ urlMetric.url }}
+                            </a>
+                          </td>
+                          <td>{{ SharedUtil.percentageFormatting(urlMetric.averageScrollDepth) }}</td>
+                          <td>{{ SharedUtil.timeFormatting(urlMetric.activeTime) }}</td>
+                          <td>{{ urlMetric.totalSessionCount }}</td>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="emptymessage">
+                        <tr>
+                          <td colspan="4">No data available.</td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div id="ai-analytics" class="row insights-row"
-             snInViewport
-             (inViewportChange)="handleViewportChange($event, 'aiAnalytics')"
-             [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}">
-          <ng-container *ngIf="analyticsInsights && isVisible['aiAnalytics']">
-            <p class="insights-header">Analytics Insights <span>powered by AI</span></p>
-            <div class="col-4 insight-card" @fadeIn>
-              <div class="ai-takeaway-container">
-                <div class="ai-takeaway-header">
-                  Device Performance
-                </div>
-                <div class="ai-takeaways">
-                  <ul>
-                    <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.devicePerformance">
-                      <span [innerHTML]="takeaway"></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="col-4 insight-card" @fadeIn>
-              <div class="ai-takeaway-container">
-                <div class="ai-takeaway-header">
-                  URL Engagement
-                </div>
-                <div class="ai-takeaways">
-                  <ul>
-                    <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.urlEngagement">
-                      <span [innerHTML]="takeaway"></span>
-                    </li>
-                  </ul>
+          <div id="ai-analytics" class="row insights-row"
+               snInViewport
+               (inViewportChange)="handleViewportChange($event, 'aiAnalytics')"
+               [inViewportOptions]="{rootMargin: '0px', threshold: 0.3}">
+            <ng-container *ngIf="analyticsInsights && isVisible['aiAnalytics']">
+              <p class="insights-header">Analytics Insights <span>powered by AI</span></p>
+              <div class="col-4 insight-card" @fadeIn>
+                <div class="ai-takeaway-container">
+                  <div class="ai-takeaway-header">
+                    Device Performance
+                  </div>
+                  <div class="ai-takeaways">
+                    <ul>
+                      <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.devicePerformance">
+                        <span [innerHTML]="takeaway"></span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col-4 insight-card" @fadeIn>
-              <div class="ai-takeaway-container">
-                <div class="ai-takeaway-header">
-                  User Behavior
-                </div>
-                <div class="ai-takeaways">
-                  <ul>
-                    <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.userBehavior">
-                      <span [innerHTML]="takeaway"></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div style="display: none" class="col-12 insight-card">
-              <div class="ai-takeaway-container">
-                <div class="ai-takeaway-header">
-                  Insights and Suggestions
-                </div>
-                <div class="ai-takeaways">
-                  <ul>
-                    <li *ngFor="let suggestions of analyticsInsights?.insightsAndSuggestions">
-                      <span [innerHTML]="suggestions"></span>
-                    </li>
-                  </ul>
+              <div class="col-4 insight-card" @fadeIn>
+                <div class="ai-takeaway-container">
+                  <div class="ai-takeaway-header">
+                    URL Engagement
+                  </div>
+                  <div class="ai-takeaways">
+                    <ul>
+                      <li *ngFor="let takeaway of analyticsInsights.keyTakeaways.urlEngagement">
+                        <span [innerHTML]="takeaway"></span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-          </ng-container>
-        </div>
-      </ng-container>
+              <div class="col-4 insight-card" @fadeIn>
+                <div class="ai-takeaway-container">
+                  <div class="ai-takeaway-header">
+                    User Behavior
+                  </div>
+                  <div class="ai-takeaways">
+                    <ul>
+                      <li *ngFor="let takeaway of analyticsInsights?.keyTakeaways?.userBehavior">
+                        <span [innerHTML]="takeaway"></span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div style="display: none" class="col-12 insight-card">
+                <div class="ai-takeaway-container">
+                  <div class="ai-takeaway-header">
+                    Insights and Suggestions
+                  </div>
+                  <div class="ai-takeaways">
+                    <ul>
+                      <li *ngFor="let suggestions of analyticsInsights?.insightsAndSuggestions">
+                        <span [innerHTML]="suggestions"></span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
     </div>
-  </div>
-</ng-container>
+  </ng-container>
 </ng-container>
 <ng-template #loadingOrError>
   <div class="container">
@@ -497,7 +536,8 @@
   </div>
   <div class="no-data-placeholder" @fadeIn>
     <div>
-      <i class="pi pi-info-circle"></i> Report data is unavailable for the month of {{ selectedMonth }}, {{ selectedYear }}.
+      <i class="pi pi-info-circle"></i> Report data is unavailable for the month of {{ selectedMonth }}
+      , {{ selectedYear }}.
     </div>
   </div>
 </ng-template>

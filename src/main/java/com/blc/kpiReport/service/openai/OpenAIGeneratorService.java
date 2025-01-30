@@ -16,13 +16,13 @@ import com.blc.kpiReport.service.GhlLocationService;
 import com.blc.kpiReport.service.KpiReportGeneratorService;
 import com.blc.kpiReport.service.KpiReportRetrievalService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -47,6 +47,37 @@ public class OpenAIGeneratorService {
     private final KpiReportRetrievalService kpiReportRetrievalService;
     private final ResourceLoader resourceLoader;
     private final GhlLocationsToGenerateProperties ghlLocations;
+    private volatile String promptTemplate;
+
+    @PostConstruct
+    private void loadPromptTemplate() {
+        String templatePath = "classpath:openai/executive-summary-prompt.txt";
+        try {
+            log.info("Loading prompt template from {}", templatePath);
+            Resource resource = resourceLoader.getResource(templatePath);
+            try (InputStream inputStream = resource.getInputStream()) {
+                this.promptTemplate = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                log.info("Prompt template loaded successfully.");
+            }
+        } catch (IOException e) {
+            log.error("Failed to load prompt template from {}: {}", templatePath, e.getMessage());
+            throw new RuntimeException("Unable to load prompt template during startup.", e);
+        }
+    }
+
+    public String getPrompt() {
+        return this.promptTemplate;
+    }
+
+    public synchronized String updatePrompt(String updatedPrompt) {
+        if (updatedPrompt == null || updatedPrompt.isBlank()) {
+            throw new IllegalArgumentException("Updated prompt cannot be null or blank.");
+        }
+        log.info("Updating prompt template...");
+        this.promptTemplate = updatedPrompt;
+        log.info("Prompt template updated successfully.");
+        return this.promptTemplate;
+    }
 
     @Transactional
     public List<String> generateExecutiveSummaryBatch(int month, int year) {
@@ -67,7 +98,7 @@ public class OpenAIGeneratorService {
         return summaries;
     }
 
-    @Transactional(propagation= Propagation.REQUIRED, readOnly=true, noRollbackFor=Exception.class)
+    @Transactional
     public String generateExecutiveSummary(String locationId, int month, int year) {
         var monthlyPrompt = generateJsonPrompt(locationId, month, year);
         try {
@@ -100,6 +131,8 @@ public class OpenAIGeneratorService {
         if (existingExecutiveSummary.isPresent()) {
             executiveSummary = existingExecutiveSummary.get();
             executiveSummary.setSummary(summary);
+            executiveSummary.setKpiReport(kpiReport);
+            executiveSummaryRepository.save(executiveSummary);
         } else {
             executiveSummary = ExecutiveSummary.builder()
                     .kpiReport(kpiReport)
@@ -108,8 +141,8 @@ public class OpenAIGeneratorService {
         }
 
         try {
-            executiveSummaryRepository.save(executiveSummary);
             kpiReportGeneratorService.setStatus(kpiReport, ReportStatus.SUCCESS);
+            kpiReport.setExecutiveSummary(executiveSummary);
             log.info("Successfully saved executive summary for KPI Report ID: {}", kpiReport.getId());
         } catch (Exception e) {
             log.error("Failed to save executive summary for KPI Report ID: {}", kpiReport.getId(), e);
@@ -335,8 +368,7 @@ public class OpenAIGeneratorService {
     public String generateExecutiveSummary(MonthlyPrompt monthlyPrompt) throws IOException {
         log.info("Preparing request for OpenAI API...");
 
-        String templatePath = "classpath:openai/executive-summary-prompt.txt";
-        String promptTemplate = readPromptFromFile(templatePath);
+        String promptTemplate = this.promptTemplate;
 
         String data = String.format(promptTemplate, objectMapper.writeValueAsString(monthlyPrompt));
 
@@ -379,12 +411,4 @@ public class OpenAIGeneratorService {
             throw e;
         }
     }
-
-    private String readPromptFromFile(String filePath) throws IOException {
-        Resource resource = resourceLoader.getResource(filePath);
-        try (InputStream inputStream = resource.getInputStream()) {
-            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        }
-    }
-
 }

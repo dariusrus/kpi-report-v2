@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/reports")
-@Tag(name = "KPI Report Generator API", description = "Endpoints used to generate and manage KPI Reports.")
+@RequestMapping("/openai")
+@Tag(name = "OpenAI API", description = "Endpoints for managing OpenAI prompts and generation.")
 public class OpenAIGeneratorController {
 
     private final OpenAIGeneratorService openAIGeneratorService;
@@ -36,7 +35,7 @@ public class OpenAIGeneratorController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @PostMapping(path="/openai/summary")
+    @PostMapping(path="/summary")
     public String generateOpenAISummary(@RequestBody GenerateKpiReportByLocationRequest request) {
         return openAIGeneratorService.generateExecutiveSummary(request.getGhlLocationId(), request.getMonth(), request.getYear());
     }
@@ -53,7 +52,7 @@ public class OpenAIGeneratorController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @PostMapping(path = "/openai/summary/batch")
+    @PostMapping(path = "/summary/batch")
     public ResponseEntity<String> generateOpenAISummaryBatch(@RequestBody GenerateKpiReportsRequest request) {
         taskExecutor.execute(() -> openAIGeneratorService.generateExecutiveSummaryBatch(request.getMonth(), request.getYear()));
         return ResponseEntity.ok("OpenAI Executive Summary generation executed.");

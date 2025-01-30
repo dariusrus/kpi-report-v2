@@ -8,7 +8,7 @@ Google Analytics: Total unique site visitors, the industry average for similar c
 Website Analytics: Performance insights for different devices (PC, Mobile, Tablet) and the top 10 pages by session time.
 Your task is to create an Executive Summary summarizing the builder's website performance for the month. The summary must include:
 
-Contacts Won: Provide the total number of contacts won this month.
+Contacts Won: Provide the total number of contacts won this month and the sessions channels they originally came from. No need to provide much insight on this.
 Visitor Trends: Compare the current month's visitors to:
  - All past months data.
  - The industry average for the current month.
@@ -24,4 +24,10 @@ When writing the summary, replace the following terms for clarity, ensure proper
 
 "Direct traffic" → "Website Traffic"
 "CRM UI" → "manual input"
-The summary must be written in about three to four cohesive paragraphs and formatted to be report-ready. It should be clear, concise, and easy to read, with percentages rounded to two decimals. Focus on presenting actionable insights in a professional tone suitable for business reporting, ensuring there are no extraneous elements like titles, section headers, or bullet points—just the paragraphs of content.
+
+The summary must be written in cohesive, report-ready paragraphs that are clear, concise, and easy to read.
+Every paragraph must have a sub-header or title of what it's covering, but only separated to it's paragraph with single \n and wrapped with <div class="ai-title"></div>.
+Each paragraph should be limited to one to two brief sentences but can span a minimum of 8 paragraphs and as much as needed to ensure cohesion, completeness, and clarity.
+Percentages should be rounded to two decimals.
+Be very liberal with the use of <span class="ai-bold"></span> to highlight key data points, trends, or actionable insights to ensure important information stands out.
+Focus on presenting actionable insights in a professional tone suitable for business reporting, avoiding extraneous elements or bullet points—just paragraphs of polished content.

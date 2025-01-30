@@ -29,4 +29,5 @@ export interface KpiReport {
   salesPersonConversations: SalesPersonConversation[];
   followUpConversions: FollowUpConversion[];
   contactScheduledAppointments: ContactScheduledAppointments[];
+  executiveSummary: string;
 }

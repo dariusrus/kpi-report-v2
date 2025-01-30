@@ -68,6 +68,18 @@ public class MonthlyAverage extends DateAudit implements Serializable {
     @Column(name = "average_total_follow_up_per_conversion")
     private Double averageTotalFollowUpPerConversion;
 
+    @Column(name = "average_live_chat_messages")
+    private Integer averageLiveChatMessage;
+
+    @Column(name = "average_sms")
+    private Integer averageSms;
+
+    @Column(name = "average_emails")
+    private Integer averageEmails;
+
+    @Column(name = "average_calls")
+    private Integer averageCalls;
+
     @NotNull
     @Column(name = "client_type")
     @Enumerated(EnumType.STRING)

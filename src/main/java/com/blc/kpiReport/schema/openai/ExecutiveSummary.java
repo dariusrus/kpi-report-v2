@@ -24,7 +24,7 @@ public class ExecutiveSummary extends DateAudit implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
-    @Column(length = 4000)
+    @Column(length = 30000)
     private String summary;
 
     @OneToOne

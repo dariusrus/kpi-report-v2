@@ -30,6 +30,10 @@ public class MonthlyAverageMapper {
                 .weightedAverageOpportunityToLead(roundToTwoDecimalPlaces(
                         defaultIfNull(monthlyAverage.getWeightedAverageOpportunityToLead(), 0.0)))
                 .averageFollowUps(defaultIfNull(monthlyAverage.getAverageFollowUps(), 0))
+                .averageSms(defaultIfNull(monthlyAverage.getAverageSms(), 0))
+                .averageCalls(defaultIfNull(monthlyAverage.getAverageCalls(), 0))
+                .averageEmails(defaultIfNull(monthlyAverage.getAverageEmails(), 0))
+                .averageLiveChatMessages(defaultIfNull(monthlyAverage.getAverageLiveChatMessage(), 0))
                 .averageConversions(defaultIfNull(monthlyAverage.getAverageConversions(), 0))
                 .averageFollowUpPerConversion(defaultIfNull(monthlyAverage.getAverageFollowUpPerConversion(), 0.0))
                 .averageFollowUps(defaultIfNull(monthlyAverage.getAverageFollowUps(), 0))
