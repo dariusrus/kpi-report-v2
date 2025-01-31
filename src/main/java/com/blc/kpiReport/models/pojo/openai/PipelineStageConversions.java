@@ -12,5 +12,6 @@ import java.util.List;
 public class PipelineStageConversions {
     private int totalStageConversions;
     private int totalFollowups;
+    private int industryAverageFollowups;
     private List<SalesPersonBreakdown> salesPersonBreakdown;
 }

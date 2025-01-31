@@ -490,6 +490,7 @@
 
 .performance-index-items {
   display: flex;
+  width: 100%;
   justify-content: space-evenly;
 }
 
@@ -500,8 +501,17 @@
   align-items: center;
 }
 
+.performance-index-items.sub {
+  margin-top: 18px;
+}
+
 .performance-index-value {
   font-size: 1.75em;
+  font-weight: 500;
+}
+
+.performance-index-value.sub {
+  font-size: 1.2em;
   font-weight: 500;
 }
 

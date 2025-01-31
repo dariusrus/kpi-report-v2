@@ -106,12 +106,6 @@ public class GhlDataProcessorService {
 
             FollowUpConversion followUpConversion = followUpConversionMap.computeIfAbsent(ghlUser, user -> FollowUpConversion.builder()
                     .ghlUser(user)
-                    .sms(0)
-                    .emails(0)
-                    .calls(0)
-                    .liveChatMessages(0)
-                    .followUps(0)
-                    .conversions(0)
                     .totalSms(0)
                     .totalEmails(0)
                     .totalCalls(0)
@@ -127,27 +121,15 @@ public class GhlDataProcessorService {
                 switch (message.getMessageType()) {
                     case "TYPE_SMS":
                         followUpConversion.setTotalSms(followUpConversion.getTotalSms() + 1);
-                        if (isConvertedContact) {
-                            followUpConversion.setSms(followUpConversion.getSms() + 1);
-                        }
                         break;
                     case "TYPE_EMAIL":
                         followUpConversion.setTotalEmails(followUpConversion.getTotalEmails() + 1);
-                        if (isConvertedContact) {
-                            followUpConversion.setEmails(followUpConversion.getEmails() + 1);
-                        }
                         break;
                     case "TYPE_CALL":
                         followUpConversion.setTotalCalls(followUpConversion.getTotalCalls() + 1);
-                        if (isConvertedContact) {
-                            followUpConversion.setCalls(followUpConversion.getCalls() + 1);
-                        }
                         break;
                     case "TYPE_LIVE_CHAT":
                         followUpConversion.setTotalLiveChatMessages(followUpConversion.getTotalLiveChatMessages() + 1);
-                        if (isConvertedContact) {
-                            followUpConversion.setLiveChatMessages(followUpConversion.getLiveChatMessages() + 1);
-                        }
                         break;
                 }
             }
@@ -158,15 +140,6 @@ public class GhlDataProcessorService {
                             followUpConversion.getTotalCalls() +
                             followUpConversion.getTotalLiveChatMessages()
             );
-
-            if (isConvertedContact) {
-                followUpConversion.setFollowUps(
-                        followUpConversion.getSms() +
-                                followUpConversion.getEmails() +
-                                followUpConversion.getCalls() +
-                                followUpConversion.getLiveChatMessages()
-                );
-            }
         }
 
         for (PipelineStage pipelineStage : pipelineStages) {
@@ -176,12 +149,6 @@ public class GhlDataProcessorService {
 
                 FollowUpConversion followUpConversion = followUpConversionMap.computeIfAbsent(ghlUser, user -> FollowUpConversion.builder()
                         .ghlUser(user)
-                        .sms(0)
-                        .emails(0)
-                        .calls(0)
-                        .liveChatMessages(0)
-                        .followUps(0)
-                        .conversions(0)
                         .totalSms(0)
                         .totalEmails(0)
                         .totalCalls(0)
@@ -193,7 +160,6 @@ public class GhlDataProcessorService {
 
                 int convertedContactsCount = conversion.getConvertedGhlContacts().size();
 
-                followUpConversion.setConversions(followUpConversion.getConversions() + convertedContactsCount);
                 followUpConversion.setTotalConversions(
                         followUpConversion.getTotalConversions() + convertedContactsCount
                 );
@@ -202,14 +168,6 @@ public class GhlDataProcessorService {
 
         for (FollowUpConversion followUpConversion : followUpConversionMap.values()) {
             followUpConversion.setGoHighLevelReport(goHighLevelReport);
-
-            int conversions = followUpConversion.getConversions();
-            int followUps = followUpConversion.getFollowUps();
-            if (conversions > 0) {
-                followUpConversion.setFollowUpPerConversion((double) followUps / conversions);
-            } else {
-                followUpConversion.setFollowUpPerConversion(0.0);
-            }
 
             int totalConversions = followUpConversion.getTotalConversions();
             int totalFollowUps = followUpConversion.getTotalFollowUps();

@@ -12,21 +12,11 @@ import java.util.stream.Collectors;
 public class FollowUpConversionMapper {
 
     public FollowUpConversionResponse toResponse(FollowUpConversion followUpConversion) {
-        int followUps = followUpConversion != null ? followUpConversion.getFollowUps() : 0;
-        int conversions = followUpConversion != null ? followUpConversion.getConversions() : 0;
-        double followUpPerConversion = followUpConversion != null ? followUpConversion.getFollowUpPerConversion() : 0.0;
         int totalFollowUps = followUpConversion != null ? followUpConversion.getTotalFollowUps() : 0;
         int totalConversions = followUpConversion != null ? followUpConversion.getTotalConversions() : 0;
         double totalFollowUpPerConversion = followUpConversion != null ? followUpConversion.getTotalFollowUpPerConversion() : 0.0;
 
         return FollowUpConversionResponse.builder()
-//                .sms(followUpConversion.getSms())
-//                .emails(followUpConversion.getEmails())
-//                .calls(followUpConversion.getCalls())
-//                .liveChatMessages(followUpConversion.getLiveChatMessages())
-//                .followUps(followUps)
-//                .conversions(conversions)
-//                .followUpPerConversion(followUpPerConversion)
                 .totalSms(followUpConversion.getTotalSms())
                 .totalEmails(followUpConversion.getTotalEmails())
                 .totalCalls(followUpConversion.getTotalCalls())

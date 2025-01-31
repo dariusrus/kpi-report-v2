@@ -80,7 +80,7 @@ public class OpenAIGeneratorService {
     }
 
     @Transactional
-    public List<String> generateExecutiveSummaryBatch(int month, int year) {
+    public void generateExecutiveSummaryBatch(int month, int year) {
         List<String> uniqueLocationIds = new ArrayList<>(new HashSet<>(ghlLocations.getGhlLocationIds()));
         List<String> summaries = new ArrayList<>();
 
@@ -95,7 +95,6 @@ public class OpenAIGeneratorService {
                 log.error("Failed to generate executive summary for location ID: {}", locationId, e);
             }
         }
-        return summaries;
     }
 
     @Transactional
@@ -188,7 +187,7 @@ public class OpenAIGeneratorService {
         List<TopLeadSource> topLeadSources = buildTopLeadSources(kpiReport);
         List<TopSessionChannel> topSessionChannels = buildTopSessionChannels(kpiReport);
         List<SalesPersonBreakdown> salesPersonBreakdown = buildSalesPersonBreakdown(kpiReport);
-        PipelineStageConversions pipelineStageConversions = buildPipelineStageConversions(kpiReport, salesPersonBreakdown);
+        PipelineStageConversions pipelineStageConversions = buildPipelineStageConversions(kpiReport, salesPersonBreakdown, monthlyAverage);
         List<PreviousMonthLeads> previousMonthLeads = buildPreviousMonthLeads(kpiReports);
 
         return GoHighLevel.builder()
@@ -263,7 +262,7 @@ public class OpenAIGeneratorService {
                 : List.of();
     }
 
-    private PipelineStageConversions buildPipelineStageConversions(KpiReportResponse kpiReport, List<SalesPersonBreakdown> salesPersonBreakdown) {
+    private PipelineStageConversions buildPipelineStageConversions(KpiReportResponse kpiReport, List<SalesPersonBreakdown> salesPersonBreakdown, MonthlyAverageResponse monthlyAverage) {
         int totalStageConversions = kpiReport.getFollowUpConversions() != null
                 ? kpiReport.getFollowUpConversions().stream()
                 .mapToInt(FollowUpConversionResponse::getTotalConversions)
@@ -279,6 +278,7 @@ public class OpenAIGeneratorService {
         return PipelineStageConversions.builder()
                 .totalStageConversions(totalStageConversions)
                 .totalFollowups(totalFollowups)
+                .industryAverageFollowups(monthlyAverage.getAverageTotalFollowUps())
                 .salesPersonBreakdown(salesPersonBreakdown)
                 .build();
     }

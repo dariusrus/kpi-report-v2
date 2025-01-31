@@ -14,13 +14,10 @@ public class MonthlyAverageResponse {
     private int averageTotalLeads;
     private double averageOpportunityToLead;
     private double weightedAverageOpportunityToLead;
-    private int averageFollowUps;
     private int averageSms;
     private int averageLiveChatMessages;
     private int averageCalls;
     private int averageEmails;
-    private int averageConversions;
-    private double averageFollowUpPerConversion;
     private int averageTotalFollowUps;
     private int averageTotalConversions;
     private double averageTotalFollowUpPerConversion;

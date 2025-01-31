@@ -28,13 +28,14 @@ export class SalesPipelineReportComponent implements OnInit {
   @Input() averageReportData!: MonthlyAverage;
   @Input() isVisible!: { [key: string]: string };
   @Input() monthCount!: number;
+  @Input() displayComparisons!: boolean;
 
   data: any[] = [];
   followupData: any[] = [];
   selectedPipeline: Pipeline | null = null;
   selectedPipelineNoData: boolean = false;
   pieChartView: [number, number] = [580, 350];
-  lineChartView: [number, number] = [500, 400];
+  lineChartView: [number, number] = [500, 300];
   scheme = 'picnic';
 
   salesPersons: SalesPerson[] = [];
@@ -68,6 +69,8 @@ export class SalesPipelineReportComponent implements OnInit {
   curve: any = shape.curveCatmullRom.alpha(1);
 
   peerComparisonTooltip = false;
+  peerFollowUpTooltip = false;
+  peerConversionTooltip = false;
   timelineInfoTooltip = false;
   fpcInfoTooltip = false;
 
@@ -120,6 +123,10 @@ export class SalesPipelineReportComponent implements OnInit {
       this.peerComparisonTooltip = true;
     } else if (hoveredObject === 'fpcInfoTooltip') {
       this.fpcInfoTooltip = true;
+    } else if (hoveredObject === 'peerFollowUpTooltip') {
+      this.peerFollowUpTooltip = true
+    } else if (hoveredObject === 'peerConversionTooltip') {
+      this.peerConversionTooltip = true;
     }
   }
 
@@ -127,11 +134,12 @@ export class SalesPipelineReportComponent implements OnInit {
     this.peerComparisonTooltip = false;
     this.timelineInfoTooltip = false;
     this.fpcInfoTooltip = false;
+    this.peerFollowUpTooltip = false;
+    this.peerConversionTooltip = false;
   }
 
   getBuilderType(): string {
     let clientType = this.reportData.clientType;
-    console.log(this.reportData);
     return clientType === 'REMODELING'
       ? 'remodelers'
       : clientType === 'CUSTOM_HOMES'
@@ -424,15 +432,15 @@ export class SalesPipelineReportComponent implements OnInit {
   updateChartView() {
     if (window.innerWidth >= 1400) {
       this.pieChartView = [580, 450];
-      this.lineChartView = [460, 315];
+      this.lineChartView = [460, 250];
       this.pipelineView = [1150, 400];
     } else if (window.innerWidth < 1400 && window.innerWidth >= 1200) {
       this.pieChartView = [480, 450];
-      this.lineChartView = [400, 315];
+      this.lineChartView = [400, 250];
       this.pipelineView = [900, 400];
     } else {
       this.pieChartView = [380, 450];
-      this.lineChartView = [260, 315];
+      this.lineChartView = [260, 250];
       this.pipelineView = [700, 400];
     }
   }

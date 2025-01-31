@@ -25,27 +25,6 @@ public class FollowUpConversion extends DateAudit implements Serializable {
     @JsonIgnore
     private Long id;
 
-    @Column(name = "sms")
-    private Integer sms;
-
-    @Column(name = "emails")
-    private Integer emails;
-
-    @Column(name = "calls")
-    private Integer calls;
-
-    @Column(name = "live_chat_messages")
-    private Integer liveChatMessages;
-
-    @Column(name = "follow_ups")
-    private Integer followUps;
-
-    @Column(name = "conversions")
-    private Integer conversions;
-
-    @Column(name = "follow_up_per_conversion")
-    private Double followUpPerConversion;
-
     @Column(name = "total_sms")
     private Integer totalSms;
 

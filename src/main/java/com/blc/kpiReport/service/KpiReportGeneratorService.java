@@ -561,14 +561,11 @@ public class KpiReportGeneratorService {
         Map<ClientType, Double> sumOpportunityToLeadMap = initializeMapWithDefault(ClientType.values(), 0.0);
         Map<ClientType, Integer> validOpportunityToLeadCountMap = initializeMapWithDefault(ClientType.values(), 0);
 
-
-        Map<ClientType, Integer> followUpsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> liveChatMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> smsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> emailMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> callMap = initializeMapWithDefault(ClientType.values(), 0);
 
-        Map<ClientType, Integer> conversionsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> totalFollowUpsMap = initializeMapWithDefault(ClientType.values(), 0);
         Map<ClientType, Integer> totalConversionsMap = initializeMapWithDefault(ClientType.values(), 0);
 
@@ -582,7 +579,7 @@ public class KpiReportGeneratorService {
             populateUniqueSiteVisitors(report, totalUniqueSiteVisitorsMap, clientType);
             populateLeadSources(report, totalLeadSourcesMap, clientType);
             populateOpportunityToLead(report, sumOpportunityToLeadMap, clientType, validOpportunityToLeadCountMap);
-            populateFollowUpConversionMaps(report, followUpsMap, conversionsMap, totalFollowUpsMap, totalConversionsMap,
+            populateFollowUpConversionMaps(report, totalFollowUpsMap, totalConversionsMap,
                     liveChatMap, smsMap, emailMap, callMap, clientType);
         }
 
@@ -600,22 +597,16 @@ public class KpiReportGeneratorService {
             weightedAverageOpportunityToLead = calculateWeightedAverageO2L(clientType, totalUniqueSiteVisitorsMap, weightedAverageOpportunityToLead, totalLeadSourcesMap);
             nonWeightedAverageOpportunityToLead = calculateNonWeightedAverageO2L(clientType, validOpportunityToLeadCountMap, nonWeightedAverageOpportunityToLead, sumOpportunityToLeadMap);
 
-
-            int averageFollowUps = followUpsMap.get(clientType) / reportCountMap.get(clientType);
-            int averageConversions = conversionsMap.get(clientType) / reportCountMap.get(clientType);
-            int averageTotalFollowUps = totalFollowUpsMap.get(clientType) / reportCountMap.get(clientType);
-            int averageTotalConversions = totalConversionsMap.get(clientType) / reportCountMap.get(clientType);
-
             int averageSms = smsMap.get(clientType) / reportCountMap.get(clientType);
             int averageCalls = callMap.get(clientType) / reportCountMap.get(clientType);
             int averageEmails = emailMap.get(clientType) / reportCountMap.get(clientType);
             int averageLiveChat = liveChatMap.get(clientType) / reportCountMap.get(clientType);
 
-            double averageFollowUpPerConversion = 0;
+            int averageTotalFollowUps = averageSms + averageCalls + averageEmails + averageLiveChat;
+            int averageTotalConversions = totalConversionsMap.get(clientType) / reportCountMap.get(clientType);
+
             double averageTotalFollowUpPerConversion = 0;
-            if (averageConversions > 0) {
-                averageFollowUpPerConversion = (double) followUpsMap.get(clientType) / conversionsMap.get(clientType);
-            }
+
             if (averageTotalConversions > 0) {
                 averageTotalFollowUpPerConversion = (double) totalFollowUpsMap.get(clientType) / totalConversionsMap.get(clientType);
             }
@@ -625,13 +616,10 @@ public class KpiReportGeneratorService {
             log.info("Average Total Leads: {}", averageTotalLeads);
             log.info("Weighted Average Opportunity-to-Lead: {}", weightedAverageOpportunityToLead);
             log.info("Non-Weighted Average Opportunity-to-Lead: {}", nonWeightedAverageOpportunityToLead);
-            log.info("Average Follow-Ups: {}", averageFollowUps);
             log.info("Average SMS: {}", averageSms);
             log.info("Average Live Chat Messages: {}", averageLiveChat);
             log.info("Average Emails: {}", averageEmails);
             log.info("Average Calls: {}", averageCalls);
-            log.info("Average Conversions: {}", averageConversions);
-            log.info("Average Follow-Up Per Conversion: {}", averageFollowUpPerConversion);
             log.info("Average Total Follow-Ups: {}", averageTotalFollowUps);
             log.info("Average Total Conversions: {}", averageTotalConversions);
             log.info("Average Total Follow-Up Per Conversion: {}", averageTotalFollowUpPerConversion);
@@ -646,9 +634,6 @@ public class KpiReportGeneratorService {
             monthlyAverage.setAverageTotalLeads((int) averageTotalLeads);
             monthlyAverage.setAverageOpportunityToLead(nonWeightedAverageOpportunityToLead);
             monthlyAverage.setWeightedAverageOpportunityToLead(weightedAverageOpportunityToLead);
-            monthlyAverage.setAverageFollowUps(averageFollowUps);
-            monthlyAverage.setAverageConversions(averageConversions);
-            monthlyAverage.setAverageFollowUpPerConversion(averageFollowUpPerConversion);
             monthlyAverage.setAverageTotalFollowUps(averageTotalFollowUps);
             monthlyAverage.setAverageTotalConversions(averageTotalConversions);
             monthlyAverage.setAverageTotalFollowUpPerConversion(averageTotalFollowUpPerConversion);
@@ -743,8 +728,6 @@ public class KpiReportGeneratorService {
 
     private void populateFollowUpConversionMaps(
             KpiReport report,
-            Map<ClientType, Integer> followUpsMap,
-            Map<ClientType, Integer> conversionsMap,
             Map<ClientType, Integer> totalFollowUpsMap,
             Map<ClientType, Integer> totalConversionsMap,
             Map<ClientType, Integer> liveChatMap,
@@ -757,8 +740,6 @@ public class KpiReportGeneratorService {
             List<FollowUpConversion> followUpConversions = report.getGoHighLevelReport().getFollowUpConversions();
 
             for (FollowUpConversion conversion : followUpConversions) {
-                followUpsMap.put(clientType, followUpsMap.get(clientType) + conversion.getFollowUps());
-                conversionsMap.put(clientType, conversionsMap.get(clientType) + conversion.getConversions());
                 totalFollowUpsMap.put(clientType, totalFollowUpsMap.get(clientType) + conversion.getTotalFollowUps());
                 totalConversionsMap.put(clientType, totalConversionsMap.get(clientType) + conversion.getTotalConversions());
                 liveChatMap.put(clientType, liveChatMap.get(clientType) + conversion.getTotalLiveChatMessages());

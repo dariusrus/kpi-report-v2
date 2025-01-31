@@ -235,7 +235,7 @@
     </div>
     <div class="row report-row">
       <div class="col-7">
-        <div class="report-container" style="min-height: 525px;">
+        <div class="report-container" style="min-height: 525px; max-height: 525px;">
           <ng-container>
             <div class="report-title">
               Follow Up per Conversion
@@ -374,7 +374,7 @@
         </div>
       </div>
       <div class="col-5">
-        <div class="report-container">
+        <div class="report-container" style="min-height: 525px;">
           <ng-container>
             <div class="report-title">
               FPC Industry Peer Comparison
@@ -385,21 +385,91 @@
             <div class="report-data">
               <ng-container>
                 <div class="performance-index-container">
-                  <div class="performance-index-item-wrapper"
-                       (mouseenter)="showTooltip('peerComparisonTooltip')" (mouseleave)="hideAllTooltips()">
-                    <div class="performance-index-item">
-                      <div class="performance-index-value">
-                        {{ averageReportData.averageTotalFollowUpPerConversion }}
+                  <div class="performance-index-items">
+                    <div class="performance-index-item-wrapper"
+                         (mouseenter)="showTooltip('peerComparisonTooltip')" (mouseleave)="hideAllTooltips()">
+                      <div class="performance-index-item">
+                        <div class="performance-index-value">
+                          {{ averageReportData.averageTotalFollowUpPerConversion }}
+                        </div>
+                        <div class="performance-index-description">
+                          Average FPC
+                        </div>
                       </div>
-                      <div class="performance-index-description">
-                        Peer Average FPC
-                      </div>
-                    </div>
-                    <div class="index-custom-tooltip" *ngIf="peerComparisonTooltip" [@dropIn]>
+                      <div class="index-custom-tooltip" *ngIf="peerComparisonTooltip" [@dropIn]>
                       <span>
                         The average <span class="font-bold">Follow Up per Conversion</span> of salespeople across all
                         <span class="font-bold">{{ getBuilderType() }}</span>.
                       </span>
+                      </div>
+                    </div>
+                    <div class="performance-index-item-wrapper"
+                         (mouseenter)="showTooltip('peerFollowUpTooltip')" (mouseleave)="hideAllTooltips()">
+                      <div class="performance-index-item">
+                        <div class="performance-index-value">
+                          {{ averageReportData.averageTotalFollowUps }}
+                        </div>
+                        <div class="performance-index-description">
+                          Average Follow Ups
+                        </div>
+                      </div>
+                      <div class="index-custom-tooltip" *ngIf="peerFollowUpTooltip" [@dropIn]>
+                      <span>
+                        The average number of <span class="font-bold">Follow Ups</span> made of salespeople across all
+                        <span class="font-bold">{{ getBuilderType() }}</span> for the month.
+                      </span>
+                      </div>
+                    </div>
+                    <div class="performance-index-item-wrapper"
+                         (mouseenter)="showTooltip('peerConversionTooltip')" (mouseleave)="hideAllTooltips()">
+                      <div class="performance-index-item">
+                        <div class="performance-index-value">
+                          {{ averageReportData.averageTotalConversions }}
+                        </div>
+                        <div class="performance-index-description">
+                          Average Conversions
+                        </div>
+                      </div>
+                      <div class="index-custom-tooltip" *ngIf="peerConversionTooltip" [@dropIn]>
+                      <span>
+                        The average number of <span class="font-bold">Stage Conversions</span> of salespeople across all
+                        <span class="font-bold">{{ getBuilderType() }}</span> for the month.
+                      </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="performance-index-items sub">
+                    <div class="performance-index-item">
+                      <div class="performance-index-value sub">
+                        <i class="pi pi-mobile"></i> {{ averageReportData.averageSms }}
+                      </div>
+                      <div class="performance-index-description">
+                        SMS
+                      </div>
+                    </div>
+                    <div class="performance-index-item">
+                      <div class="performance-index-value sub">
+                        <i class="pi pi-envelope"></i> {{ averageReportData.averageEmails }}
+                      </div>
+                      <div class="performance-index-description">
+                        Email
+                      </div>
+                    </div>
+                    <div class="performance-index-item">
+                      <div class="performance-index-value sub">
+                        <i class="pi pi-phone"></i> {{ averageReportData.averageCalls }}
+                      </div>
+                      <div class="performance-index-description">
+                        Call
+                      </div>
+                    </div>
+                    <div class="performance-index-item">
+                      <div class="performance-index-value sub">
+                        <i class="pi pi-comments"></i> {{ averageReportData.averageLiveChatMessages }}
+                      </div>
+                      <div class="performance-index-description">
+                        Chat
+                      </div>
                     </div>
                   </div>
                 </div>

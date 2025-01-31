@@ -18,7 +18,7 @@ Captured Leads: Provide the number of leads captured this month and compare it t
 Appointments Booked: Compare and analyze the number of new leads who scheduled a call and those who didn't.
 Lead Trends: Highlight trends in monthly captured leads for this client.
 Lead Sources and Channels: Identify the session channels and lead sources generating the most leads.
-Salesperson Performance: Highlight the top and bottom-performing salespersons for the month.
+Salesperson Performance: Highlight the top and bottom-performing salespersons for the month, indicating their follow up count as compared with the industry average follow ups.
 
 When writing the summary, replace the following terms for clarity, ensure proper capitalization based on context:
 
