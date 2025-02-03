@@ -89,7 +89,7 @@ export class KpiReportComponent implements OnInit {
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-  years: number[] = [2024];
+  years: number[] = [2024, 2025];
   months: string[] = [];
 
   ghlLocationId: string | null = null;
@@ -735,7 +735,6 @@ export class KpiReportComponent implements OnInit {
     }
   }
 
-
   onYearChange(): void {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -745,6 +744,10 @@ export class KpiReportComponent implements OnInit {
 
     if (this.selectedYear === currentYear) {
       this.selectedMonth = this.months[0];
+    } else if (this.selectedYear < currentYear) {
+      this.selectedMonth = 'December';
+    } else if (this.selectedYear > currentYear) {
+      this.selectedMonth = 'January';
     } else if (!this.months.includes(this.selectedMonth)) {
       this.selectedMonth = this.months[0];
     }
